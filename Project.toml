@@ -1,6 +1,27 @@
 name = "hd-loss"
-[compat]
-julia = "1.8.5"
-DrWatson = "2.12.1"
+
 [deps]
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+Colors = "5ae59095-9a9b-59fe-a467-6f913c188581"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DrWatson = "634d3b9d-ee7a-5ddf-bec9-22491ea816e1"
+FastAI = "5d0beca9-ade8-49ae-ad0b-a3cf890e669f"
+FastVision = "7bf02486-ff4c-4e73-b158-40c00866b54f"
+Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
+GLM = "38e38edf-8417-5370-95a0-9cbb8c7f171a"
+Glob = "c27321d9-0574-5035-807b-f59d2c89b15c"
+HypothesisTests = "09f84164-cd44-5f33-b23f-e6b0d136a0d5"
+ImageMorphology = "787d08f9-d448-5407-9aad-5290dd7ab264"
+Images = "916415d5-f1e6-5110-898d-aaa5f9f070e0"
+MLDataPattern = "9920b226-0b2a-5f5f-9153-9aa70a013f8b"
+MLJBase = "a7f614a8-145f-11e9-1d2a-a57a1082229d"
+NIfTI = "a3a9e032-41b5-5fc4-967a-a6b7a19844d3"
+PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+
+[compat]
+DrWatson = "2.12.1"
+julia = "1.8.5"
