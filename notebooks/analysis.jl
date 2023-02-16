@@ -14,13 +14,10 @@ macro bind(def, element)
     end
 end
 
-# ╔═╡ 87ecdac4-0742-401c-b44e-25ab9660de68
-# ╠═╡ show_logs = false
-using DrWatson; @quickactivate "hd-loss"
-
 # ╔═╡ 058e8772-e82d-4102-a05a-b1c64c4839b3
+# ╠═╡ show_logs = false
 begin
-
+	using DrWatson; @quickactivate "hd-loss"
     using PlutoUI, Statistics, CSV, DataFrames, GLM, CairoMakie, HypothesisTests, Colors, MLJBase, Glob, Flux, NIfTI, Images, ImageMorphology, FastAI, FastVision, StaticArrays, MLDataPattern, Printf, CSVFiles
 	using StatsBase: quantile!, rmsd, percentile
 	using CairoMakie: Axis, Label
@@ -300,7 +297,7 @@ function training_epoch()
 	
 	ylims!(ax; low=0, high=5)
 
-	save(plotsdir("training_epoch.png"))
+	save(plotsdir("training_epoch.png"), f)
 
     return f
 end
@@ -374,7 +371,7 @@ function hd_dice_julia()
         )
     end
 
-	save(plotsdir("dice_hd_julia.png"))
+	save(plotsdir("dice_hd_julia.png"), f)
 
     return f
 end
@@ -513,13 +510,7 @@ md"""
 """
 
 # ╔═╡ c1d410ff-c17e-4532-b1ad-777b242b3770
-@bind a PlutoUI.Slider(axes(x1, 3), default=60, show_value=true)
-
-# ╔═╡ b23e0538-ba08-411d-bce5-21a101cbc95f
-begin
-	y1_edge, y1_pred_edge, y1_pred_dice_edge = get_mask_edges(y1[:, :, a], y1_pred[:, :, a], y1_pred_dice[:, :, a])
-	y1_edge, y1_pred_edge, y1_pred_dice_edge = Tuple.(y1_edge), Tuple.(y1_pred_edge), Tuple.(y1_pred_dice_edge)
-end
+@bind a PlutoUI.Slider(axes(x2, 3), default=70, show_value=true)
 
 # ╔═╡ f6a97124-dc51-437d-b352-94f46f3f4c22
 let
@@ -527,22 +518,25 @@ let
 	alpha = 1
 	markersize = 2
 	
+	y2_edge, y2_pred_edge, y2_pred_dice_edge = get_mask_edges(y2[:, :, a], y2_pred[:, :, a], y2_pred_dice[:, :, a])
+	y2_edge, y2_pred_edge, y2_pred_dice_edge = Tuple.(y2_edge), Tuple.(y2_pred_edge), Tuple.(y2_pred_dice_edge)
+	
     ax = Axis(
 		f[1, 1],
 		title = "Dice Loss"
 	)
-    heatmap!(x1[:, :, a]; colormap=:grays)
-	scatter!(y1_edge; markersize=markersize, color = (:red, alpha), label="Ground Truth")
-	scatter!(y1_pred_dice_edge; markersize=markersize, color = (:blue, alpha), label="Predicted")
+    heatmap!(x2[:, :, a]; colormap=:grays)
+	scatter!(y2_edge; markersize=markersize, color = (:red, alpha), label="Ground Truth")
+	scatter!(y2_pred_dice_edge; markersize=markersize, color = (:blue, alpha), label="Predicted")
 	hidedecorations!(ax)
 
 	ax = Axis(
 		f[1, 2],
 		title = "HD-Dice Loss"
 	)
-    heatmap!(x1[:, :, a]; colormap=:grays)
-	scatter!(y1_edge; markersize=markersize, color = (:red, alpha), label="Ground Truth")
-	scatter!(y1_pred_edge; markersize=markersize, color = (:blue, alpha), label="Predicted")
+    heatmap!(x2[:, :, a]; colormap=:grays)
+	scatter!(y2_edge; markersize=markersize, color = (:red, alpha), label="Ground Truth")
+	scatter!(y2_pred_edge; markersize=markersize, color = (:blue, alpha), label="Predicted")
 	hidedecorations!(ax)
 
 
@@ -550,65 +544,66 @@ let
 end
 
 # ╔═╡ 4f43c115-20eb-4041-9f8a-40286a9fd7e5
-# let
-# 	f = Figure(
-# 	)
-# 	alpha = 1
-# 	markersize = 2
+let
+	f = Figure(
+	)
+	alpha = 1
+	markersize = 2
 
-# 	y1_edge, y1_pred_edge, y1_pred_dice_edge = get_mask_edges(y1[:, :, 60], y1_pred[:, :, 60], y1_pred_dice[:, :, 60])
-# 	y1_edge, y1_pred_edge, y1_pred_dice_edge = Tuple.(y1_edge), Tuple.(y1_pred_edge), Tuple.(y1_pred_dice_edge)
+	slice_1 = 70
+	y1_edge, y1_pred_edge, y1_pred_dice_edge = get_mask_edges(y1[:, :, slice_1], y1_pred[:, :, slice_1], y1_pred_dice[:, :, slice_1])
+	y1_edge, y1_pred_edge, y1_pred_dice_edge = Tuple.(y1_edge), Tuple.(y1_pred_edge), Tuple.(y1_pred_dice_edge)
 	
-#     ax1 = Axis(
-# 		f[1, 1],
-# 		title = "Dice Loss"
-# 	)
-#     heatmap!(x1[:, :, 60]; colormap=:grays)
-# 	scatter!(y1_edge; markersize=markersize, color = (:red, alpha), label="Ground Truth")
-# 	scatter!(y1_pred_dice_edge; markersize=markersize, color = (:blue, alpha), label="Predicted")
-# 	hidedecorations!(ax1)
+    ax1 = Axis(
+		f[1, 1],
+		title = "Dice Loss"
+	)
+    heatmap!(x1[:, :, slice_1]; colormap=:grays)
+	scatter!(y1_edge; markersize=markersize, color = (:red, alpha), label="Ground Truth")
+	scatter!(y1_pred_dice_edge; markersize=markersize, color = (:blue, alpha), label="Predicted")
+	hidedecorations!(ax1)
 	
 
-# 	ax2 = Axis(
-# 		f[1, 2],
-# 		title = "HD-Dice Loss"
-# 	)
-#     heatmap!(x1[:, :, 60]; colormap=:grays)
-# 	scatter!(y1_edge; markersize=markersize, color = (:red, alpha), label="Ground Truth")
-# 	scatter!(y1_pred_edge; markersize=markersize, color = (:blue, alpha), label="Predicted")
-# 	hidedecorations!(ax2)
+	ax2 = Axis(
+		f[1, 2],
+		title = "HD-Dice Loss"
+	)
+    heatmap!(x1[:, :, slice_1]; colormap=:grays)
+	scatter!(y1_edge; markersize=markersize, color = (:red, alpha), label="Ground Truth")
+	scatter!(y1_pred_edge; markersize=markersize, color = (:blue, alpha), label="Predicted")
+	hidedecorations!(ax2)
 
+
+	slice_2 = 43
+	y2_edge, y2_pred_edge, y2_pred_dice_edge = get_mask_edges(y2[:, :, slice_2], y2_pred[:, :, slice_2], y2_pred_dice[:, :, slice_2])
+	y2_edge, y2_pred_edge, y2_pred_dice_edge = Tuple.(y2_edge), Tuple.(y2_pred_edge), Tuple.(y2_pred_dice_edge)
+
+	ax3 = Axis(
+		f[2, 1]
+	)
+    heatmap!(x2[:, :, slice_2]; colormap=:grays)
+	scatter!(y2_edge; markersize=markersize, color = (:red, alpha), label="Ground Truth")
+	scatter!(y2_pred_dice_edge; markersize=markersize, color = (:blue, alpha), label="Predicted")
+	hidedecorations!(ax3)
 	
-# 	y2_edge, y2_pred_edge, y2_pred_dice_edge = get_mask_edges(y2[:, :, 54], y2_pred[:, :, 54], y2_pred_dice[:, :, 54])
-# 	y2_edge, y2_pred_edge, y2_pred_dice_edge = Tuple.(y2_edge), Tuple.(y2_pred_edge), Tuple.(y2_pred_dice_edge)
+	ax4 = Axis(
+		f[2, 2]
+	)
+    heatmap!(x2[:, :, slice_2]; colormap=:grays)
+	scatter!(y2_edge; markersize=markersize, color = (:red, alpha), label="Ground Truth")
+	scatter!(y2_pred_edge; markersize=markersize, color = (:blue, alpha), label="Predicted")
+	hidedecorations!(ax4)
 
-# 	ax3 = Axis(
-# 		f[2, 1]
-# 	)
-#     heatmap!(x2[:, :, 54]; colormap=:grays)
-# 	scatter!(y2_edge; markersize=markersize, color = (:red, alpha), label="Ground Truth")
-# 	scatter!(y2_pred_dice_edge; markersize=markersize, color = (:blue, alpha), label="Predicted")
-# 	hidedecorations!(ax3)
+	Legend(f[1:2, 3],
+    [LineElement(color = :red, linestyle = nothing), LineElement(color = :blue, linestyle = nothing)],
+    ["Ground Truth", "Predicted"]; framevisible=false)
+
+	save(plotsdir("contours.png"), f)
 	
-# 	ax4 = Axis(
-# 		f[2, 2]
-# 	)
-#     heatmap!(x2[:, :, 54]; colormap=:grays)
-# 	scatter!(y2_edge; markersize=markersize, color = (:red, alpha), label="Ground Truth")
-# 	scatter!(y2_pred_edge; markersize=markersize, color = (:blue, alpha), label="Predicted")
-# 	hidedecorations!(ax4)
-
-# 	Legend(f[1:2, 3],
-#     [LineElement(color = :red, linestyle = nothing), LineElement(color = :blue, linestyle = nothing)],
-#     ["Ground Truth", "Predicted"]; framevisible=false)
-
-# 	# save(joinpath(dirname(pwd()),"figures", "contours.png"), f)
-	
-#     f
-# end
+    f
+end
 
 # ╔═╡ Cell order:
-# ╠═87ecdac4-0742-401c-b44e-25ab9660de68
 # ╠═058e8772-e82d-4102-a05a-b1c64c4839b3
 # ╠═f88c7074-8b5c-4dc7-83d5-e65a24b88ab0
 # ╠═278dfa0e-46e1-4789-9f51-eb3463a9fb00
@@ -642,7 +637,7 @@ end
 # ╟─0eac4ad2-2484-4e2e-aebd-49f3b370555e
 # ╠═bdbae682-29c5-4920-8983-0d445a153b31
 # ╠═15316f17-c282-4618-967a-7539afe497fa
-# ╟─40fbef10-8a8a-4f80-964c-882894742bbf
+# ╠═40fbef10-8a8a-4f80-964c-882894742bbf
 # ╠═9f20d955-a8cd-47bb-aed4-b0b50e915df5
 # ╠═475618b0-885a-4fb3-90aa-57a7a649ddcb
 # ╠═7e586270-1111-490a-849c-f41a5f55059c
@@ -663,6 +658,5 @@ end
 # ╠═91c3eddf-57b0-419d-a37c-c799b3cc6352
 # ╟─59aafc4c-6b89-484d-a45f-8c94c577365b
 # ╟─c1d410ff-c17e-4532-b1ad-777b242b3770
-# ╠═b23e0538-ba08-411d-bce5-21a101cbc95f
 # ╟─f6a97124-dc51-437d-b352-94f46f3f4c22
 # ╟─4f43c115-20eb-4041-9f8a-40286a9fd7e5
