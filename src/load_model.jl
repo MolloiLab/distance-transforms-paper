@@ -55,11 +55,13 @@ function load_data_and_model(data_dir, dice_path, dice_hd_path; batch_size=4)
     image_size = (96, 96, 96)
     img_container, mask_container = presize(pre_data, image_size)
     data_resized = (img_container, mask_container)
-    println("Data Prepared.")
+    @info "Data Prepared"
+
     a, b = FastVision.imagedatasetstats(img_container, Gray{N0f8})
     means, stds = SVector{1,Float32}(a[1]), SVector{1,Float32}(b[1])
     train_files, val_files = MLDataPattern.splitobs(data_resized, 0.8)
     tdl, vdl = FastAI.taskdataloaders(train_files, val_files, task, batch_size)
-    println("Dataloader Created --> Finished!")
+    @info "Dataloader Created --> Finished!"
+
     return tdl, vdl, model_dice, model_dice_hd
 end
