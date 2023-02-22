@@ -76,24 +76,24 @@ function dt()
     ##-- A --##
     ax1 = Axis(
 		f[1, 1],
-		xlabel = "Array Size(Pixels)",
+		xlabel = "Array Size (Pixels)",
 		ylabel = "Time (ms)",
 		title = "2D Distance Transform"
 	)
-    lines!(df_dt_julia_2D[!, :sizes_2D], df_dt_py_2D[!, :dt_min_cpu_2D] * 1e-6, label="DT Python (CPU)")
-	lines!(df_dt_julia_2D[!, :sizes_2D], df_dt_julia_2D[!, :wenbo_threaded_minimum_2D] * 1e-6, label="DT Julia (CPU)")
-    lines!(df_dt_julia_2D[!, :sizes_2D], df_dt_julia_2D[!, :wenbo_gpu_minimum_2D] * 1e-6, label="DT Julia (GPU)")
+    lines!(df_dt_julia_2D[!, :sizes_2D], df_dt_py_2D[!, :dt_min_cpu_2D] * 1e-6, label=L"\text{DT}_{\text{CPU}}^{\text{PY}}")
+	lines!(df_dt_julia_2D[!, :sizes_2D], df_dt_julia_2D[!, :wenbo_threaded_minimum_2D] * 1e-6, label=L"\text{DT}_{\text{CPU}}^{\text{JL}}")
+    lines!(df_dt_julia_2D[!, :sizes_2D], df_dt_julia_2D[!, :wenbo_gpu_minimum_2D] * 1e-6, label=L"\text{DT}_{\text{GPU}}^{\text{JL}}")
 
 	##-- B --##
     ax2 = Axis(
 		f[2, 1],
-		xlabel = "Array Size(Pixels)",
+		xlabel = "Array Size (Pixels)",
 		ylabel = "Time (s)",
 		title = "3D Distance Transform"
 	)
-    lines!(df_dt_julia_3D[!, :sizes_3D], df_dt_py_3D[!, :dt_min_cpu_3D] * 1e-9, label="dt_py")
-	lines!(df_dt_julia_3D[!, :sizes_3D], df_dt_julia_3D[!, :wenbo_threaded_minimum_3D] * 1e-9, label="dt_julia")
-    lines!(df_dt_julia_3D[!, :sizes_3D], df_dt_julia_3D[!, :wenbo_gpu_minimum_3D] * 1e-9, label="dt_julia_gpu")
+    lines!(df_dt_julia_3D[!, :sizes_3D], df_dt_py_3D[!, :dt_min_cpu_3D] * 1e-9, label=L"\text{DT}_{\text{CPU}}^{\text{PY}}")
+	lines!(df_dt_julia_3D[!, :sizes_3D], df_dt_julia_3D[!, :wenbo_threaded_minimum_3D] * 1e-9, label=L"\text{DT}_{\text{CPU}}^{\text{JL}}")
+    lines!(df_dt_julia_3D[!, :sizes_3D], df_dt_julia_3D[!, :wenbo_gpu_minimum_3D] * 1e-9, label=L"\text{DT}_{\text{GPU}}^{\text{JL}}")
 
     ##-- LABELS --##
     f[1:2, 2] = Legend(f, ax1; framevisible=false)
@@ -156,9 +156,9 @@ function loss()
 		title = "2D Loss",
 		xticklabelrotation = pi/4
 	)
-	lines!(df_loss_julia_2D[!, :size], df_loss_py_2D[!, :Scipy_cpu_hd_gpu_min] * 1e-6, label="HD Loss Python (CPU)")
-	lines!(df_loss_julia_2D[!, :size], df_loss_julia_2D[!, :Maurer_cpu_hd_gpu_min] * 1e-6, label="HD Loss Julia (CPU)")
-	lines!(df_loss_julia_2D[!, :size], df_loss_julia_2D[!, :Wenbo_gpu_hd_gpu_min] * 1e-6, label="HD Loss Julia (GPU)")
+	lines!(df_loss_julia_2D[!, :size], df_loss_py_2D[!, :Scipy_cpu_hd_gpu_min] * 1e-6, label=L"\text{HD}_{\text{CPU}}^{\text{PY}}")
+	lines!(df_loss_julia_2D[!, :size], df_loss_julia_2D[!, :Maurer_cpu_hd_gpu_min] * 1e-6, label=L"\text{HD}_{\text{CPU}}^{\text{JL}}")
+	lines!(df_loss_julia_2D[!, :size], df_loss_julia_2D[!, :Wenbo_gpu_hd_gpu_min] * 1e-6, label=L"\text{HD}_{\text{GPU}}^{\text{JL}}")
 
 	##-- B --##
     ax = Axis(
@@ -168,10 +168,10 @@ function loss()
 		title = "3D Loss",
 		xticklabelrotation = pi/4
 	)
-	lines!(df_loss_julia_3D[!, :size], df_loss_py_3D[!, :Scipy_cpu_hd_gpu_min] * 1e-6, label="HD Loss Python (CPU)")
-	lines!(df_loss_julia_3D[!, :size], df_loss_julia_3D[!, :Maurer_cpu_hd_gpu_min] * 1e-6, label="HD Loss Julia (CPU)")
-	lines!(df_loss_julia_3D[!, :size], df_loss_julia_3D[!, :Wenbo_gpu_hd_gpu_min] * 1e-6, label="HD Loss Julia (GPU)")
-	vlines!(96^3:96^3; linestyle=:dash, label="Training Array Input Size")
+	lines!(df_loss_julia_3D[!, :size], df_loss_py_3D[!, :Scipy_cpu_hd_gpu_min] * 1e-6, label=L"\text{HD}_{\text{CPU}}^{\text{PY}}")
+	lines!(df_loss_julia_3D[!, :size], df_loss_julia_3D[!, :Maurer_cpu_hd_gpu_min] * 1e-6, label=L"\text{HD}_{\text{CPU}}^{\text{JL}}")
+	lines!(df_loss_julia_3D[!, :size], df_loss_julia_3D[!, :Wenbo_gpu_hd_gpu_min] * 1e-6, label=L"\text{HD}_{\text{GPU}}^{\text{JL}}")
+	vlines!(96^3:96^3; linestyle=:dash, label="Array Input Size")
 
    	##-- LABELS --##
     f[1:2, end+1] = Legend(f, ax; framevisible=false, orientation=:vertical)
@@ -230,7 +230,7 @@ function training_step()
     ##-- TOP --##
     ax = Axis(
 		f[1, 1]; 
-		xticks=(1:3, ["Dice Loss", "HD-Dice Loss (CPU)", "HD-Dice Loss (GPU)"]), xticklabelrotation=pi/4,
+		xticks=(1:3, [L"\text{Loss}_{\text{DSC}}", L"\text{Loss}_{\text{DSC/HD}}^{\text{CPU}}", L"\text{Loss}_{\text{DSC/HD}}^{\text{GPU}}"]), xticklabelrotation=0,
 		title = "Average Step Time",
 		ylabel = "Time (s)"
 	)
@@ -279,8 +279,7 @@ function training_epoch()
 	##-- Bottom --##
      ax = Axis(
 		 f[1, 1]; 
-		 xticks=(1:3, ["Dice Loss", "HD-Dice Loss (CPU)", "HD-Dice Loss (GPU)"]),
-		 xticklabelrotation=pi/4,
+		xticks=(1:3, [L"\text{Loss}_{\text{DSC}}", L"\text{Loss}_{\text{DSC/HD}}^{\text{CPU}}", L"\text{Loss}_{\text{DSC/HD}}^{\text{GPU}}"]), xticklabelrotation=0,
 		 title = "Average Epoch Time",
 		 ylabel = "Time (s)"
 	 )
@@ -342,10 +341,10 @@ function hd_dice_julia()
 		f[1, 1],
 		xlabel = "Epoch",
 		ylabel = "Hausdorff Metric (mm)",
-		title = "Hasudorff Metric"
+		title = "HD"
 	)
-    lines!(filter(!isinf, df_hd_metrics[!, :valid_hd_metric_dice]), label="Dice Loss")
-    lines!(filter(!isinf, df_hd_metrics[!, :valid_hd_metric_dice_hd]), label="HD-Dice Loss")
+    lines!(filter(!isinf, df_hd_metrics[!, :valid_hd_metric_dice]), label=L"\text{Loss}_{\text{DSC}}")
+    lines!(filter(!isinf, df_hd_metrics[!, :valid_hd_metric_dice_hd]), label=L"\text{Loss}_{\text{DSC/HD}}^{\text{GPU}}")
 	ylims!(ax, low=-5, high=100)
 
 	#-- B --##
@@ -353,10 +352,10 @@ function hd_dice_julia()
 		f[2, 1],
 		xlabel = "Epoch",
 		ylabel = "Dice Metric",
-		title = "Dice Metric"
+		title = "DSC"
 	)
-    lines!(filter(!isinf, df_dice_metrics[!, :valid_dice_metric_dice]), label="Dice Loss")
-    lines!(filter(!isinf, df_dice_metrics[!, :valid_dice_metric_dice_hd]), label="HD-Dice Loss")
+    lines!(filter(!isinf, df_dice_metrics[!, :valid_dice_metric_dice]), label=L"\text{Loss}_{\text{DSC}}")
+    lines!(filter(!isinf, df_dice_metrics[!, :valid_dice_metric_dice_hd]), label=L"\text{Loss}_{\text{DSC/HD}}^{\text{GPU}}")
 	ylims!(ax, low=0, high=1)
 
     ##-- LABELS --##
@@ -441,15 +440,21 @@ end
 # ╔═╡ 9a4223ed-f075-4f15-b2a8-f505e83fa253
 with_theme(training_loss, medphys_theme)
 
+
+
 # ╔═╡ 0614b6e9-9853-4f09-b8de-b3e8d1775aba
-md"""
-# Contour Visualizations
-"""
+# md"""
+# # Contour Visualizations
+# """
+
+
 
 # ╔═╡ 4ace7533-de03-4a31-847e-69f30d7ce0b7
-md"""
-## Load model
-"""
+# md"""
+# ## Load model
+# """
+
+
 
 # ╔═╡ c356a52f-88e1-4659-a122-56dc2fe9315f
 path_to_dataset = "/Users/daleblack/Library/CloudStorage/GoogleDrive-djblack@uci.edu/My Drive/Datasets/Task02_Heart";
@@ -630,7 +635,7 @@ end
 # ╟─5691a8ac-cb96-435f-aaef-48e4f72f77e5
 # ╠═87dfe577-9ffa-4e89-9c2b-d2cde95fcbae
 # ╠═23a06ef1-aff1-43b0-b328-e3e01e95efcf
-# ╟─7d3aab45-0e21-4be4-8034-6f702025f1b6
+# ╠═7d3aab45-0e21-4be4-8034-6f702025f1b6
 # ╠═fa56d7f3-4e00-43d2-84bc-913c77c0fbe4
 # ╟─29fbb7d4-e992-4b2b-a0af-5a31bcf6ba00
 # ╠═2898cc85-d85e-46fe-988f-3843972fe7f1
@@ -638,8 +643,8 @@ end
 # ╠═bdbae682-29c5-4920-8983-0d445a153b31
 # ╠═15316f17-c282-4618-967a-7539afe497fa
 # ╠═40fbef10-8a8a-4f80-964c-882894742bbf
-# ╠═9f20d955-a8cd-47bb-aed4-b0b50e915df5
-# ╠═475618b0-885a-4fb3-90aa-57a7a649ddcb
+# ╟─9f20d955-a8cd-47bb-aed4-b0b50e915df5
+# ╟─475618b0-885a-4fb3-90aa-57a7a649ddcb
 # ╠═7e586270-1111-490a-849c-f41a5f55059c
 # ╟─0e6fe7e8-0f10-4fef-86e2-4673011acf08
 # ╠═0ef58a86-2901-40f0-9c62-9cbda7fbf03a
@@ -658,5 +663,5 @@ end
 # ╠═91c3eddf-57b0-419d-a37c-c799b3cc6352
 # ╟─59aafc4c-6b89-484d-a45f-8c94c577365b
 # ╟─c1d410ff-c17e-4532-b1ad-777b242b3770
-# ╟─f6a97124-dc51-437d-b352-94f46f3f4c22
-# ╟─4f43c115-20eb-4041-9f8a-40286a9fd7e5
+# ╠═f6a97124-dc51-437d-b352-94f46f3f4c22
+# ╠═4f43c115-20eb-4041-9f8a-40286a9fd7e5
