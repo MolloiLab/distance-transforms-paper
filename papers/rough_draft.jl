@@ -164,7 +164,7 @@ md"""
 
 # ╔═╡ da0eead6-0a37-4b5c-889f-b2f2ff5dbeca
 md"""
-Two and three-dimensional arrays from size {insert} up to size {insert} were input into the distance transforms. The distance transform utilized in this paper (``\text{DT}_\text{{JL\_GPU}}``) was previously shown to be the fastest implementation for two and three-dimensional arrays within the size range of common medical images, like computed tomography scans. For the largest-sized two-dimensional array, ``\text{DT}_\text{{JL\_GPU}}`` was ``1300 \times`` faster than ``\text{DT}_\text{{PY\_CPU}}``. For the largest-sized three-dimensional array, ``\text{DT}_\text{{JL\_GPU}}`` was ``33 \times`` faster than ``\text{DT}_\text{{PY\_CPU}}``. Figure 1 shows the two, and three-dimensional timings of the various distance transform operations.
+Two and three-dimensional arrays from size {insert} up to size {insert} were input into the distance transforms. The distance transform utilized in this paper (``\text{DT}_{\text{GPU}}^{\text{JL}}``) was previously shown to be the fastest implementation for two and three-dimensional arrays within the size range of common medical images, like computed tomography scans. For the largest-sized two-dimensional array, ``\text{DT}_{\text{GPU}}^{\text{JL}}`` was ``1300 \times`` faster than ``\text{DT}_{\text{CPU}}^{\text{PY}}``. For the largest-sized three-dimensional array, ``\text{DT}_{\text{GPU}}^{\text{JL}}`` was ``33 \times`` faster than ``\text{DT}_{\text{CPU}}^{\text{PY}}``. Figure 1 shows the two, and three-dimensional timings of the various distance transform operations.
 """
 
 # ╔═╡ d5fd0b05-54fa-43b8-9f35-eea3fd260176
@@ -182,7 +182,7 @@ md"""
 
 # ╔═╡ 03763d64-afbd-4bac-8a5c-ad700c3200f9
 md"""
-Two and three-dimensional arrays from size {insert} up to size {insert} were input into the distance transforms. The HD loss function, implemented in this paper (``\text{HD}_\text{JL\_GPU}``), was faster than any previous implementations. Specifically, ``\text{HD}_\text{JL\_GPU}`` was ``30 \times`` faster than ``\text{HD}_\text{PY\_CPU}`` on the largest two-dimensional arrays and ``8 \times`` faster on the largest three-dimensional arrays. The input arrays in the training loop were of size ``96 \times 96 \times 96`` (Fig. 2B) and for this size, the ``\text{HD}_\text{JL\_GPU}`` was ``5 \times`` faster than ``\text{HD}_\text{PY\_CPU}``. Figure 2 shows the two, and three-dimensional timings of the various loss functions.
+Two and three-dimensional arrays from size {insert} up to size {insert} were input into the distance transforms. The HD loss function, implemented in this paper (``\text{HD}_{\text{GPU}}^{\text{JL}}``), was faster than any previous implementations. Specifically, ``\text{HD}_{\text{GPU}}^{\text{JL}}`` was ``30 \times`` faster than ``\text{HD}_{\text{CPU}}^{\text{PY}}`` on the largest two-dimensional arrays and ``8 \times`` faster on the largest three-dimensional arrays. The input arrays in the training loop were of size ``96 \times 96 \times 96`` (Fig. 2B) and for this size, the ``\text{HD}_{\text{GPU}}^{\text{JL}}`` was ``5 \times`` faster than ``\text{HD}_{\text{CPU}}^{\text{PY}}``. Figure 2 shows the two, and three-dimensional timings of the various loss functions.
 """
 
 # ╔═╡ ec837694-cfa1-4abe-8de3-9efcf4b46004
@@ -200,57 +200,78 @@ md"""
 
 # ╔═╡ 96fe5180-b3e9-4994-aa62-fab24592b6cd
 md"""
+A simplified training loop was run for {insert} epochs, and the average step time and epoch time were examined for each loss function. Based on previous reports [CITE], combining the HD loss function with the Dice loss function is recommended to avoid instability issues. Therefore, three different loss functions were analyzed: 1) pure Dice loss function (``\text{Loss}_{\text{DSC}}``), which serves as the baseline, 2) hybrid HD loss and Dice loss function (``\text{Loss}_{\text{DSC\_HD}}^{\text{CPU}}``), which runs on the CPU and is comparable to the previously reported HD loss function [CITE], and 3) our new hybrid HD loss and Dice loss function (``\text{Loss}_{\text{DSC\_HD}}^{\text{GPU}}``), which runs entirely on the GPU.
 
+The average step time for the previously proposed HD loss function ``\text{Loss}_{\text{DSC\_HD}}^{\text{CPU}}`` was 54.2% slower than the baseline ``\text{Loss}_{\text{DSC}}`` (Fig. 3). Similarly, the average epoch time for the previously proposed HD loss function ``\text{Loss}_{\text{DSC\_HD}}^{\text{CPU}}`` was 53.6% slower than the baseline ``\text{Loss}_{\text{DSC}}`` (Fig. 4). The average step time for our new HD loss function ``\text{Loss}_{\text{DSC\_HD}}^{\text{GPU}}`` was 13.6% slower than the baseline ``\text{Loss}_{\text{DSC}}`` (Fig. 3) and 13.5% slower than the baseline per epoch (Fig. 4). 
+
+Figures 3 and 4 show the average step and epoch time, respectively, for each loss function.
 """
 
 # ╔═╡ c2db5713-3167-46f6-8be0-80d3efc8223d
 load(plotsdir("training_step.png"))
 
-# ╔═╡ eba6e328-5959-4364-bb37-a4df091d7e82
-perc_increase(a, b) = ((b - a) / a) * 100
-
-# ╔═╡ f5792b34-de86-495a-bafe-d8352ad507e1
-begin
-	dice = 0.59
-	hd_cpu = 0.91
-	hd_gpu = 0.67
-end
-
-# ╔═╡ ecd855cb-f8c8-4745-81d3-54da005655c7
-perc_increase(dice, hd_cpu)
-
-# ╔═╡ 5d4d3eb6-0c9d-4aee-8b68-b75a09efe604
-perc_increase(dice, hd_gpu)
+# ╔═╡ 8ff25665-1863-4c11-b6d5-d6df4b1c6eac
+md"""
+Figure 3. Average step time (s) for various loss functions. The baseline, ``\text{Loss}_{\text{DSC}}``, took 0.59s on average per step. The previously proposed hybrid Dice and HD loss function, ``\text{Loss}_{\text{DSC\_HD}}^{\text{CPU}}``, took 0.91s on average per step. Our new loss function, ``\text{Loss}_{\text{DSC\_HD}}^{\text{GPU}}``, took 0.67s on average per step.
+"""
 
 # ╔═╡ 2ba9e25b-d46e-4b1e-8455-e30e1ff8c155
 load(plotsdir("training_epoch.png"))
 
-# ╔═╡ 02f5817b-dad0-44f1-b135-05299ba4ead7
-begin
-	dice2 = 2.37
-	hd_cpu2 = 3.64
-	hd_gpu2 = 2.69
-end
+# ╔═╡ 311657af-b191-480c-9bd3-4cc769b108d0
+md"""
+Figure 4. Average epoch time (s) for various loss functions. The baseline, ``\text{Loss}_{\text{DSC}}``, took 2.37s on average per step. The previously proposed hybrid Dice and HD loss function, ``\text{Loss}_{\text{DSC\_HD}}^{\text{CPU}}``, took 3.64s on average per step. Our new loss function, ``\text{Loss}_{\text{DSC\_HD}}^{\text{GPU}}``, took 2.69s on average per step.
+"""
 
-# ╔═╡ 4b81c68c-6c3d-43c4-9633-8fab001467ae
-perc_increase(dice2, hd_cpu2)
+# ╔═╡ 458c4a6a-4b0e-4a71-bb07-380be9309c51
+# begin
+# 	perc_increase(a, b) = ((b - a) / a) * 100
+	
+# 	dice = 0.59
+# 	hd_cpu = 0.91
+# 	hd_gpu = 0.67
+# 	@info perc_increase(dice, hd_cpu)
+# 	@info perc_increase(dice, hd_gpu)
+# 	@info perc_increase(hd_gpu, hd_cpu)
 
-# ╔═╡ a6609051-f3be-474f-b5f9-71314b19988a
-perc_increase(dice2, hd_gpu2)
+# 	dice2 = 2.37
+# 	hd_cpu2 = 3.64
+# 	hd_gpu2 = 2.69
+# 	@info perc_increase(dice2, hd_cpu2)
+# 	@info perc_increase(dice2, hd_gpu2)
+# 	@info perc_increase(hd_gpu2, hd_cpu2)
+# end
 
 # ╔═╡ e548262f-15fc-4446-afa0-e684a0526ad0
 md"""
 ## 3.4 - Accuracy
 """
 
-# ╔═╡ 37c90298-c36f-4ced-a3df-af5140d1f23b
-load(plotsdir("contours.png"))
+# ╔═╡ efa8acce-9697-44ae-8518-38faafb27807
+md"""
+This study focused on solving the computational complexity issue associated with previously proposed HD loss functions. Therefore, benchmarking the loss functions was the main concern. But the purpose of the HD loss function is to improve upon the segmentation compared to the gold standard Dice loss function [CITE]. Therefore, we trained a deep learning model with the Dice loss (``\text{Loss}_{\text{DSC}}``) and our fast hybrid Dice-HD loss function (``\text{Loss}_{\text{DSC\_HD}}^{\text{GPU}}``) and compared the pertinent resulting metrics (DSC and HD) of each model to demonstrate the effectiveness of the HD loss function. Table 1 shows both models' 90th percentile (highest) DSC and 10th percentile (lowest) HD. ``\text{Loss}_{\text{DSC\_HD}}^{\text{GPU}}`` improved upon the baseline model's DSC from 0.82 to 088. Similarly, ``\text{Loss}_{\text{DSC\_HD}}^{\text{GPU}}`` improved upon the baseline model's HD from 9.11 to 5.20. Figure 5 shows the HD and DSC of both models at each epoch. Both the DSC and HD are improved compared to the baseline DSC model, with less variation between each epoch.
+
+Figure 6 shows example slices of the heart dataset with the ground truth segmentation and predicted segmentation overlayed on the slice. The left column shows the predicted mask from the Dice loss function, and the right column shows the predicted mask from the HD-Dice loss.
+"""
+
+# ╔═╡ 43c081f1-14c6-4f72-b112-8fa192d862f1
+CSV.read(datadir("analysis", "accuracy.csv"), DataFrame)
 
 # ╔═╡ 4d8340f7-e4ca-4403-bb71-66e245036183
 load(plotsdir("dice_hd_julia.png"))
 
-# ╔═╡ 43c081f1-14c6-4f72-b112-8fa192d862f1
-CSV.read(datadir("analysis", "accuracy.csv"), DataFrame)
+# ╔═╡ c39110b1-ba24-45bc-bb8f-372e51eb8d85
+md"""
+Figure 5. The HD and DSC of both models at each epoch. Both the DSC and HD are improved compared to the baseline DSC model, with less variation between each epoch.
+"""
+
+# ╔═╡ 37c90298-c36f-4ced-a3df-af5140d1f23b
+load(plotsdir("contours.png"))
+
+# ╔═╡ 4e1069cb-039c-4c62-97b7-96c34c1ed55e
+md"""
+Figure 6. Selected slices of the heart dataset with ground truth and predicted boundaries overlayed. The left column shows the baseline Dice loss model and the right column shows the hybrid HD-Dice loss proposed in this study.
+"""
 
 # ╔═╡ 8b77b013-f70f-4470-b1bb-5b538edee5e9
 md"""
@@ -292,20 +313,19 @@ md"""
 # ╟─ec837694-cfa1-4abe-8de3-9efcf4b46004
 # ╟─a2566ddd-c945-4933-a16d-7f8d1ced2314
 # ╟─d899cdf6-4b94-496a-a058-73e394a7ea6a
-# ╠═96fe5180-b3e9-4994-aa62-fab24592b6cd
+# ╟─96fe5180-b3e9-4994-aa62-fab24592b6cd
 # ╟─c2db5713-3167-46f6-8be0-80d3efc8223d
-# ╠═eba6e328-5959-4364-bb37-a4df091d7e82
-# ╠═f5792b34-de86-495a-bafe-d8352ad507e1
-# ╠═ecd855cb-f8c8-4745-81d3-54da005655c7
-# ╠═5d4d3eb6-0c9d-4aee-8b68-b75a09efe604
+# ╟─8ff25665-1863-4c11-b6d5-d6df4b1c6eac
 # ╟─2ba9e25b-d46e-4b1e-8455-e30e1ff8c155
-# ╠═02f5817b-dad0-44f1-b135-05299ba4ead7
-# ╠═4b81c68c-6c3d-43c4-9633-8fab001467ae
-# ╠═a6609051-f3be-474f-b5f9-71314b19988a
+# ╟─311657af-b191-480c-9bd3-4cc769b108d0
+# ╟─458c4a6a-4b0e-4a71-bb07-380be9309c51
 # ╟─e548262f-15fc-4446-afa0-e684a0526ad0
-# ╟─37c90298-c36f-4ced-a3df-af5140d1f23b
-# ╟─4d8340f7-e4ca-4403-bb71-66e245036183
+# ╟─efa8acce-9697-44ae-8518-38faafb27807
 # ╟─43c081f1-14c6-4f72-b112-8fa192d862f1
+# ╟─4d8340f7-e4ca-4403-bb71-66e245036183
+# ╟─c39110b1-ba24-45bc-bb8f-372e51eb8d85
+# ╟─37c90298-c36f-4ced-a3df-af5140d1f23b
+# ╟─4e1069cb-039c-4c62-97b7-96c34c1ed55e
 # ╟─8b77b013-f70f-4470-b1bb-5b538edee5e9
 # ╟─afe38064-9194-447c-8f88-23980727bab4
 # ╟─012af9d3-9095-4420-bffa-b7096665b153
