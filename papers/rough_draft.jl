@@ -133,7 +133,7 @@ Similarly to the pure distance transform timings, various forms of previously pu
 
 # ╔═╡ 68bc23e7-774d-4378-a9fb-07167ed44411
 md"""
-## 2.4 - Training
+## 2.3 - Training
 """
 
 # ╔═╡ fcf6e65d-783d-4839-9b0e-b6f5e9d642eb
@@ -142,12 +142,9 @@ After benchmarking the pure distance transforms and loss functions, we then comp
 
 The heart dataset from the Medical Segmentation Decathlon was used for training. Along with the timing information, the DSC and HD metrics were calculated on the validation data of the heart dataset and compared between the HD and Dice loss functions.
 
-The Julia programming language was used for the training process, along with key Julia packages [CITE]. A simple UNet model was implemented with {_} channels, {_}
-"""
+The Julia programming language was used for the training process, along with key Julia packages [CITE]. A simple 3D UNet model was implemented for the training process [CITE]. All loss functions were minimized using the stochastic gradient descent optimizer [CITE], and the learning rate was set to {insert}.
 
-# ╔═╡ 78c8eb22-b8e5-4b3c-bf61-fbac9be5ba7a
-md"""
-## 2.5 - Hardware
+All the training code was implemented in Julia 1.8 and Flux {insert} and run on Windows 10. An NVIDIA {insert} GPU was used for training along with CUDA {inset}.
 """
 
 # ╔═╡ fb417691-9c1a-46ec-aa2c-3c9c325c1d73
@@ -155,42 +152,99 @@ md"""
 # III. Results
 """
 
+# ╔═╡ 13b6d018-9b3c-4eaa-868e-1947c51f0b6f
+md"""
+## 3.1 - Timings
+"""
+
 # ╔═╡ 9c02f72e-ee10-4a58-a449-16461a475809
 md"""
-## 3.1 - Distance Transforms Benchmarks
+### 3.1.1 - Distance Transforms
 """
 
 # ╔═╡ da0eead6-0a37-4b5c-889f-b2f2ff5dbeca
 md"""
-
+Two and three-dimensional arrays from size {insert} up to size {insert} were input into the distance transforms. The distance transform utilized in this paper (``\text{DT}_\text{{JL\_GPU}}``) was previously shown to be the fastest implementation for two and three-dimensional arrays within the size range of common medical images, like computed tomography scans. For the largest-sized two-dimensional array, ``\text{DT}_\text{{JL\_GPU}}`` was ``1300 \times`` faster than ``\text{DT}_\text{{PY\_CPU}}``. For the largest-sized three-dimensional array, ``\text{DT}_\text{{JL\_GPU}}`` was ``33 \times`` faster than ``\text{DT}_\text{{PY\_CPU}}``. Figure 1 shows the two, and three-dimensional timings of the various distance transform operations.
 """
 
 # ╔═╡ d5fd0b05-54fa-43b8-9f35-eea3fd260176
 load(plotsdir("dt.png"))
 
+# ╔═╡ 4f0ef647-cf78-4f68-be48-2bfffa23f77b
+md"""
+Figure 1. Distance transform benchmarks. (A) Shows the time to compute the distance transforms (in ms) on various-sized two-dimensional arrays. (B) Shows the time to compute the distance transforms (in ms) on various-sized three-dimensional arrays.
+"""
+
 # ╔═╡ 4449f6a2-7727-4bd5-a1b6-394ec1864b81
 md"""
-## 3.2 - Loss Function Benchmarks
+### 3.1.2 - Loss Functions
+"""
+
+# ╔═╡ 03763d64-afbd-4bac-8a5c-ad700c3200f9
+md"""
+Two and three-dimensional arrays from size {insert} up to size {insert} were input into the distance transforms. The HD loss function, implemented in this paper (``\text{HD}_\text{JL\_GPU}``), was faster than any previous implementations. Specifically, ``\text{HD}_\text{JL\_GPU}`` was ``30 \times`` faster than ``\text{HD}_\text{PY\_CPU}`` on the largest two-dimensional arrays and ``8 \times`` faster on the largest three-dimensional arrays. The input arrays in the training loop were of size ``96 \times 96 \times 96`` (Fig. 2B) and for this size, the ``\text{HD}_\text{JL\_GPU}`` was ``5 \times`` faster than ``\text{HD}_\text{PY\_CPU}``. Figure 2 shows the two, and three-dimensional timings of the various loss functions.
 """
 
 # ╔═╡ ec837694-cfa1-4abe-8de3-9efcf4b46004
 load(plotsdir("loss.png"))
 
+# ╔═╡ a2566ddd-c945-4933-a16d-7f8d1ced2314
+md"""
+Figure 2. Loss function benchmarks. (A) Shows the time to compute the loss functions (in ms) on various-sized two-dimensional arrays. (B) Shows the time to compute the loss functions (in ms) on various-sized three-dimensional arrays.
+"""
+
 # ╔═╡ d899cdf6-4b94-496a-a058-73e394a7ea6a
 md"""
-## 3.3 - Training Loop Benchmarks
+### 3.1.3 - Training Loop
+"""
+
+# ╔═╡ 96fe5180-b3e9-4994-aa62-fab24592b6cd
+md"""
+
 """
 
 # ╔═╡ c2db5713-3167-46f6-8be0-80d3efc8223d
 load(plotsdir("training_step.png"))
 
+# ╔═╡ eba6e328-5959-4364-bb37-a4df091d7e82
+perc_increase(a, b) = ((b - a) / a) * 100
+
+# ╔═╡ f5792b34-de86-495a-bafe-d8352ad507e1
+begin
+	dice = 0.59
+	hd_cpu = 0.91
+	hd_gpu = 0.67
+end
+
+# ╔═╡ ecd855cb-f8c8-4745-81d3-54da005655c7
+perc_increase(dice, hd_cpu)
+
+# ╔═╡ 5d4d3eb6-0c9d-4aee-8b68-b75a09efe604
+perc_increase(dice, hd_gpu)
+
 # ╔═╡ 2ba9e25b-d46e-4b1e-8455-e30e1ff8c155
 load(plotsdir("training_epoch.png"))
+
+# ╔═╡ 02f5817b-dad0-44f1-b135-05299ba4ead7
+begin
+	dice2 = 2.37
+	hd_cpu2 = 3.64
+	hd_gpu2 = 2.69
+end
+
+# ╔═╡ 4b81c68c-6c3d-43c4-9633-8fab001467ae
+perc_increase(dice2, hd_cpu2)
+
+# ╔═╡ a6609051-f3be-474f-b5f9-71314b19988a
+perc_increase(dice2, hd_gpu2)
 
 # ╔═╡ e548262f-15fc-4446-afa0-e684a0526ad0
 md"""
 ## 3.4 - Accuracy
 """
+
+# ╔═╡ 37c90298-c36f-4ced-a3df-af5140d1f23b
+load(plotsdir("contours.png"))
 
 # ╔═╡ 4d8340f7-e4ca-4403-bb71-66e245036183
 load(plotsdir("dice_hd_julia.png"))
@@ -226,18 +280,30 @@ md"""
 # ╟─38c0828f-72a0-44b2-b2e8-9d8c241b1fee
 # ╟─5ff24d6d-d385-4efc-807c-c45f0f4a419c
 # ╟─68bc23e7-774d-4378-a9fb-07167ed44411
-# ╠═fcf6e65d-783d-4839-9b0e-b6f5e9d642eb
-# ╟─78c8eb22-b8e5-4b3c-bf61-fbac9be5ba7a
+# ╟─fcf6e65d-783d-4839-9b0e-b6f5e9d642eb
 # ╟─fb417691-9c1a-46ec-aa2c-3c9c325c1d73
+# ╟─13b6d018-9b3c-4eaa-868e-1947c51f0b6f
 # ╟─9c02f72e-ee10-4a58-a449-16461a475809
-# ╠═da0eead6-0a37-4b5c-889f-b2f2ff5dbeca
+# ╟─da0eead6-0a37-4b5c-889f-b2f2ff5dbeca
 # ╟─d5fd0b05-54fa-43b8-9f35-eea3fd260176
+# ╟─4f0ef647-cf78-4f68-be48-2bfffa23f77b
 # ╟─4449f6a2-7727-4bd5-a1b6-394ec1864b81
+# ╟─03763d64-afbd-4bac-8a5c-ad700c3200f9
 # ╟─ec837694-cfa1-4abe-8de3-9efcf4b46004
+# ╟─a2566ddd-c945-4933-a16d-7f8d1ced2314
 # ╟─d899cdf6-4b94-496a-a058-73e394a7ea6a
+# ╠═96fe5180-b3e9-4994-aa62-fab24592b6cd
 # ╟─c2db5713-3167-46f6-8be0-80d3efc8223d
+# ╠═eba6e328-5959-4364-bb37-a4df091d7e82
+# ╠═f5792b34-de86-495a-bafe-d8352ad507e1
+# ╠═ecd855cb-f8c8-4745-81d3-54da005655c7
+# ╠═5d4d3eb6-0c9d-4aee-8b68-b75a09efe604
 # ╟─2ba9e25b-d46e-4b1e-8455-e30e1ff8c155
+# ╠═02f5817b-dad0-44f1-b135-05299ba4ead7
+# ╠═4b81c68c-6c3d-43c4-9633-8fab001467ae
+# ╠═a6609051-f3be-474f-b5f9-71314b19988a
 # ╟─e548262f-15fc-4446-afa0-e684a0526ad0
+# ╟─37c90298-c36f-4ced-a3df-af5140d1f23b
 # ╟─4d8340f7-e4ca-4403-bb71-66e245036183
 # ╟─43c081f1-14c6-4f72-b112-8fa192d862f1
 # ╟─8b77b013-f70f-4470-b1bb-5b538edee5e9
