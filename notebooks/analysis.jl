@@ -69,6 +69,9 @@ begin
 	df_dt_py_3D = df_dt_py_3D[:, 2:end]
 end;
 
+# ╔═╡ f9e4ef93-7500-410b-b0b5-4b4411e8dd0b
+df_dt_julia_2D
+
 # ╔═╡ c1659832-9e1a-4af5-9bf6-fd4d6f12589f
 function dt()
     f = Figure()
@@ -616,6 +619,7 @@ end
 # ╠═02f182d4-f5ab-46a3-8009-33ed641fcf27
 # ╟─95a525fe-e10b-42ee-a1b9-9405fe16b50c
 # ╠═9445d9fe-2155-4cd6-9f2e-d20d8719747a
+# ╠═f9e4ef93-7500-410b-b0b5-4b4411e8dd0b
 # ╟─c1659832-9e1a-4af5-9bf6-fd4d6f12589f
 # ╠═aa312920-1c67-46f7-a7b1-dfe42f54c769
 # ╠═6349d56d-f837-4395-9819-e8e7f34ba01f
