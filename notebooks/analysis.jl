@@ -18,17 +18,17 @@ end
 using DrWatson; 
 
 # ╔═╡ 6495cb7b-67ec-49da-bc5d-f7a63ca9e5e9
+# ╠═╡ show_logs = false
 @quickactivate "hd-loss"
 
 # ╔═╡ ec608b5e-a6d5-4b12-a3a4-cc1738dbc6ed
+# ╠═╡ show_logs = false
 using PlutoUI, Statistics, CSV, DataFrames, GLM, CairoMakie, HypothesisTests, Colors, MLJBase, Glob, Flux, NIfTI, Images, ImageMorphology, FastAI, FastVision, StaticArrays, MLDataPattern, Printf, CSVFiles
-
 
 # ╔═╡ f88c7074-8b5c-4dc7-83d5-e65a24b88ab0
 include(srcdir("load_model.jl")), include(srcdir("postprocessing.jl")); 
 
 # ╔═╡ d1a12515-a9d0-468b-8978-dbb26a1ee667
-using StatsBase: quantile!, rmsd, percentile
 using CairoMakie: Axis, Label
 
 # ╔═╡ 278dfa0e-46e1-4789-9f51-eb3463a9fb00
@@ -620,8 +620,8 @@ end
 # ╠═5463443f-a69e-4766-bfc2-0b7ca0fd48c9
 # ╠═6495cb7b-67ec-49da-bc5d-f7a63ca9e5e9
 # ╠═ec608b5e-a6d5-4b12-a3a4-cc1738dbc6ed
+# ╠═1ee4f557-d25c-4a33-9d27-8fd62d7b0496
 # ╠═d1a12515-a9d0-468b-8978-dbb26a1ee667
-# ╠═058e8772-e82d-4102-a05a-b1c64c4839b3
 # ╠═f88c7074-8b5c-4dc7-83d5-e65a24b88ab0
 # ╠═278dfa0e-46e1-4789-9f51-eb3463a9fb00
 # ╠═8608a972-73c0-4903-bdd7-9a23f7c57337
