@@ -6,14 +6,21 @@ using InteractiveUtils
 
 # ╔═╡ 706bcf20-ad6a-11ed-1997-ebe169c89f20
 # ╠═╡ show_logs = false
-using DrWatson; @quickactivate "hd-loss"; using PlutoUI, Images, CSV, DataFrames
+using DrWatson
+
+# ╔═╡ 5089782b-fbd4-474f-97b7-ad16698d339b
+# ╠═╡ show_logs = false
+@quickactivate "hd-loss"
+
+# ╔═╡ 5b3232d5-8842-482e-a3a1-98dd1bb29581
+using PlutoUI, Images, CSV, DataFrames
 
 # ╔═╡ 8a852101-15e1-4d00-ae3b-61e94f6236ac
 TableOfContents()
 
 # ╔═╡ 0caacaf2-0dd5-4e19-9a60-8fd87953bc15
 md"""
-# Optimized Hausdorff Loss Function Based on a Novel Distance Transform Operation
+# Optimized Hausdorff Loss Function Based on a GPU-Accelerated Distance Transform
 """
 
 # ╔═╡ 06cccce0-3f96-4a92-a7f7-4d16495d94f0
@@ -78,20 +85,9 @@ md"""
 md"""
 This study utilized improved distance transform operations to decrease the time associated with previously proposed HD loss functions. The Julia programming language [CITE] was a logical choice since CPU and GPU code can be written in the same high-level language with speed similar to more common languages like C and Fortran.
 
-The CPU form of the distance transform is a dynamic programming approach adapted from Felzensqalbs et al. [CITE]. Instead of transforming the entire image at once, the image is broken down into multiple one-dimensional transform operations, making this approach effective for arbitrary dimensions. 
+This study adapted the Fenzleswab distance transform algorithm [CITE]. The Fenzleswab algorithm is easily parallelizable, making providing a multi-threaded CPU and GPU-accelerated form simple. Previous HD loss functions utilized a readily available distance transform algorithm from scipy [CITE]. 
 
-The first one-dimensional distance transform operation is unique since the image contains either ``0`` or ``\infty`` corresponding to the background and foreground. This first transform operation is shown in Algorithm 1.
-
-```
-Left block:
-∞, ..., ∞, 0, ...				=>	 	…, 9, 4, 1, 0, ...
-Right block: 
-..., 0, ∞, ..., ∞				=>		…, 0, 1, 4, 9, ...
-Middle block
-..., 0, ∞, ..., ∞, 0, ... 		=> 		…, 0, 1, 4, 9, ..., 9, 4, 1, 0, ...
-```
-
-Previous HD loss functions utilized a readily available distance transform algorithm from scipy [CITE]. Another popular library, Tensorflow, provides a CPU and GPU-capable distance transform [CITE]. Each distance transform algorithm was compared to the state-of-the-art distance transform used in this study. We determined each algorithm's speed across various-sized arrays in two and three-dimensions.
+The previous distance transform algorithm was compared to the CPU and GPU-accelerated Fenzleswab distance transform algorithm. We determined each algorithm's speed across various-sized arrays in two and three-dimensions.
 """
 
 # ╔═╡ 38c0828f-72a0-44b2-b2e8-9d8c241b1fee
@@ -138,13 +134,13 @@ md"""
 
 # ╔═╡ fcf6e65d-783d-4839-9b0e-b6f5e9d642eb
 md"""
-After benchmarking the pure distance transforms and loss functions, we then compared deep-learning training loops. We compared the timings of identical loops, with the only variable coming from the loss function utilized. Since the previously implemented loss functions were written in Python and the loss function in this study is in Julia [CITE], we utilized comparable Julia-based forms of the Python versions. This allowed us to avoid extra variables affecting the timing, from differences in the data loading and processing steps between Python and Julia. In practice, the new loss function implemented in this paper is available for use in Python and Julia via PythonCall.jl [CITE].
+After benchmarking the pure distance transforms and loss functions, we then compared deep-learning training loops. We compared the timings of identical loops, with the only changed variable coming from the loss function utilized. The new loss function implemented in this paper is available in Python and Julia via PythonCall.jl [CITE].
 
 The heart dataset from the Medical Segmentation Decathlon was used for training. Along with the timing information, the DSC and HD metrics were calculated on the validation data of the heart dataset and compared between the HD and Dice loss functions.
 
-The Julia programming language was used for the training process, along with key Julia packages [CITE]. A simple 3D UNet model was implemented for the training process [CITE]. All loss functions were minimized using the stochastic gradient descent optimizer [CITE], and the learning rate was set to {insert}.
+The Julia programming language was used for the training process, along with crucial Julia packages [CITE]. A simple 3D UNet model was implemented for the training process [CITE]. All loss functions were minimized using the stochastic gradient descent optimizer [CITE], and the learning rate was set to {insert}.
 
-All the training code was implemented in Julia 1.8 and Flux {insert} and run on Windows 10. An NVIDIA {insert} GPU was used for training along with CUDA {inset}.
+All the training code was implemented in Julia 1.8 and Flux {insert} and run on Windows 10. An NVIDIA {insert} GPU and CUDA {inset} were used for training.
 """
 
 # ╔═╡ fb417691-9c1a-46ec-aa2c-3c9c325c1d73
@@ -164,7 +160,7 @@ md"""
 
 # ╔═╡ da0eead6-0a37-4b5c-889f-b2f2ff5dbeca
 md"""
-Two and three-dimensional arrays from size {insert} up to size {insert} were input into the distance transforms. The distance transform utilized in this paper (``\text{DT}_{\text{GPU}}^{\text{JL}}``) was previously shown to be the fastest implementation for two and three-dimensional arrays within the size range of common medical images, like computed tomography scans. For the largest-sized two-dimensional array, ``\text{DT}_{\text{GPU}}^{\text{JL}}`` was ``1300 \times`` faster than ``\text{DT}_{\text{CPU}}^{\text{PY}}``. For the largest-sized three-dimensional array, ``\text{DT}_{\text{GPU}}^{\text{JL}}`` was ``33 \times`` faster than ``\text{DT}_{\text{CPU}}^{\text{PY}}``. Figure 1 shows the two, and three-dimensional timings of the various distance transform operations.
+Two and three-dimensional arrays from size {insert} up to size {insert} were input into the distance transforms. The distance transform utilized in this paper (``\text{DT}_{\text{GPU}}^{\text{Fenzleswab}}``) was previously shown to be the fastest implementation for two and three-dimensional arrays within the size range of common medical images, like computed tomography scans. For the largest-sized two-dimensional array, ``\text{DT}_{\text{GPU}}^{\text{Fenzleswab}}`` was ``1300 \times`` faster than ``\text{DT}_{\text{CPU}}^{\text{SciPy}}``. For the largest-sized three-dimensional array, ``\text{DT}_{\text{GPU}}^{\text{Fenzleswab}}`` was ``33 \times`` faster than ``\text{DT}_{\text{CPU}}^{\text{SciPy}}``. Figure 1 shows the two, and three-dimensional timings of the various distance transform operations.
 """
 
 # ╔═╡ d5fd0b05-54fa-43b8-9f35-eea3fd260176
@@ -182,7 +178,7 @@ md"""
 
 # ╔═╡ 03763d64-afbd-4bac-8a5c-ad700c3200f9
 md"""
-Two and three-dimensional arrays from size {insert} up to size {insert} were input into the distance transforms. The HD loss function, implemented in this paper (``\text{HD}_{\text{GPU}}^{\text{JL}}``), was faster than any previous implementations. Specifically, ``\text{HD}_{\text{GPU}}^{\text{JL}}`` was ``30 \times`` faster than ``\text{HD}_{\text{CPU}}^{\text{PY}}`` on the largest two-dimensional arrays and ``8 \times`` faster on the largest three-dimensional arrays. The input arrays in the training loop were of size ``96 \times 96 \times 96`` (Fig. 2B) and for this size, the ``\text{HD}_{\text{GPU}}^{\text{JL}}`` was ``5 \times`` faster than ``\text{HD}_{\text{CPU}}^{\text{PY}}``. Figure 2 shows the two, and three-dimensional timings of the various loss functions.
+Two and three-dimensional arrays from size {insert} up to size {insert} were input into the distance transforms. The HD loss function, implemented in this paper (``\text{HD}_{\text{GPU}}^{\text{Felzenszwalb}}``), was faster than any previous implementations. Specifically, ``\text{HD}_{\text{GPU}}^{\text{Felzenszwalb}}`` was ``30 \times`` faster than ``\text{HD}_{\text{CPU}}^{\text{SciPy}}`` on the largest two-dimensional arrays and ``8 \times`` faster on the largest three-dimensional arrays. The input arrays in the training loop were of size ``96 \times 96 \times 96`` (Fig. 2B) and for this size, the ``\text{HD}_{\text{GPU}}^{\text{Felzenszwalb}}`` was ``5 \times`` faster than ``\text{HD}_{\text{CPU}}^{\text{SciPy}}``. Figure 2 shows the two, and three-dimensional timings of the various loss functions.
 """
 
 # ╔═╡ ec837694-cfa1-4abe-8de3-9efcf4b46004
@@ -278,9 +274,27 @@ md"""
 # IV. Discussion
 """
 
+# ╔═╡ 09cee8f5-a5f5-4dac-b964-386e55404a8a
+md"""
+The present study proposes a novel HD loss function based on a state-of-the-art distance transform algorithm. The proposed algorithm decreased the computational complexity compared to previously proposed HD loss functions, making it comparable to the gold standard Dice loss function while directly minimizing the DSC and HD.
+
+The HD is one of the most useful metrics for quantifying boundary information, and it can be a strong indicator of how effective the segmentations are. The proposed method can improve segmentations, particularly along the boundaries, and can be applied to various image segmentation problems, including medical imaging.
+
+Previous works have focused on directly minimizing the HD during the training process via the HD loss function. However, the HD loss function is unstable, particularly in the early part of the training process, which limits its applicability. Although a weighted combination of loss functions, such as the Dice loss and HD loss, can solve this issue. Still, the HD loss is more computationally expensive than the Dice loss.
+
+The proposed method addresses this issue by utilizing a GPU-accelerated distance transform algorithm.
+
+Future work may involve applying the proposed method to other image segmentation tasks, such as object detection and recognition. Also, investigating the performance of the proposed method on larger datasets may be of interest.
+"""
+
 # ╔═╡ afe38064-9194-447c-8f88-23980727bab4
 md"""
 # V. Conclusion
+"""
+
+# ╔═╡ e2de2050-059b-43ae-8bf9-237dcff9f2a6
+md"""
+In conclusion, the proposed method presents an efficient HD loss function based on a GPU-accelerated distance transform algorithm that can improve segmentation accuracy. The method may have applications in various image segmentation tasks and can be implemented using publicly available code.
 """
 
 # ╔═╡ 012af9d3-9095-4420-bffa-b7096665b153
@@ -290,6 +304,8 @@ md"""
 
 # ╔═╡ Cell order:
 # ╠═706bcf20-ad6a-11ed-1997-ebe169c89f20
+# ╠═5089782b-fbd4-474f-97b7-ad16698d339b
+# ╠═5b3232d5-8842-482e-a3a1-98dd1bb29581
 # ╠═8a852101-15e1-4d00-ae3b-61e94f6236ac
 # ╟─0caacaf2-0dd5-4e19-9a60-8fd87953bc15
 # ╟─06cccce0-3f96-4a92-a7f7-4d16495d94f0
@@ -327,5 +343,7 @@ md"""
 # ╟─37c90298-c36f-4ced-a3df-af5140d1f23b
 # ╟─4e1069cb-039c-4c62-97b7-96c34c1ed55e
 # ╟─8b77b013-f70f-4470-b1bb-5b538edee5e9
+# ╟─09cee8f5-a5f5-4dac-b964-386e55404a8a
 # ╟─afe38064-9194-447c-8f88-23980727bab4
+# ╟─e2de2050-059b-43ae-8bf9-237dcff9f2a6
 # ╟─012af9d3-9095-4420-bffa-b7096665b153

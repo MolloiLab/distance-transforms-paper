@@ -14,17 +14,22 @@ macro bind(def, element)
     end
 end
 
-# ╔═╡ 058e8772-e82d-4102-a05a-b1c64c4839b3
-# ╠═╡ show_logs = false
-begin
-	using DrWatson; @quickactivate "hd-loss"
-    using PlutoUI, Statistics, CSV, DataFrames, GLM, CairoMakie, HypothesisTests, Colors, MLJBase, Glob, Flux, NIfTI, Images, ImageMorphology, FastAI, FastVision, StaticArrays, MLDataPattern, Printf, CSVFiles
-	using StatsBase: quantile!, rmsd, percentile
-	using CairoMakie: Axis, Label
-end
+# ╔═╡ 5463443f-a69e-4766-bfc2-0b7ca0fd48c9
+using DrWatson; 
+
+# ╔═╡ 6495cb7b-67ec-49da-bc5d-f7a63ca9e5e9
+@quickactivate "hd-loss"
+
+# ╔═╡ ec608b5e-a6d5-4b12-a3a4-cc1738dbc6ed
+using PlutoUI, Statistics, CSV, DataFrames, GLM, CairoMakie, HypothesisTests, Colors, MLJBase, Glob, Flux, NIfTI, Images, ImageMorphology, FastAI, FastVision, StaticArrays, MLDataPattern, Printf, CSVFiles
+
 
 # ╔═╡ f88c7074-8b5c-4dc7-83d5-e65a24b88ab0
 include(srcdir("load_model.jl")), include(srcdir("postprocessing.jl")); 
+
+# ╔═╡ d1a12515-a9d0-468b-8978-dbb26a1ee667
+using StatsBase: quantile!, rmsd, percentile
+using CairoMakie: Axis, Label
 
 # ╔═╡ 278dfa0e-46e1-4789-9f51-eb3463a9fb00
 TableOfContents()
@@ -612,6 +617,10 @@ let
 end
 
 # ╔═╡ Cell order:
+# ╠═5463443f-a69e-4766-bfc2-0b7ca0fd48c9
+# ╠═6495cb7b-67ec-49da-bc5d-f7a63ca9e5e9
+# ╠═ec608b5e-a6d5-4b12-a3a4-cc1738dbc6ed
+# ╠═d1a12515-a9d0-468b-8978-dbb26a1ee667
 # ╠═058e8772-e82d-4102-a05a-b1c64c4839b3
 # ╠═f88c7074-8b5c-4dc7-83d5-e65a24b88ab0
 # ╠═278dfa0e-46e1-4789-9f51-eb3463a9fb00
