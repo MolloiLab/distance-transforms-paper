@@ -115,7 +115,7 @@ begin
 	for _n in range_size_3d
 		n = round(Int, _n)
 		@info n
-		push!(sizes_3D, n^23)
+		push!(sizes_3D, n^3)
 		f = Bool.(rand([0, 1], n, n, n))
 		
 		# Python
