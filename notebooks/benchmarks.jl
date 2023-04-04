@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.22
+# v0.19.14
 
 using Markdown
 using InteractiveUtils
@@ -15,11 +15,32 @@ using DrWatson
 # ╠═╡ show_logs = false
 using PlutoUI, BenchmarkTools, CairoMakie, DataFrames, CSV, DistanceTransforms, CUDA, Losers, DistanceTransformsPy
 
+# ╔═╡ ffe6663f-cb17-4e92-a175-82eca15564cf
+# begin
+# 	using Pkg
+# 	Pkg.activate(".")
+# 	Pkg.instantiate()
+# 	# Pkg.add("DrWatson")
+# 	# Pkg.add("PlutoUI")
+# 	# Pkg.add("BenchmarkTools")
+# 	# Pkg.add("CairoMakie")
+# 	# Pkg.add("DataFrames")
+# 	# Pkg.add("CSV")
+# 	# Pkg.add(url="https://github.com/Dale-Black/DistanceTransforms.jl", rev="master")
+# 	# Pkg.add("CUDA")
+# 	# Pkg.add("Losers")
+# 	# Pkg.add("CSVFiles")
+# 	# Pkg.add(url="https://github.com/Dale-Black/DistanceTransformsPy.jl", rev="main")
+# end
+
 # ╔═╡ cbf06207-8ad8-42fa-9758-602bcfe7e4aa
 TableOfContents()
 
 # ╔═╡ e53d73e1-126f-42bd-99df-87b59903eb70
-range_size = 1:50:200
+begin
+	range_size_2d = range(8, 1448, 20)
+	range_size_3d = range(4, 128, 20)
+end
 
 # ╔═╡ 71da875a-8420-4f38-8ddd-eb68c110e6fd
 md"""
@@ -44,7 +65,8 @@ begin
 	dt_fenz_gpu = []
 	dt_fenz_gpu_std = []
 	
-	for n in range_size
+	for _n in range_size_2d
+		n = round(Int, _n)
 		@info n
 		push!(sizes, n^2)
 		f = Bool.(rand([0, 1], n, n))
@@ -63,7 +85,9 @@ begin
 		# Felzenszwalb GPU
 		if has_cuda_gpu()
 			f_cuda = CuArray(f)
-			dt3 = @benchmark DistanceTransforms.transform(boolean_indicator($f_cuda), $Felzenszwalb())
+			
+			dt3 = @benchmark DistanceTransforms.transform!(boolean_indicator($f_cuda), $Felzenszwalb(); output=CUDA.zeros(size($f)), v=CUDA.ones(Int32, size($f)), z=CUDA.ones(size($f) .+ 1))
+			
 			push!(dt_fenz_gpu, BenchmarkTools.mean(dt3).time)
 			push!(dt_fenz_gpu_std, BenchmarkTools.std(dt3).time)
 		end
@@ -88,7 +112,8 @@ begin
 	dt_fenz_gpu_3D = []
 	dt_fenz_gpu_std_3D = []
 	
-	for n in range_size
+	for _n in range_size_3d
+		n = round(Int, _n)
 		@info n
 		push!(sizes_3D, n^23)
 		f = Bool.(rand([0, 1], n, n, n))
@@ -107,53 +132,14 @@ begin
 		# Felzenszwalb GPU
 		if has_cuda_gpu()
 			f_cuda = CuArray(f)
-			dt3 = @benchmark DistanceTransforms.transform($f_cuda, $Felzenszwalb())
+			
+			dt3 = @benchmark DistanceTransforms.transform!(boolean_indicator($f_cuda), $Felzenszwalb(); output=CUDA.zeros(size($f)), v=CUDA.ones(Int32, size($f)), z=CUDA.ones(size($f) .+ 1))
+			
 			push!(dt_fenz_gpu_3D, BenchmarkTools.mean(dt3).time)
 			push!(dt_fenz_gpu_std_3D, BenchmarkTools.std(dt3).time)
 		end
 	end
 end
-
-# ╔═╡ 709116ce-64d2-4407-aad5-22c256cf9de7
-begin
-	global df_dt
-	if has_cuda_gpu()
-		df_dt = DataFrame(
-			sizes = sizes,
-			dt_scipy = dt_scipy,
-			dt_scipy_std = dt_scipy_std,
-			dt_fenz = dt_fenz,
-			dt_fenz_std = dt_fenz_std,
-			dt_fenz_gpu = dt_fenzg_gpu,
-			dt_fenz_gpu_std = dt_fenzg_gpu_std,
-		
-			sizes_3D = sizes_3D,
-			dt_scipy_3D = dt_scipy_3D,
-			dt_scipy_std_3D = dt_scipy_std_3D,
-			dt_fenz_3D = dt_fenz_3D,
-			dt_fenz_std_3D = dt_fenz_std_3D,
-			dt_fenz_gpu_3D = dt_fenzg_gpu_3D,
-			dt_fenz_gpu_std_3D = dt_fenzg_gpu_std_3D,
-		)
-	else
-		df_dt = DataFrame(
-			sizes = sizes,
-			dt_scipy = dt_scipy,
-			dt_scipy_std = dt_scipy_std,
-			dt_fenz = dt_fenz,
-			dt_fenz_std = dt_fenz_std,
-		
-			sizes_3D = sizes_3D,
-			dt_scipy_3D = dt_scipy_3D,
-			dt_scipy_std_3D = dt_scipy_std_3D,
-			dt_fenz_3D = dt_fenz_3D,
-			dt_fenz_std_3D = dt_fenz_std_3D,
-		)
-	end
-end
-
-# ╔═╡ df1e62e3-4ff7-4ca5-bce9-ce4a29c34ec9
-save(datadir("results", "dts.csv"), df_dt)
 
 # ╔═╡ 57dc4b37-7165-4f97-89b6-c2238888db5a
 let
@@ -179,6 +165,47 @@ let
 	f
 end
 
+# ╔═╡ 709116ce-64d2-4407-aad5-22c256cf9de7
+begin
+	global df_dt
+	if has_cuda_gpu()
+		df_dt = DataFrame(
+			sizes = sizes,
+			dt_scipy = dt_scipy,
+			dt_scipy_std = dt_scipy_std,
+			dt_fenz = dt_fenz,
+			dt_fenz_std = dt_fenz_std,
+			dt_fenz_gpu = dt_fenz_gpu,
+			dt_fenz_gpu_std = dt_fenz_gpu_std,
+		
+			sizes_3D = sizes_3D,
+			dt_scipy_3D = dt_scipy_3D,
+			dt_scipy_std_3D = dt_scipy_std_3D,
+			dt_fenz_3D = dt_fenz_3D,
+			dt_fenz_std_3D = dt_fenz_std_3D,
+			dt_fenz_gpu_3D = dt_fenz_gpu_3D,
+			dt_fenz_gpu_std_3D = dt_fenz_gpu_std_3D,
+		)
+	else
+		df_dt = DataFrame(
+			sizes = sizes,
+			dt_scipy = dt_scipy,
+			dt_scipy_std = dt_scipy_std,
+			dt_fenz = dt_fenz,
+			dt_fenz_std = dt_fenz_std,
+		
+			sizes_3D = sizes_3D,
+			dt_scipy_3D = dt_scipy_3D,
+			dt_scipy_std_3D = dt_scipy_std_3D,
+			dt_fenz_3D = dt_fenz_3D,
+			dt_fenz_std_3D = dt_fenz_std_3D,
+		)
+	end
+end
+
+# ╔═╡ df1e62e3-4ff7-4ca5-bce9-ce4a29c34ec9
+save(datadir("results", "dts.csv"), df_dt)
+
 # ╔═╡ 11431e55-0f01-441a-8855-24952f8bbfcd
 md"""
 # Loss Functions
@@ -202,7 +229,8 @@ begin
 	hd_fenz_gpu = []
 	hd_fenz_gpu_std = []
 	
-	for n in range_size
+	for _n in range_size_2d
+		n = round(Int, _n)
 		@info n
 		nthreads = Threads.nthreads()
 		push!(sizes_hd, n^2)
@@ -223,7 +251,13 @@ begin
 		# Felzenszwalb GPU
 		if has_cuda_gpu()
 			f_cuda = CuArray(f)
-			dt3 = @benchmark hausdorff($f, $f, DistanceTransforms.transform($f_cuda, $Felzenszwalb()), DistanceTransforms.transform($f_cuda, $Felzenszwalb()))
+			
+			dt3 = @benchmark hausdorff($f_cuda, $f_cuda, 
+				
+				DistanceTransforms.transform!(boolean_indicator($f_cuda), $Felzenszwalb(); output=CUDA.zeros(size($f)), v=CUDA.ones(Int32, size($f)), z=CUDA.ones(size($f) .+ 1)), 
+				
+				DistanceTransforms.transform!(boolean_indicator($f_cuda), $Felzenszwalb(); output=CUDA.zeros(size($f)), v=CUDA.ones(Int32, size($f)), z=CUDA.ones(size($f) .+ 1)))
+			
 			push!(hd_fenz_gpu, BenchmarkTools.mean(dt3).time)
 			push!(hd_fenz_gpu_std, BenchmarkTools.std(dt3).time)
 		end
@@ -248,7 +282,8 @@ begin
 	hd_fenz_gpu_3D = []
 	hd_fenz_gpu_std_3D = []
 	
-	for n in range_size
+	for _n in range_size_3d
+		n = round(Int, _n)
 		@info n
 		nthreads = Threads.nthreads()
 		push!(sizes_hd_3D, n^3)
@@ -269,53 +304,17 @@ begin
 		# Felzenszwalb GPU
 		if has_cuda_gpu()
 			f_cuda = CuArray(f)
-			dt3 = @benchmark hausdorff($f_cuda, $f_cuda, DistanceTransforms.transform($f_cuda, $Felzenszwalb()), DistanceTransforms.transform($f_cuda, $Felzenszwalb()))
+			dt3 = @benchmark hausdorff($f_cuda, $f_cuda, 
+				
+				DistanceTransforms.transform!(boolean_indicator($f_cuda), $Felzenszwalb(); output=CUDA.zeros(size($f)), v=CUDA.ones(Int32, size($f)), z=CUDA.ones(size($f) .+ 1)), 
+				
+				DistanceTransforms.transform!(boolean_indicator($f_cuda), $Felzenszwalb(); output=CUDA.zeros(size($f)), v=CUDA.ones(Int32, size($f)), z=CUDA.ones(size($f) .+ 1)))
+			
 			push!(hd_fenz_gpu_3D, BenchmarkTools.mean(dt3).time)
 			push!(hd_fenz_gpu_std_3D, BenchmarkTools.std(dt3).time)
 		end
 	end
 end
-
-# ╔═╡ 036fcfad-ceba-4914-b2f8-744f22fb9969
-begin
-	global df_loss
-	if has_cuda_gpu()
-		df_loss = DataFrame(
-			sizes_hd = sizes_hd,
-			hd_scipy = hd_scipy,
-			hd_scipy_std = hd_scipy_std,
-			hd_fenz = hd_fenz,
-			hd_fenz_std = hd_fenz_std,
-			hd_fenz_gpu = hd_fenzg_gpu,
-			hd_fenz_gpu_std = hd_fenzg_gpu_std,
-		
-			sizes_hd_3D = sizes_hd_3D,
-			hd_scipy_3D = hd_scipy_3D,
-			hd_scipy_std_3D = hd_scipy_std_3D,
-			hd_fenz_3D = hd_fenz_3D,
-			hd_fenz_std_3D = hd_fenz_std_3D,
-			hd_fenz_gpu_3D = hd_fenzg_gpu_3D,
-			hd_fenz_gpu_std_3D = hd_fenzg_gpu_std_3D,
-		)
-	else
-		df_loss = DataFrame(
-			sizes_hd = sizes_hd,
-			hd_scipy = hd_scipy,
-			hd_scipy_std = hd_scipy_std,
-			hd_fenz = hd_fenz,
-			hd_fenz_std = hd_fenz_std,
-		
-			sizes_hd_3D = sizes_hd_3D,
-			hd_scipy_3D = hd_scipy_3D,
-			hd_scipy_std_3D = hd_scipy_std_3D,
-			hd_fenz_3D = hd_fenz_3D,
-			hd_fenz_std_3D = hd_fenz_std_3D,
-		)
-	end
-end
-
-# ╔═╡ 9368f91e-97d8-4452-9138-2c1e5965cd76
-save(datadir("results", "losses.csv"), df_loss)
 
 # ╔═╡ 85014ff8-05e4-44bb-a8f6-e2e8cf92f81f
 let
@@ -342,7 +341,49 @@ let
 	f
 end
 
+# ╔═╡ 036fcfad-ceba-4914-b2f8-744f22fb9969
+begin
+	global df_loss
+	if has_cuda_gpu()
+		df_loss = DataFrame(
+			sizes_hd = sizes_hd,
+			hd_scipy = hd_scipy,
+			hd_scipy_std = hd_scipy_std,
+			hd_fenz = hd_fenz,
+			hd_fenz_std = hd_fenz_std,
+			hd_fenz_gpu = hd_fenz_gpu,
+			hd_fenz_gpu_std = hd_fenz_gpu_std,
+		
+			sizes_hd_3D = sizes_hd_3D,
+			hd_scipy_3D = hd_scipy_3D,
+			hd_scipy_std_3D = hd_scipy_std_3D,
+			hd_fenz_3D = hd_fenz_3D,
+			hd_fenz_std_3D = hd_fenz_std_3D,
+			hd_fenz_gpu_3D = hd_fenz_gpu_3D,
+			hd_fenz_gpu_std_3D = hd_fenz_gpu_std_3D,
+		)
+	else
+		df_loss = DataFrame(
+			sizes_hd = sizes_hd,
+			hd_scipy = hd_scipy,
+			hd_scipy_std = hd_scipy_std,
+			hd_fenz = hd_fenz,
+			hd_fenz_std = hd_fenz_std,
+		
+			sizes_hd_3D = sizes_hd_3D,
+			hd_scipy_3D = hd_scipy_3D,
+			hd_scipy_std_3D = hd_scipy_std_3D,
+			hd_fenz_3D = hd_fenz_3D,
+			hd_fenz_std_3D = hd_fenz_std_3D,
+		)
+	end
+end
+
+# ╔═╡ 9368f91e-97d8-4452-9138-2c1e5965cd76
+save(datadir("results", "losses.csv"), df_loss)
+
 # ╔═╡ Cell order:
+# ╠═ffe6663f-cb17-4e92-a175-82eca15564cf
 # ╠═bbb7b211-fa87-489d-87dc-1890cd848812
 # ╠═8cbf0cfd-6b41-4a2c-a4af-a1f43c7afe3f
 # ╠═a0bcf2cb-ceb7-400e-b2b8-56ed98fc705a
@@ -354,7 +395,7 @@ end
 # ╟─00bd4240-ad66-4aa2-914b-cdf64fe4d639
 # ╠═37b3e0fc-80d1-427a-bd26-0a17f48db118
 # ╟─57dc4b37-7165-4f97-89b6-c2238888db5a
-# ╠═709116ce-64d2-4407-aad5-22c256cf9de7
+# ╟─709116ce-64d2-4407-aad5-22c256cf9de7
 # ╠═df1e62e3-4ff7-4ca5-bce9-ce4a29c34ec9
 # ╟─11431e55-0f01-441a-8855-24952f8bbfcd
 # ╟─e908389d-671f-4cea-a717-218cb6e00bd7
