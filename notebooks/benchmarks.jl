@@ -4,6 +4,24 @@
 using Markdown
 using InteractiveUtils
 
+# ╔═╡ ffe6663f-cb17-4e92-a175-82eca15564cf
+begin
+	using Pkg
+# 	Pkg.activate(".")
+# 	Pkg.instantiate()
+# 	# Pkg.add("DrWatson")
+# 	# Pkg.add("PlutoUI")
+# 	# Pkg.add("BenchmarkTools")
+# 	# Pkg.add("CairoMakie")
+# 	# Pkg.add("DataFrames")
+# 	# Pkg.add("CSV")
+	Pkg.add(url="https://github.com/Dale-Black/DistanceTransforms.jl", rev="master")
+# 	# Pkg.add("CUDA")
+# 	# Pkg.add("Losers")
+# 	# Pkg.add("CSVFiles")
+# 	# Pkg.add(url="https://github.com/Dale-Black/DistanceTransformsPy.jl", rev="main")
+end
+
 # ╔═╡ bbb7b211-fa87-489d-87dc-1890cd848812
 using DrWatson
 
@@ -13,33 +31,17 @@ using DrWatson
 
 # ╔═╡ a0bcf2cb-ceb7-400e-b2b8-56ed98fc705a
 # ╠═╡ show_logs = false
-using PlutoUI, BenchmarkTools, CairoMakie, DataFrames, CSV, DistanceTransforms, CUDA, Losers, DistanceTransformsPy
-
-# ╔═╡ ffe6663f-cb17-4e92-a175-82eca15564cf
-# begin
-# 	using Pkg
-# 	Pkg.activate(".")
-# 	Pkg.instantiate()
-# 	# Pkg.add("DrWatson")
-# 	# Pkg.add("PlutoUI")
-# 	# Pkg.add("BenchmarkTools")
-# 	# Pkg.add("CairoMakie")
-# 	# Pkg.add("DataFrames")
-# 	# Pkg.add("CSV")
-# 	# Pkg.add(url="https://github.com/Dale-Black/DistanceTransforms.jl", rev="master")
-# 	# Pkg.add("CUDA")
-# 	# Pkg.add("Losers")
-# 	# Pkg.add("CSVFiles")
-# 	# Pkg.add(url="https://github.com/Dale-Black/DistanceTransformsPy.jl", rev="main")
-# end
+using PlutoUI, BenchmarkTools, CairoMakie, DataFrames, CSV, DistanceTransforms, CUDA, Losers, DistanceTransformsPy, Statistics
 
 # ╔═╡ cbf06207-8ad8-42fa-9758-602bcfe7e4aa
 TableOfContents()
 
 # ╔═╡ e53d73e1-126f-42bd-99df-87b59903eb70
 begin
-	range_size_2d = range(8, 1448, 20)
-	range_size_3d = range(4, 128, 20)
+	range_size_2d = range(4, 4096, 20)
+	range_size_3d = range(4, 256, 20)
+	# range_size_2d = range(4, 512, 5)
+	# range_size_3d = range(4, 64, 5)
 end
 
 # ╔═╡ 71da875a-8420-4f38-8ddd-eb68c110e6fd
@@ -69,7 +71,7 @@ begin
 		n = round(Int, _n)
 		@info n
 		push!(sizes, n^2)
-		f = Bool.(rand([0, 1], n, n))
+		f = Float32.(rand([0, 1], n, n))
 		
 		# Python
 		dt1 = @benchmark DistanceTransformsPy.transform($f, $Scipy())
@@ -78,18 +80,36 @@ begin
 		
 		# Felzenszwalb
 		nthreads = Threads.nthreads()
-		dt2 = @benchmark DistanceTransforms.transform!(boolean_indicator($f), $Felzenszwalb(), $nthreads)
+		dt2 = @benchmark DistanceTransforms.transform(boolean_indicator($f), $Felzenszwalb(), $nthreads)
 		push!(dt_fenz, BenchmarkTools.mean(dt2).time)
 		push!(dt_fenz_std, BenchmarkTools.std(dt2).time)
 
 		# Felzenszwalb GPU
 		if has_cuda_gpu()
 			f_cuda = CuArray(f)
+			# 1st run to compile 
+			temp = DistanceTransforms.transform(boolean_indicator(f_cuda), Felzenszwalb())
+			CUDA.unsafe_free!(temp)
+			CUDA.reclaim()
 			
-			dt3 = @benchmark DistanceTransforms.transform!(boolean_indicator($f_cuda), $Felzenszwalb(); output=CUDA.zeros(size($f)), v=CUDA.ones(Int32, size($f)), z=CUDA.ones(size($f) .+ 1))
-			
-			push!(dt_fenz_gpu, BenchmarkTools.mean(dt3).time)
-			push!(dt_fenz_gpu_std, BenchmarkTools.std(dt3).time)
+			# Then custom benchmark
+			dt3 = []
+			for trial = 1:1000
+			    # run 
+				curr_trial = @timed DistanceTransforms.transform(boolean_indicator(f_cuda), Felzenszwalb())
+			    # record time
+			    push!(dt3, (curr_trial.time - curr_trial.gctime)*10^9)
+			    # clear mem
+			    CUDA.unsafe_free!(curr_trial.value)
+			    # CUDA.reclaim()
+			end
+			curr_trial = nothing
+			GC.gc(true)
+			CUDA.reclaim()
+
+			# Record data
+			push!(dt_fenz_gpu, mean(dt3))
+			push!(dt_fenz_gpu_std, Statistics.std(dt3))
 		end
 	end
 end
@@ -116,7 +136,7 @@ begin
 		n = round(Int, _n)
 		@info n
 		push!(sizes_3D, n^3)
-		f = Bool.(rand([0, 1], n, n, n))
+		f = Float32.(rand([0, 1], n, n, n))
 		
 		# Python
 		dt1 = @benchmark DistanceTransformsPy.transform($f, $Scipy())
@@ -125,18 +145,36 @@ begin
 		
 		# Felzenszwalb
 		nthreads = Threads.nthreads()
-		dt2 = @benchmark DistanceTransforms.transform!($f, $Felzenszwalb(), $nthreads)
+		dt2 = @benchmark DistanceTransforms.transform(boolean_indicator($f), $Felzenszwalb(), $nthreads)
 		push!(dt_fenz_3D, BenchmarkTools.mean(dt2).time)
 		push!(dt_fenz_std_3D, BenchmarkTools.std(dt2).time)
 
 		# Felzenszwalb GPU
 		if has_cuda_gpu()
 			f_cuda = CuArray(f)
+			# 1st run to compile 
+			temp = DistanceTransforms.transform(boolean_indicator(f_cuda), Felzenszwalb())
+			CUDA.unsafe_free!(temp)
+			CUDA.reclaim()
 			
-			dt3 = @benchmark DistanceTransforms.transform!(boolean_indicator($f_cuda), $Felzenszwalb(); output=CUDA.zeros(size($f)), v=CUDA.ones(Int32, size($f)), z=CUDA.ones(size($f) .+ 1))
-			
-			push!(dt_fenz_gpu_3D, BenchmarkTools.mean(dt3).time)
-			push!(dt_fenz_gpu_std_3D, BenchmarkTools.std(dt3).time)
+			# Then custom benchmark
+			dt3 = []
+			for trial = 1:1000
+			    # run 
+				curr_trial = @timed DistanceTransforms.transform(boolean_indicator(f_cuda), Felzenszwalb())
+			    # record time
+			    push!(dt3, (curr_trial.time - curr_trial.gctime)*10^9)
+			    # clear mem
+			    CUDA.unsafe_free!(curr_trial.value)
+			    # CUDA.reclaim()
+			end
+			curr_trial = nothing
+			GC.gc(true)
+			CUDA.reclaim()
+
+			# Record data
+			push!(dt_fenz_gpu_3D, mean(dt3))
+			push!(dt_fenz_gpu_std_3D, Statistics.std(dt3))
 		end
 	end
 end
@@ -151,6 +189,7 @@ let
 
 	lines!(Float32.(dt_scipy), label="Scipy")
 	lines!(Float32.(dt_fenz), label="Felzenszwalb (CPU)")
+	lines!(Float32.(dt_fenz_gpu), label="Felzenszwalb (GPU)")
 
 	ax = Axis(
 		f[2, 1],
@@ -158,6 +197,7 @@ let
 	)
 	lines!(Float32.(dt_scipy_3D), label="Scipy")
 	lines!(Float32.(dt_fenz_3D), label="Felzenszwalb (CPU)")
+	lines!(Float32.(dt_fenz_gpu_3D), label="Felzenszwalb (GPU)")
 
 	f[1:2, 2] = Legend(f, ax, "DT Algorithms", framevisible = false)
 
@@ -216,6 +256,11 @@ md"""
 ## 2D
 """
 
+# ╔═╡ 070822e7-bf8e-4622-99a2-8ff96527568b
+function my_hausdorff(ŷ, y, ŷ_dtm, y_dtm)
+    return mean((ŷ .- y) .^ 2 .* (ŷ_dtm .+ y_dtm))
+end
+
 # ╔═╡ 9e11696a-9961-4ad1-a9a7-d70fdbd5423c
 begin
 	sizes_hd = []
@@ -234,32 +279,57 @@ begin
 		@info n
 		nthreads = Threads.nthreads()
 		push!(sizes_hd, n^2)
-		f = Bool.(rand([0, 1], n, n))
-		f_dtm = DistanceTransforms.transform!(f, Felzenszwalb(), nthreads)
+		f = Float32.(rand([0, 1], n, n))
+		f2 = Float32.(rand([0, 1], n, n))
 		
 		# Scipy
-		dt1 = @benchmark hausdorff($f, $f, DistanceTransformsPy.transform($f, $Scipy()), DistanceTransformsPy.transform($f, $Scipy()))
-		# dt1 = @benchmark hausdorff($f, $f, $f_dtm, $f_dtm)
+		dt1 = @benchmark my_hausdorff($f, $f2, DistanceTransformsPy.transform($f, $Scipy()), DistanceTransformsPy.transform($f2, $Scipy()))
+	
 		push!(hd_scipy, BenchmarkTools.mean(dt1).time)
 		push!(hd_scipy_std, BenchmarkTools.std(dt1).time)
 		
 		# Felzenszwalb
-		dt2 = @benchmark hausdorff($f, $f, DistanceTransforms.transform!($f, $Felzenszwalb(), $nthreads), DistanceTransforms.transform!($f, $Felzenszwalb(), $nthreads))
+		dt2 = @benchmark my_hausdorff($f, $f2, DistanceTransforms.transform(boolean_indicator($f), $Felzenszwalb(), $nthreads), DistanceTransforms.transform(boolean_indicator($f2), $Felzenszwalb(), $nthreads))
+		
 		push!(hd_fenz, BenchmarkTools.mean(dt2).time)
 		push!(hd_fenz_std, BenchmarkTools.std(dt2).time)
 
 		# Felzenszwalb GPU
 		if has_cuda_gpu()
 			f_cuda = CuArray(f)
+			f2_cuda = CuArray(f2)
+			# 1st run to compile 
+			f_dtm = DistanceTransforms.transform(boolean_indicator(f_cuda), Felzenszwalb())
+			f2_dtm = DistanceTransforms.transform(boolean_indicator(f2_cuda), Felzenszwalb())
+			temp = my_hausdorff(f_cuda, f2_cuda, f_dtm, f2_dtm)
+			f_dtm, f2_dtm, temp = nothing, nothing, nothing
+			GC.gc(true)
+			CUDA.reclaim()
 			
-			dt3 = @benchmark hausdorff($f_cuda, $f_cuda, 
+			# Then custom benchmark
+			dt3 = []
+			for trial = 1:1000
+			    # run 
+				curr_trial = @timed begin
+					f_dtm = DistanceTransforms.transform(boolean_indicator(f_cuda), Felzenszwalb())
+					f2_dtm = DistanceTransforms.transform(boolean_indicator(f2_cuda), Felzenszwalb())
+					temp = my_hausdorff(f_cuda, f2_cuda, f_dtm, f2_dtm)
+				end
 				
-				DistanceTransforms.transform!(boolean_indicator($f_cuda), $Felzenszwalb(); output=CUDA.zeros(size($f)), v=CUDA.ones(Int32, size($f)), z=CUDA.ones(size($f) .+ 1)), 
+			    # clear mem
+			    CUDA.unsafe_free!(f_dtm)
+			    CUDA.unsafe_free!(f2_dtm)
+			    temp = nothing
 				
-				DistanceTransforms.transform!(boolean_indicator($f_cuda), $Felzenszwalb(); output=CUDA.zeros(size($f)), v=CUDA.ones(Int32, size($f)), z=CUDA.ones(size($f) .+ 1)))
-			
-			push!(hd_fenz_gpu, BenchmarkTools.mean(dt3).time)
-			push!(hd_fenz_gpu_std, BenchmarkTools.std(dt3).time)
+			    # record time
+			    push!(dt3, (curr_trial.time - curr_trial.gctime)*10^9)
+			end
+			GC.gc(true)
+			CUDA.reclaim()
+
+			# Record data
+			push!(hd_fenz_gpu, mean(dt3))
+			push!(hd_fenz_gpu_std, Statistics.std(dt3))
 		end
 	end
 end
@@ -287,31 +357,57 @@ begin
 		@info n
 		nthreads = Threads.nthreads()
 		push!(sizes_hd_3D, n^3)
-		f = Bool.(rand([0, 1], n, n, n))
-		f_dtm = DistanceTransforms.transform!(f, Felzenszwalb(), nthreads)
+		f = Float32.(rand([0, 1], n, n, n))
+		f2 = Float32.(rand([0, 1], n, n, n))
 		
 		# Scipy
-		dt1 = @benchmark hausdorff($f, $f, DistanceTransformsPy.transform($f, $Scipy()), DistanceTransformsPy.transform($f, $Scipy()))
-		# dt1 = @benchmark hausdorff($f, $f, $f_dtm, $f_dtm)
+		dt1 = @benchmark my_hausdorff($f, $f2, DistanceTransformsPy.transform($f, $Scipy()), DistanceTransformsPy.transform($f2, $Scipy()))
+		
 		push!(hd_scipy_3D, BenchmarkTools.mean(dt1).time)
 		push!(hd_scipy_std_3D, BenchmarkTools.std(dt1).time)
 		
 		# Felzenszwalb
-		dt2 = @benchmark hausdorff($f, $f, DistanceTransforms.transform!($f, $Felzenszwalb(), $nthreads), DistanceTransforms.transform!($f, $Felzenszwalb(), $nthreads))
+		dt2 = @benchmark my_hausdorff($f, $f2, DistanceTransforms.transform(boolean_indicator($f), $Felzenszwalb(), $nthreads), DistanceTransforms.transform(boolean_indicator($f2), $Felzenszwalb(), $nthreads))
+		
 		push!(hd_fenz_3D, BenchmarkTools.mean(dt2).time)
 		push!(hd_fenz_std_3D, BenchmarkTools.std(dt2).time)
 
 		# Felzenszwalb GPU
 		if has_cuda_gpu()
 			f_cuda = CuArray(f)
-			dt3 = @benchmark hausdorff($f_cuda, $f_cuda, 
-				
-				DistanceTransforms.transform!(boolean_indicator($f_cuda), $Felzenszwalb(); output=CUDA.zeros(size($f)), v=CUDA.ones(Int32, size($f)), z=CUDA.ones(size($f) .+ 1)), 
-				
-				DistanceTransforms.transform!(boolean_indicator($f_cuda), $Felzenszwalb(); output=CUDA.zeros(size($f)), v=CUDA.ones(Int32, size($f)), z=CUDA.ones(size($f) .+ 1)))
+			f2_cuda = CuArray(f2)
+			# 1st run to compile 
+			f_dtm = DistanceTransforms.transform(boolean_indicator(f_cuda), Felzenszwalb())
+			f2_dtm = DistanceTransforms.transform(boolean_indicator(f2_cuda), Felzenszwalb())
+			temp = my_hausdorff(f_cuda, f2_cuda, f_dtm, f2_dtm)
+			f_dtm, f2_dtm, temp = nothing, nothing, nothing
+			GC.gc(true)
+			CUDA.reclaim()
 			
-			push!(hd_fenz_gpu_3D, BenchmarkTools.mean(dt3).time)
-			push!(hd_fenz_gpu_std_3D, BenchmarkTools.std(dt3).time)
+			# Then custom benchmark
+			dt3 = []
+			for trial = 1:1000
+			    # run 
+				curr_trial = @timed begin
+					f_dtm = DistanceTransforms.transform(boolean_indicator(f_cuda), Felzenszwalb())
+					f2_dtm = DistanceTransforms.transform(boolean_indicator(f2_cuda), Felzenszwalb())
+					temp = my_hausdorff(f_cuda, f2_cuda, f_dtm, f2_dtm)
+				end
+				
+			    # clear mem
+			    CUDA.unsafe_free!(f_dtm)
+			    CUDA.unsafe_free!(f2_dtm)
+			    temp = nothing
+				
+			    # record time
+			    push!(dt3, (curr_trial.time - curr_trial.gctime)*10^9)
+			end
+			GC.gc(true)
+			CUDA.reclaim()
+
+			# Record data
+			push!(hd_fenz_gpu_3D, mean(dt3))
+			push!(hd_fenz_gpu_std_3D, Statistics.std(dt3))
 		end
 	end
 end
@@ -324,7 +420,8 @@ let
 		title="2D"
 	)
 	lines!(Float32.(hd_scipy), label="Scipy")
-	lines!(Float32.(hd_fenz), label="Felzenszwalb")
+	lines!(Float32.(hd_fenz), label="Felzenszwalb (CPU)")
+	lines!(Float32.(hd_fenz_gpu), label="Felzenszwalb (GPU)")
 	
 
 	ax = Axis(
@@ -332,7 +429,8 @@ let
 		title="3D"
 	)
 	lines!(Float32.(hd_scipy_3D), label="Scipy")
-	lines!(Float32.(hd_fenz_3D), label="Felzenszwalb")
+	lines!(Float32.(hd_fenz_3D), label="Felzenszwalb (CPU)")
+	lines!(Float32.(hd_fenz_gpu_3D), label="Felzenszwalb (GPU)")
 
 	f[1:2, 2] = Legend(f, ax, "HD Algorithms", framevisible = false)
 
@@ -399,6 +497,7 @@ save(datadir("results", "losses.csv"), df_loss)
 # ╠═df1e62e3-4ff7-4ca5-bce9-ce4a29c34ec9
 # ╟─11431e55-0f01-441a-8855-24952f8bbfcd
 # ╟─e908389d-671f-4cea-a717-218cb6e00bd7
+# ╠═070822e7-bf8e-4622-99a2-8ff96527568b
 # ╠═9e11696a-9961-4ad1-a9a7-d70fdbd5423c
 # ╟─1d51b3af-6819-4996-8eea-8285b5c7a1b3
 # ╠═8327f001-b7e6-4f9c-8bef-21c4e992b7be
