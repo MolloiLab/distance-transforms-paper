@@ -85,9 +85,9 @@ md"""
 md"""
 This study utilized improved distance transform operations to decrease the time associated with previously proposed HD loss functions. The Julia programming language [CITE] was a logical choice since CPU and GPU code can be written in the same high-level language with speed similar to more common languages like C and Fortran.
 
-This study adapted the Fenzleswab distance transform algorithm [CITE]. The Fenzleswab algorithm is easily parallelizable, making providing a multi-threaded CPU and GPU-accelerated form simple. Previous HD loss functions utilized a readily available distance transform algorithm from scipy [CITE]. 
+This study adapted the Felzenszwalb distance transform algorithm [CITE]. The Felzenszwalb algorithm is easily parallelizable, making providing a multi-threaded CPU and GPU-accelerated form simple. Previous HD loss functions utilized a readily available distance transform algorithm from scipy [CITE]. 
 
-The previous distance transform algorithm was compared to the CPU and GPU-accelerated Fenzleswab distance transform algorithm. We determined each algorithm's speed across various-sized arrays in two and three-dimensions.
+The previous distance transform algorithm was compared to the CPU and GPU-accelerated Felzenszwalb distance transform algorithm. We determined each algorithm's speed across various-sized arrays in two and three-dimensions.
 """
 
 # ╔═╡ 38c0828f-72a0-44b2-b2e8-9d8c241b1fee
@@ -160,7 +160,7 @@ md"""
 
 # ╔═╡ da0eead6-0a37-4b5c-889f-b2f2ff5dbeca
 md"""
-Two and three-dimensional arrays from size {insert} up to size {insert} were input into the distance transforms. The distance transform utilized in this paper (``\text{DT}_{\text{GPU}}^{\text{Fenzleswab}}``) was previously shown to be the fastest implementation for two and three-dimensional arrays within the size range of common medical images, like computed tomography scans. For the largest-sized two-dimensional array, ``\text{DT}_{\text{GPU}}^{\text{Fenzleswab}}`` was ``1300 \times`` faster than ``\text{DT}_{\text{CPU}}^{\text{SciPy}}``. For the largest-sized three-dimensional array, ``\text{DT}_{\text{GPU}}^{\text{Fenzleswab}}`` was ``33 \times`` faster than ``\text{DT}_{\text{CPU}}^{\text{SciPy}}``. Figure 1 shows the two, and three-dimensional timings of the various distance transform operations.
+Two and three-dimensional arrays from size {insert} up to size {insert} were input into the distance transforms. The distance transform utilized in this paper (``\text{DT}_{\text{Felzenszwalb}_\text{GPU}}``) was previously shown to be the fastest implementation for two and three-dimensional arrays within the size range of common medical images, like computed tomography scans [CITE]. For the largest-sized two-dimensional array, ``\text{DT}_{\text{Felzenszwalb}_\text{GPU}}`` was ``11 \times`` faster than ``\text{DT}_{\text{Scipy}}``. For the largest-sized three-dimensional array, ``\text{DT}_{\text{Felzenszwalb}_\text{GPU}}`` was ``[insert] \times`` faster than ``\text{DT}_{\text{Scipy}}``. Figure 1 shows the two, and three-dimensional timings of the various distance transform operations.
 """
 
 # ╔═╡ d5fd0b05-54fa-43b8-9f35-eea3fd260176
