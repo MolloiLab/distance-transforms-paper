@@ -25,11 +25,11 @@ using DrWatson;
 # ╠═╡ show_logs = false
 using PlutoUI, Statistics, CSV, DataFrames, GLM, CairoMakie, HypothesisTests, Colors, MLJBase, Glob, Flux, NIfTI, Images, ImageMorphology, FastAI, FastVision, StaticArrays, MLDataPattern, Printf, CSVFiles
 
-# ╔═╡ d1a12515-a9d0-468b-8978-dbb26a1ee667
-using CairoMakie: Axis, Label
-
 # ╔═╡ f88c7074-8b5c-4dc7-83d5-e65a24b88ab0
 include(srcdir("load_model.jl")), include(srcdir("postprocessing.jl")); 
+
+# ╔═╡ d1a12515-a9d0-468b-8978-dbb26a1ee667
+using CairoMakie: Axis, Label
 
 # ╔═╡ 278dfa0e-46e1-4789-9f51-eb3463a9fb00
 TableOfContents()
@@ -52,44 +52,32 @@ medphys_theme = Theme(
 	)
 );
 
+# ╔═╡ 02f182d4-f5ab-46a3-8009-33ed641fcf27
+begin
+	path_julia = datadir("dt-loss")
+	path_py = datadir("dt-loss-py")
+end
+
 # ╔═╡ 95a525fe-e10b-42ee-a1b9-9405fe16b50c
 md"""
 # Distance Transforms
 """
 
-# ╔═╡ 82134f7b-2cb1-4d9a-982f-f8b2799c9518
-df_dt = CSV.read(datadir("results", "dts.csv"), DataFrame);
+# ╔═╡ 9445d9fe-2155-4cd6-9f2e-d20d8719747a
+begin
+	df_dt_julia_2D = CSV.read(joinpath(path_julia, "dt_2D_min.csv"), DataFrame)
+	df_dt_julia_3D = CSV.read(joinpath(path_julia, "dt_3D_min.csv"), DataFrame)
 
-# ╔═╡ 6349d56d-f837-4395-9819-e8e7f34ba01f
-(x, y, z) = df_dt[end, :dt_scipy], df_dt[end, :dt_fenz], df_dt[end, :dt_fenz_gpu]
+	df_dt_py_2D = CSV.read(joinpath(path_py, "purePython_DT_2D_Dec29.csv"), DataFrame)
+	df_dt_py_2D = df_dt_py_2D[:, 2:end]
+	df_dt_py_3D = CSV.read(joinpath(path_py, "purePython_DT_3D_Dec29.csv"), DataFrame)
+	df_dt_py_3D = df_dt_py_3D[:, 2:end]
+end;
 
-# ╔═╡ a0ea7e69-1249-4d47-9366-ec9f44568236
-fenzGPU_vs_scipy = x / z
+# ╔═╡ f9e4ef93-7500-410b-b0b5-4b4411e8dd0b
+df_dt_julia_2D
 
-# ╔═╡ 5059495d-6905-4043-b03e-3ea73f67d341
-wenbo_gpu_vs_wenbo_cpu = x / y
-
-# ╔═╡ 9c2b898e-0295-44da-8e3f-bab93524eec3
-(x_3D, y_3D, z_3D) = df_dt[end, :dt_scipy_3D], df_dt[end, :dt_fenz_3D], df_dt[end, :dt_fenz_gpu_3D]
-
-# ╔═╡ 7b34de9e-747b-4a80-870a-6f26178a378d
-fenzGPU_vs_scipy_3D = x_3D / z_3D
-
-# ╔═╡ 1852f60f-cdf1-47d5-8d97-052710bed435
-md"""
-# Losses
-"""
-
-# ╔═╡ fbda132c-1f19-4103-84f0-34215ce4e5b7
-df_loss = CSV.read(datadir("results", "losses.csv"), DataFrame);
-
-# ╔═╡ bac3b79b-8b61-4bec-9478-fca3b4c901c5
-df_loss[!, :sizes_hd], df_loss[!, :sizes_hd_3D]
-
-# ╔═╡ 892bf5ef-012c-49c2-bb2d-80a006965c28
-df_loss
-
-# ╔═╡ 6a77f8f4-5880-4267-ae44-0de8077bce1e
+# ╔═╡ c1659832-9e1a-4af5-9bf6-fd4d6f12589f
 function dt()
     f = Figure()
 
@@ -100,27 +88,28 @@ function dt()
 		ylabel = "Time (ms)",
 		title = "2D Distance Transform"
 	)
-    lines!(df_dt[!, :sizes], df_dt[!, :dt_scipy] * 1e-6, label=L"\text{DT}_{\text{Scipy}}")
-	lines!(df_dt[!, :sizes], df_dt[!, :dt_fenz] * 1e-6, label=L"\text{DT}_{\text{Felzenszwalb}}")
-    lines!(df_dt[!, :sizes], df_dt[!, :dt_fenz_gpu] * 1e-6, label=L"\text{DT}_{\text{Felzenszwalb}_\text{GPU}}")
+    lines!(df_dt_julia_2D[!, :sizes_2D], df_dt_py_2D[!, :dt_min_cpu_2D] * 1e-6, label=L"\text{DT}_{\text{CPU}}^{\text{PY}}")
+	lines!(df_dt_julia_2D[!, :sizes_2D], df_dt_julia_2D[!, :wenbo_threaded_minimum_2D] * 1e-6, label=L"\text{DT}_{\text{CPU}}^{\text{JL}}")
+    lines!(df_dt_julia_2D[!, :sizes_2D], df_dt_julia_2D[!, :wenbo_gpu_minimum_2D] * 1e-6, label=L"\text{DT}_{\text{GPU}}^{\text{JL}}")
 
 	##-- B --##
     ax2 = Axis(
 		f[2, 1],
 		xlabel = "Array Size (Pixels)",
-		ylabel = "Time (ms)",
+		ylabel = "Time (s)",
 		title = "3D Distance Transform"
 	)
-    lines!(df_loss[!, :sizes_hd_3D], df_dt[!, :dt_scipy_3D] * 1e-6, label=L"\text{DT}_{\text{Scipy}}")
-	lines!(df_loss[!, :sizes_hd_3D], df_dt[!, :dt_fenz_3D] * 1e-6, label=L"\text{DT}_{\text{Felzenszwalb}}")
-    lines!(df_loss[!, :sizes_hd_3D], df_dt[!, :dt_fenz_gpu_3D] * 1e-6, label=L"\text{DT}_{\text{Felzenszwalb}_\text{GPU}}")
+    lines!(df_dt_julia_3D[!, :sizes_3D], df_dt_py_3D[!, :dt_min_cpu_3D] * 1e-9, label=L"\text{DT}_{\text{CPU}}^{\text{PY}}")
+	lines!(df_dt_julia_3D[!, :sizes_3D], df_dt_julia_3D[!, :wenbo_threaded_minimum_3D] * 1e-9, label=L"\text{DT}_{\text{CPU}}^{\text{JL}}")
+    lines!(df_dt_julia_3D[!, :sizes_3D], df_dt_julia_3D[!, :wenbo_gpu_minimum_3D] * 1e-9, label=L"\text{DT}_{\text{GPU}}^{\text{JL}}")
 
     ##-- LABELS --##
-    f[1:2, 2] = Legend(f, ax1; framevisible=false, labelsize=25)
+    f[1:2, 2] = Legend(f, ax1; framevisible=false)
     for (label, layout) in zip(["A", "B"], [f[1, 1], f[2, 1]])
         Label(
             layout[1, 1, TopLeft()],
             label;
+            fontsize=25,
             padding=(0, 0, 40, 0),
             halign=:right,
         )
@@ -131,12 +120,41 @@ function dt()
     return f
 end
 
-# ╔═╡ bb891719-2676-49c9-8b23-dfdfc6f4fd3d
+# ╔═╡ aa312920-1c67-46f7-a7b1-dfe42f54c769
 with_theme(dt, medphys_theme)
 
-# ╔═╡ 8a054ee3-b388-4ea6-9b1a-3dbcc668714d
+# ╔═╡ 6349d56d-f837-4395-9819-e8e7f34ba01f
+(x, y, z) = df_dt_py_2D[end, :dt_min_cpu_2D], df_dt_julia_2D[end, :wenbo_threaded_minimum_2D], df_dt_julia_2D[end, :wenbo_gpu_minimum_2D]
+
+# ╔═╡ a0ea7e69-1249-4d47-9366-ec9f44568236
+wenbo_gpu_vs_py = x / z
+
+# ╔═╡ 5059495d-6905-4043-b03e-3ea73f67d341
+wenbo_gpu_vs_wenbo_cpu = x / y
+
+# ╔═╡ 1852f60f-cdf1-47d5-8d97-052710bed435
+md"""
+# Losses
+"""
+
+# ╔═╡ 96adfd06-9131-4f96-b49e-adac4e89bde4
+begin
+	df_loss_julia_2D = CSV.read(joinpath(path_julia, "HD_2D_Not_Loop_Jan_11.csv"), DataFrame)
+	df_loss_julia_2D_loop = CSV.read(joinpath(path_julia, "HD_2D_In_Loop_Jan_11.csv"), DataFrame)
+	
+	df_loss_julia_3D = CSV.read(joinpath(path_julia, "HD_3D_Not_Loop_Jan_11.csv"), DataFrame)
+	df_loss_julia_3D_loop = CSV.read(joinpath(path_julia, "HD_3D_In_Loop_Jan_11.csv"), DataFrame)
+
+	df_loss_py_2D = CSV.read(joinpath(path_py, "HD_2D_Not_Loop_Jan_12.csv"), DataFrame)
+	df_loss_py_3D = CSV.read(joinpath(path_py, "HD_3D_Not_Loop_Jan_12.csv"), DataFrame)
+end;
+
+# ╔═╡ b7236b7b-cf97-4962-b49d-58037b52201d
 function loss()
     f = Figure()
+
+	full_label1 = "HD Loss Julia CPU (DT: Mauer CPU, Loss: HD GPU)"
+	full_label2 = "HD Loss Julia GPU (DT: Wenbo GPU, Loss: HD GPU)"
 
 	##-- A --##
     ax = Axis(
@@ -146,30 +164,30 @@ function loss()
 		title = "2D Loss",
 		xticklabelrotation = pi/4
 	)
-	lines!(df_loss[!, :sizes_hd], df_loss[!, :hd_scipy] * 1e-6, label=L"\text{HD}_{\text{Scipy}}")
-	lines!(df_loss[!, :sizes_hd], df_loss[!, :hd_fenz] * 1e-6, label=L"\text{HD}_{\text{Felzenszwalb}}")
-	lines!(df_loss[!, :sizes_hd], df_loss[!, :hd_fenz_gpu] * 1e-6, label=L"\text{HD}_{\text{Felzenszwalb}_\text{GPU}}")
+	lines!(df_loss_julia_2D[!, :size], df_loss_py_2D[!, :Scipy_cpu_hd_gpu_min] * 1e-6, label=L"\text{HD}_{\text{CPU}}^{\text{PY}}")
+	lines!(df_loss_julia_2D[!, :size], df_loss_julia_2D[!, :Maurer_cpu_hd_gpu_min] * 1e-6, label=L"\text{HD}_{\text{CPU}}^{\text{JL}}")
+	lines!(df_loss_julia_2D[!, :size], df_loss_julia_2D[!, :Wenbo_gpu_hd_gpu_min] * 1e-6, label=L"\text{HD}_{\text{GPU}}^{\text{JL}}")
 
 	##-- B --##
     ax = Axis(
 		f[2, 1:2],
 		xlabel = "Array Size (Voxels)",
 		ylabel = "Time (ms)",
-		yticks = [0, 200, 400, 600],
 		title = "3D Loss",
 		xticklabelrotation = pi/4
 	)
-	lines!(df_loss[!, :sizes_hd_3D], df_loss[!, :hd_scipy_3D] * 1e-6, label=L"\text{HD}_{\text{Scipy}}")
-	lines!(df_loss[!, :sizes_hd_3D], df_loss[!, :hd_fenz_3D] * 1e-6, label=L"\text{HD}_{\text{Felzenszwalb}}")
-	lines!(df_loss[!, :sizes_hd_3D], df_loss[!, :hd_fenz_gpu_3D] * 1e-6, label=L"\text{HD}_{\text{Felzenszwalb}_\text{GPU}}")
+	lines!(df_loss_julia_3D[!, :size], df_loss_py_3D[!, :Scipy_cpu_hd_gpu_min] * 1e-6, label=L"\text{HD}_{\text{CPU}}^{\text{PY}}")
+	lines!(df_loss_julia_3D[!, :size], df_loss_julia_3D[!, :Maurer_cpu_hd_gpu_min] * 1e-6, label=L"\text{HD}_{\text{CPU}}^{\text{JL}}")
+	lines!(df_loss_julia_3D[!, :size], df_loss_julia_3D[!, :Wenbo_gpu_hd_gpu_min] * 1e-6, label=L"\text{HD}_{\text{GPU}}^{\text{JL}}")
+	vlines!(96^3:96^3; linestyle=:dash, label="Array Input Size")
 
    	##-- LABELS --##
-    f[1:2, end+1] = Legend(f, ax; framevisible=false, labelsize=25)
+    f[1:2, end+1] = Legend(f, ax; framevisible=false, orientation=:vertical)
     for (label, layout) in zip(["A", "B"], [f[1, 1], f[2, 1]])
         Label(
             layout[1, 1, TopLeft()],
             label;
-            # fontsize=25,
+            fontsize=25,
             padding=(0, 0, 40, 0),
             halign=:right,
         )
@@ -179,7 +197,7 @@ function loss()
     return f
 end
 
-# ╔═╡ ca48acf9-7546-40ab-ad69-c5a6ed3092b9
+# ╔═╡ 7e3ac952-005a-45e6-a395-eea36ba255b5
 with_theme(loss, medphys_theme)
 
 # ╔═╡ 24e42441-7d63-4c81-a901-5ebfaeb3e7a3
@@ -602,25 +620,24 @@ end
 # ╠═5463443f-a69e-4766-bfc2-0b7ca0fd48c9
 # ╠═6495cb7b-67ec-49da-bc5d-f7a63ca9e5e9
 # ╠═ec608b5e-a6d5-4b12-a3a4-cc1738dbc6ed
+# ╠═1ee4f557-d25c-4a33-9d27-8fd62d7b0496
 # ╠═d1a12515-a9d0-468b-8978-dbb26a1ee667
 # ╠═f88c7074-8b5c-4dc7-83d5-e65a24b88ab0
 # ╠═278dfa0e-46e1-4789-9f51-eb3463a9fb00
 # ╠═8608a972-73c0-4903-bdd7-9a23f7c57337
+# ╠═02f182d4-f5ab-46a3-8009-33ed641fcf27
 # ╟─95a525fe-e10b-42ee-a1b9-9405fe16b50c
-# ╠═82134f7b-2cb1-4d9a-982f-f8b2799c9518
-# ╠═bac3b79b-8b61-4bec-9478-fca3b4c901c5
-# ╠═892bf5ef-012c-49c2-bb2d-80a006965c28
-# ╠═6a77f8f4-5880-4267-ae44-0de8077bce1e
-# ╠═bb891719-2676-49c9-8b23-dfdfc6f4fd3d
+# ╠═9445d9fe-2155-4cd6-9f2e-d20d8719747a
+# ╠═f9e4ef93-7500-410b-b0b5-4b4411e8dd0b
+# ╟─c1659832-9e1a-4af5-9bf6-fd4d6f12589f
+# ╠═aa312920-1c67-46f7-a7b1-dfe42f54c769
 # ╠═6349d56d-f837-4395-9819-e8e7f34ba01f
 # ╠═a0ea7e69-1249-4d47-9366-ec9f44568236
 # ╠═5059495d-6905-4043-b03e-3ea73f67d341
-# ╠═9c2b898e-0295-44da-8e3f-bab93524eec3
-# ╠═7b34de9e-747b-4a80-870a-6f26178a378d
 # ╟─1852f60f-cdf1-47d5-8d97-052710bed435
-# ╠═fbda132c-1f19-4103-84f0-34215ce4e5b7
-# ╟─8a054ee3-b388-4ea6-9b1a-3dbcc668714d
-# ╠═ca48acf9-7546-40ab-ad69-c5a6ed3092b9
+# ╠═96adfd06-9131-4f96-b49e-adac4e89bde4
+# ╟─b7236b7b-cf97-4962-b49d-58037b52201d
+# ╠═7e3ac952-005a-45e6-a395-eea36ba255b5
 # ╟─24e42441-7d63-4c81-a901-5ebfaeb3e7a3
 # ╠═622443e7-b90c-491a-beaf-d7aa668474ca
 # ╟─810674a3-6be0-47c1-8b3f-ff9b385ccf77
