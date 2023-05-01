@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.14
+# v0.19.22
 
 using Markdown
 using InteractiveUtils
@@ -25,7 +25,8 @@ begin
 	# Pkg.add("BSON")
 	# Pkg.add("DataFrames")
 	# Pkg.add("CSV")
-	Pkg.add(url="https://github.com/Dale-Black/DistanceTransforms.jl", rev="master")
+	# Pkg.add(url="https://github.com/Dale-Black/DistanceTransformsPy.jl", rev="main")
+	# Pkg.add(url="https://github.com/Dale-Black/DistanceTransforms.jl", rev="master")
 end
 
 # ╔═╡ 65c6a0e2-bf72-4320-9e09-b2955aee80ff
@@ -41,6 +42,7 @@ begin
 	using BenchmarkTools
 	using ChainRulesCore
 	using DistanceTransforms
+	using DistanceTransformsPy
 	using DataFrames
 	using CSV
 	using FastAI, FastVision, Flux, Metalhead
@@ -60,7 +62,7 @@ md"""
 # ╔═╡ 1804332a-bff5-4ed2-ae54-c907c7371b09
 begin
 	#=--------------------- Prepare Data ---------------------=#
-	data_dir = raw"C:\Users\wenbl13\OneDrive - UCI Health\Desktop\Task02_Heart"
+	data_dir = raw"C:\Users\wenbl13\Desktop\Ashwin-Timing\distance-transforms\Task02_Heart"
 
 	function loadfn_label(p)
 	    a = NIfTI.niread(string(p)).raw
@@ -116,7 +118,7 @@ begin
 
 	train_files, val_files = MLDataPattern.splitobs(data_resized, 0.8)
 
-	batch_size = 4
+	batch_size = 3
 	tdl, vdl = FastAI.taskdataloaders(train_files, val_files, task, batch_size)
 
 
@@ -125,75 +127,60 @@ begin
 
 	
 	#=--------------------- Data Loader ---------------------=#
-	# # CPU
-	# traindl = Tuple{Tuple{Array{Float32, 5}, Array{Float32, 5}}, Array{Float32, 5}}[] 
-	# validdl = Tuple{Tuple{Array{Float32, 5}, Array{Float32, 5}}, Array{Float32, 5}}[] 
+	# CPU & GPU
+	traindl_CPU = Tuple{Tuple{Array{Float32, 5}, Array{Float32, 5}}, Array{Float32, 5}}[] 
+	validdl_CPU = Tuple{Tuple{Array{Float32, 5}, Array{Float32, 5}}, Array{Float32, 5}}[] 
 	
-	# for (xs, ys) in tdl
-	#     ys_dt = DistanceTransforms.transform(true, ys, Wenbo(), 0)
-	#     push!(traindl, ((xs,ys), ys_dt))
-	# end
-	
-	# for (xs, ys) in vdl
-	#     ys_dt = DistanceTransforms.transform(true, ys, Wenbo(), 0)
-	#     push!(validdl, ((xs,ys), ys_dt))
-	# end
-
-	# GPU
 	traindl = Tuple{Tuple{CuArray{Float32, 5, CUDA.Mem.DeviceBuffer}, CuArray{Float32, 5, CUDA.Mem.DeviceBuffer}}, CuArray{Float32, 5, CUDA.Mem.DeviceBuffer}}[] 
 	validdl = Tuple{Tuple{CuArray{Float32, 5, CUDA.Mem.DeviceBuffer}, CuArray{Float32, 5, CUDA.Mem.DeviceBuffer}}, CuArray{Float32, 5, CUDA.Mem.DeviceBuffer}}[] 
 	
-	
 	for (xs, ys) in tdl
-		ys_dt = DistanceTransforms.transform(true, ys, Wenbo(), 0)
+	    ys_dt = DistanceTransforms.transform(true, ys, Wenbo(), 0)
+	    push!(traindl_CPU, ((xs,ys), ys_dt))
 	    push!(traindl, ((CuArray(xs),CuArray(ys)), CuArray(ys_dt)))
 	end
 	
 	for (xs, ys) in vdl
 	    ys_dt = DistanceTransforms.transform(true, ys, Wenbo(), 0)
+	    push!(validdl_CPU, ((xs,ys), ys_dt))
 	    push!(validdl, ((CuArray(xs),CuArray(ys)), CuArray(ys_dt)))
 	end
-	tdl = nothing
-	vdl = nothing
-
-
-	
 
 	#=--------------------- U-Net Model ---------------------=#
-	conv = (stride, in, out) -> Conv((3, 3, 3), in=>out, stride=stride, pad=SamePad())
-	tran = (stride, in, out) -> ConvTranspose((3, 3, 3), in=>out, stride=stride, pad=SamePad())
+	# conv = (stride, in, out) -> Conv((3, 3, 3), in=>out, stride=stride, pad=SamePad())
+	# tran = (stride, in, out) -> ConvTranspose((3, 3, 3), in=>out, stride=stride, pad=SamePad())
 	
-	conv1 = (in, out) -> Chain(conv(1, in, out), BatchNorm(out, leakyrelu))
-	conv2 = (in, out) -> Chain(conv(2, in, out), BatchNorm(out, leakyrelu))
-	conv3 = (in, out) -> Chain(conv(1, in, out), x -> softmax(x; dims = 4))
-	tran2 = (in, out) -> Chain(tran(2, in, out), BatchNorm(out, leakyrelu))
+	# conv1 = (in, out) -> Chain(conv(1, in, out), BatchNorm(out, leakyrelu))
+	# conv2 = (in, out) -> Chain(conv(2, in, out), BatchNorm(out, leakyrelu))
+	# conv3 = (in, out) -> Chain(conv(1, in, out), x -> softmax(x; dims = 4))
+	# tran2 = (in, out) -> Chain(tran(2, in, out), BatchNorm(out, leakyrelu))
 	
 	
 	
-	function unet3D_mini(in_chs, lbl_chs)
-	    # Contracting layers
-	    l1 = Chain(conv1(in_chs, 16))
-	    l2 = Chain(l1, conv2(16, 32), conv1(32, 32))
-	    l3 = Chain(l2, conv2(32, 64), conv1(64, 64))
-	    l4 = Chain(l3, conv2(64, 128), conv1(128, 128))
-	    l5 = Chain(l4, conv2(128, 256), conv1(256, 256))
+	# function unet3D_mini(in_chs, lbl_chs)
+	#     # Contracting layers
+	#     l1 = Chain(conv1(in_chs, 16))
+	#     l2 = Chain(l1, conv2(16, 32), conv1(32, 32))
+	#     l3 = Chain(l2, conv2(32, 64), conv1(64, 64))
+	#     l4 = Chain(l3, conv2(64, 128), conv1(128, 128))
+	#     l5 = Chain(l4, conv2(128, 256), conv1(256, 256))
 	
-	    # Expanding layers
-	    l6 = Chain(l5, tran2(256, 128))
-	    l7 = Chain(Parallel(FastVision.Models.catchannels,l4,l6), conv1(256, 128), tran2(128, 64))
-	    l8 = Chain(Parallel(FastVision.Models.catchannels,l3,l7), conv1(128, 64), tran2(64, 32))
-	    l9 = Chain(Parallel(FastVision.Models.catchannels,l2,l8), conv1(64, 32), tran2(32, 16))
-	    l10 = Chain(l9, conv3(16, lbl_chs))
-	end
+	#     # Expanding layers
+	#     l6 = Chain(l5, tran2(256, 128))
+	#     l7 = Chain(Parallel(FastVision.Models.catchannels,l4,l6), conv1(256, 128), tran2(128, 64))
+	#     l8 = Chain(Parallel(FastVision.Models.catchannels,l3,l7), conv1(128, 64), tran2(64, 32))
+	#     l9 = Chain(Parallel(FastVision.Models.catchannels,l2,l8), conv1(64, 32), tran2(32, 16))
+	#     l10 = Chain(l9, conv3(16, lbl_chs))
+	# end
 
 	
-	# _conv = (stride, in, out) -> Conv((3, 3, 3), in=>out, stride=stride, pad=SamePad())
-	# _tran = (stride, in, out) -> ConvTranspose((2, 2, 2), in=>out, stride=stride, pad=SamePad())
+	_conv = (stride, in, out) -> Conv((3, 3, 3), in=>out, stride=stride, pad=SamePad())
+	_tran = (stride, in, out) -> ConvTranspose((2, 2, 2), in=>out, stride=stride, pad=SamePad())
 	
-	# conv1 = (in, out) -> Chain(_conv(1, in, out), BatchNorm(out, leakyrelu))
-	# conv2 = (in, out) -> Chain(_conv(2, in, out), BatchNorm(out, leakyrelu))
-	# conv3 = (in, out) -> Chain(_conv(1, in, out), x -> softmax(x; dims = 4))
-	# tran2 = (in, out) -> Chain(_tran(2, in, out), BatchNorm(out, leakyrelu))
+	conv1 = (in, out) -> Chain(_conv(1, in, out), BatchNorm(out, leakyrelu))
+	conv2 = (in, out) -> Chain(_conv(2, in, out), BatchNorm(out, leakyrelu))
+	conv3 = (in, out) -> Chain(_conv(1, in, out), x -> softmax(x; dims = 4))
+	tran2 = (in, out) -> Chain(_tran(2, in, out), BatchNorm(out, leakyrelu))
 	
 	
 	
@@ -233,19 +220,42 @@ begin
 	    loss_dice /= num_channels
 	    return loss_dice
 	end
-
+	
 	function dice_hausdorff_loss_Scipy(ŷ, y, y_dtm, epoch_idx; ϵ=1.0f-5)
 	    num_channels = size(ŷ)[4]
 	    num_batches = size(ŷ)[5]
-	    ŷ_dtm = similar(ŷ)
+	    ŷ_dtm = Array{Float32, 5}(undef, 96, 96, 96, num_channels, num_batches)
 	    ignore_derivatives() do
 	        for chan_idx = 1 : num_channels
 	            for batch_idx = 1 : num_batches
 	                ŷ_dtm[:,:,:, chan_idx, batch_idx] = 
-						DistanceTransformsPy.transform(round.(@views(ŷ[:,:,:, chan_idx, batch_idx])), Scipy())
+						DistanceTransformsPy.transform(round.(@views(ŷ[:,:,:, chan_idx, batch_idx])), Scipy()) |> cpu
 	            end
 	        end
-	        ŷ_dtm = round.(ŷ_dtm .^ 2)
+	        ŷ_dtm = round.(ŷ_dtm .^ 2) |> gpu
+	    end
+	
+	    loss_hd = mean(((ŷ .- y) .^ 2) .* (ŷ_dtm .+ y_dtm))
+	    loss_dice = dice_loss(ŷ, y)
+	    loss_hd < 1f5 || return loss_dice
+	    α = (epoch_idx-1.0f0) * 2f-4
+	    loss = α * loss_hd + (1.0f0 - α) * loss_dice
+	    return loss
+	end
+	
+	function dice_hausdorff_loss_Felzenszwalb_CPU(ŷ, y, y_dtm, epoch_idx; ϵ=1.0f-5)
+	    num_channels = size(ŷ)[4]
+	    num_batches = size(ŷ)[5]
+	    ŷ_dtm = Array{Float32, 5}(undef, 96, 96, 96, num_channels, num_batches)
+	    ignore_derivatives() do
+			ŷ_cpu = ŷ |> cpu
+	        for chan_idx = 1 : num_channels
+	            for batch_idx = 1 : num_batches
+	                ŷ_dtm[:,:,:, chan_idx, batch_idx] = 
+						DistanceTransforms.transform(boolean_indicator(@views(ŷ_cpu[:,:,:, chan_idx, batch_idx])), Felzenszwalb(), 16)
+	            end
+	        end
+	        ŷ_dtm = round.(ŷ_dtm .^ 2) |> gpu
 	    end
 	
 	    loss_hd = mean(((ŷ .- y) .^ 2) .* (ŷ_dtm .+ y_dtm))
@@ -256,18 +266,18 @@ begin
 	    return loss
 	end
 
-	function dice_hausdorff_loss_Felzenszwalb(ŷ, y, y_dtm, epoch_idx; ϵ=1.0f-5)
+	function dice_hausdorff_loss_Felzenszwalb_GPU(ŷ, y, y_dtm, epoch_idx; ϵ=1.0f-5)
 	    num_channels = size(ŷ)[4]
 	    num_batches = size(ŷ)[5]
-	    ŷ_dtm = similar(ŷ)
+	    ŷ_dtm = Array{Float32, 5}(undef, 96, 96, 96, num_channels, num_batches)
 	    ignore_derivatives() do
 	        for chan_idx = 1 : num_channels
 	            for batch_idx = 1 : num_batches
 	                ŷ_dtm[:,:,:, chan_idx, batch_idx] = 
-						DistanceTransforms.transform(round.(@views(ŷ[:,:,:, chan_idx, batch_idx])), Felzenszwalb(), 16)
+						DistanceTransforms.transform(boolean_indicator(@views(ŷ[:,:,:, chan_idx, batch_idx])), Felzenszwalb()) |> cpu
 	            end
 	        end
-	        ŷ_dtm = round.(ŷ_dtm .^ 2)
+	        ŷ_dtm = round.(ŷ_dtm .^ 2) |> gpu
 	    end
 	
 	    loss_hd = mean(((ŷ .- y) .^ 2) .* (ŷ_dtm .+ y_dtm))
@@ -323,7 +333,7 @@ begin
 	    return (curr_epoch.time - curr_epoch.gctime)*10^9
 	end
 
-	function train_1_epoch_with_HD_DICE_Felzenszwalb(epoch_idx, model, model_ps, train_dl, valid_dl, optimizer)
+	function train_1_epoch_with_HD_DICE_Felzenszwalb_CPU(epoch_idx, model, model_ps, train_dl, valid_dl, optimizer)
 		curr_epoch = @timed begin
 	    # Epoch start
 	    ct = 1
@@ -332,7 +342,28 @@ begin
 		      # Step start
 		      gs = gradient(model_ps) do
 		        pred_mask = model(img)
-		        training_loss = dice_hausdorff_loss_Felzenszwalb(pred_mask, mask, mask_dtm, epoch_idx)
+		        training_loss = dice_hausdorff_loss_Felzenszwalb_CPU(pred_mask, mask, mask_dtm, epoch_idx)
+		        return training_loss
+		      end
+		      Flux.update!(optimizer, model_ps, gs)
+		      # Step finished
+		    end
+		    # Epoch finished
+		end
+	    return (curr_epoch.time - curr_epoch.gctime)*10^9
+	end
+
+	
+	function train_1_epoch_with_HD_DICE_Felzenszwalb_GPU(epoch_idx, model, model_ps, train_dl, valid_dl, optimizer)
+		curr_epoch = @timed begin
+	    # Epoch start
+	    ct = 1
+	    for (img_mask, mask_dtm) in train_dl
+		      img, mask = img_mask 
+		      # Step start
+		      gs = gradient(model_ps) do
+		        pred_mask = model(img)
+		        training_loss = dice_hausdorff_loss_Felzenszwalb_GPU(pred_mask, mask, mask_dtm, epoch_idx)
 		        return training_loss
 		      end
 		      Flux.update!(optimizer, model_ps, gs)
@@ -353,7 +384,7 @@ md"""
 
 # ╔═╡ 052a137b-c393-4047-ae7c-57f3f01d590b
 # Create an inital model
-model_org = unet3D_mini(1, 2);
+model_org = unet3D(1, 2);
 
 # ╔═╡ b7be55de-9ccb-4e8b-97a4-c0e8ba1167c9
 md"""
@@ -361,20 +392,20 @@ md"""
 """
 
 # ╔═╡ 16f2dfec-eb48-4401-8f93-aa231142c3c4
-begin
-	model1 = model_org |> gpu
-	model_ps1 = Flux.params(model1)
-	optimizer = Adam(0.001) 
-	Dice_times = []
-	for epoch_idx = 1:10
-	        curr_time = train_1_epoch_with_DICE(epoch_idx, model1, model_ps1, traindl, validdl, optimizer)
-		push!(Dice_times, curr_time)
-    end
-end
+# begin
+# 	model1 = model_org |> gpu
+# 	model_ps1 = Flux.params(model1)
+# 	optimizer = Adam(0.001) 
+# 	Dice_times = []
+# 	for epoch_idx = 1:250
+# 	        curr_time = train_1_epoch_with_DICE(epoch_idx, model1, model_ps1, traindl, validdl, optimizer)
+# 		push!(Dice_times, curr_time)
+#     end
+# model1, model_ps1 = nothing, nothing
+# GC.gc(true)
+# CUDA.reclaim()
+# end
 
-
-# ╔═╡ f15c0563-713b-4bf1-b477-c43ebf5e02cf
-Dice_times
 
 # ╔═╡ 37f95f77-390e-4ffc-9094-21f94ac67df8
 md"""
@@ -382,45 +413,78 @@ md"""
 """
 
 # ╔═╡ bfc90fc1-a432-453a-b1f3-ab0005de2d7b
+# begin
+# 	model2 = model_org |> gpu
+# 	model_ps2 = Flux.params(model2)
+# 	optimizer2 = Adam(0.001) 
+# 	Dice_HD_Scipy_times = []
+# 	for epoch_idx = 1:250
+# 	        curr_time = train_1_epoch_with_HD_DICE_Scipy(epoch_idx, model2, model_ps2, traindl, validdl, optimizer2)
+# 		push!(Dice_HD_Scipy_times, curr_time)
+#     end
+# model2, model_ps2 = nothing, nothing
+# GC.gc(true)
+# CUDA.reclaim()
+# end
+
+
+# ╔═╡ 8ec5045f-c343-40f7-b866-471d936a6bcd
+md"""
+# 3.3.1 Dice + HD(Felzenszwalb CPU)
+"""
+
+# ╔═╡ 92195b6b-3758-4b3c-aeab-43c91e87b9a4
 begin
-	model2 = model_org |> gpu
-	model_ps2 = Flux.params(model2)
-	optimizer2 = Adam(0.001) 
-	Dice_HD_Scipy_times = []
-	for epoch_idx = 1:10
-	        curr_time = train_1_epoch_with_HD_DICE_Scipy(epoch_idx, model2, model_ps2, traindl, validdl, optimizer2)
-		push!(Dice_HD_Scipy_times, curr_time)
+	model4 = model_org |> gpu
+	model_ps4 = Flux.params(model4)
+	optimizer4 = Adam(0.001) 
+	Dice_HD_Felzenszwalb_CPU_times = []
+	for epoch_idx = 1:250
+	        curr_time = train_1_epoch_with_HD_DICE_Felzenszwalb_CPU(epoch_idx, model4, model_ps4, traindl, validdl, optimizer4)
+		push!(Dice_HD_Felzenszwalb_CPU_times, curr_time)
     end
+model4, model_ps4 = nothing, nothing
+GC.gc(true)
+CUDA.reclaim()
 end
-
-
-# ╔═╡ 635783ee-9966-40c3-8f67-7703efc97a47
-Dice_HD_Scipy_times
 
 # ╔═╡ a48f20ad-4c5a-491f-8fca-71ba04bd7283
 md"""
-# 3.3 Dice + HD(Felzenszwalb)
+# 3.3.2 Dice + HD(Felzenszwalb GPU)
 """
 
 # ╔═╡ b1aa165b-2f00-4438-ae02-80ca392706bb
-begin
-	model3 = model_org |> gpu
-	model_ps3 = Flux.params(model3)
-	optimizer3 = Adam(0.001) 
-	Dice_HD_Felzenszwalb_times = []
-	for epoch_idx = 1:10
-	        curr_time = train_1_epoch_with_HD_DICE_Felzenszwalb(epoch_idx, model3, model_ps3, traindl, validdl, optimizer3)
-		push!(Dice_HD_Felzenszwalb_times, curr_time)
-    end
-end
-
-# ╔═╡ 0eb3437f-6069-4652-b7d0-1c3484c48a7e
-Dice_HD_Felzenszwalb_times
+# begin
+# 	model3 = model_org |> gpu
+# 	model_ps3 = Flux.params(model3)
+# 	optimizer3 = Adam(0.001) 
+# 	Dice_HD_Felzenszwalb_GPU_times = []
+# 	for epoch_idx = 1:250
+# 	        curr_time = train_1_epoch_with_HD_DICE_Felzenszwalb_GPU(epoch_idx, model3, model_ps3, traindl, validdl, optimizer3)
+# 		push!(Dice_HD_Felzenszwalb_GPU_times, curr_time)
+#     end
+# model3, model_ps3 = nothing, nothing
+# GC.gc(true)
+# CUDA.reclaim()
+# end
 
 # ╔═╡ bccabec5-ca78-426b-9fd9-e5b118a52060
 md"""
 # 4. Record Data
 """
+
+# ╔═╡ 976f8bf9-e51f-4f3b-b482-001a17b36033
+begin
+	epoch_idx = collect(1:250)
+	df_loop_times = DataFrame(
+		epoch_idx = epoch_idx,
+		# Dice_times = Dice_times,
+		# Dice_HD_Scipy_times = Dice_HD_Scipy_times
+		Dice_HD_Felzenszwalb_CPU_times = Dice_HD_Felzenszwalb_CPU_times,
+		# Dice_HD_Felzenszwalb_GPU_times = Dice_HD_Felzenszwalb_GPU_times
+	    )
+	CSV.write("CSVs/loop_timing_Task02_Heart_3.csv", df_loop_times )
+end
 
 # ╔═╡ Cell order:
 # ╟─d86e89a0-da38-11ed-0628-bb1a64e58171
@@ -434,11 +498,11 @@ md"""
 # ╠═052a137b-c393-4047-ae7c-57f3f01d590b
 # ╟─b7be55de-9ccb-4e8b-97a4-c0e8ba1167c9
 # ╠═16f2dfec-eb48-4401-8f93-aa231142c3c4
-# ╠═f15c0563-713b-4bf1-b477-c43ebf5e02cf
 # ╟─37f95f77-390e-4ffc-9094-21f94ac67df8
 # ╠═bfc90fc1-a432-453a-b1f3-ab0005de2d7b
-# ╠═635783ee-9966-40c3-8f67-7703efc97a47
+# ╟─8ec5045f-c343-40f7-b866-471d936a6bcd
+# ╠═92195b6b-3758-4b3c-aeab-43c91e87b9a4
 # ╟─a48f20ad-4c5a-491f-8fca-71ba04bd7283
 # ╠═b1aa165b-2f00-4438-ae02-80ca392706bb
-# ╠═0eb3437f-6069-4652-b7d0-1c3484c48a7e
 # ╟─bccabec5-ca78-426b-9fd9-e5b118a52060
+# ╠═976f8bf9-e51f-4f3b-b482-001a17b36033
