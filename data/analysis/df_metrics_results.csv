@@ -1,0 +1,3 @@
+"Loss Function","Dice Similarity Coefficient","Hausdorff Distance (mm)"
+"Dice Loss",0.8602971241651901,10.63014581273465
+"HD-Dice Loss",0.9024341975064318,3.7416573867739413
