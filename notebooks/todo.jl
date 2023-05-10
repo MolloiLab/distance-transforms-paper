@@ -21,20 +21,20 @@ Compare the pure Hausdorff loss functions in 2D & 3D on random arrays. The Hausd
 
 ## 3. Training Loops (Task02 Heart, 3D Only)
 Compare the step and epoch times for various training loops. The baseline will be a pure dice loss. Then compare hybrid forms of the Dice/HD loss functions. Use the scipy implementation since that is the current gold standard. Then use the Felzenszwalb GPU version only, since that is the fastest which is shown in the previous sections above.
-- 💬 Pure Dice (``\text{Loss}_{\text{Dice}}``)
-- 💬 Hybrid Dice/HD (``\text{Loss}_{\text{Scipy}}``)
-- 💬 Hybrid Dice/HD (``\text{Loss}_{\text{Felzenszwalb}}``)
+- ✅ Pure Dice (``\text{Loss}_{\text{Dice}}``)
+- ✅ Hybrid Dice/HD (``\text{Loss}_{\text{Scipy}}``)
+- ✅ Hybrid Dice/HD (``\text{Loss}_{\text{Felzenszwalb}}``)
 
 # Accuracy
 This section looks at 2 different datasets, and since timings are already acquired, we will only use the fastest hybrid loss function (``\text{Loss}_{\text{Felzenszwalb}}``) on GPU, to compare against the baseline pure dice loss function. Record the Hausdorff Distance and Dice-Sorenson Coefficient for the best model for both loss functions.
 
 ## 4. Task02 Heart
-- 💬 Pure Dice Metrics (``\text{Loss}_{\text{Dice}}``)
-- 💬 Hybrid Dice/HD Metrics (``\text{Loss}_{\text{Felzenszwalb}}``)
+- ✅ Pure Dice Metrics (``\text{Loss}_{\text{Dice}}``)
+- ✅ Hybrid Dice/HD Metrics (``\text{Loss}_{\text{Felzenszwalb}}``)
 
 ## 5. RSNA Challenge
-- 💬 Pure Dice Metrics (``\text{Loss}_{\text{Dice}}``)
-- 💬 Hybrid Dice/HD Metrics (``\text{Loss}_{\text{Felzenszwalb}}``)
+- ✅ Pure Dice Metrics (``\text{Loss}_{\text{Dice}}``)
+- ✅ Hybrid Dice/HD Metrics (``\text{Loss}_{\text{Felzenszwalb}}``)
 
 """
 

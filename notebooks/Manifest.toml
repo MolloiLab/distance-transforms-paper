@@ -1,6 +1,6 @@
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.8.5"
+julia_version = "1.8.4"
 manifest_format = "2.0"
 project_hash = "259f8e1461574b87cc26af6313035cd4b4430351"
 
@@ -457,8 +457,8 @@ version = "1.13.0"
 
 [[deps.DistanceTransforms]]
 deps = ["CUDA", "FLoops", "FoldsCUDA", "FoldsThreads", "ImageMorphology", "InteractiveUtils", "LoopVectorization", "Markdown", "Pkg", "PlutoUI", "Revise", "Test", "TestSetExtensions"]
-git-tree-sha1 = "462501bcea8a188cfaa56c2df45e481fdfcd5d36"
-repo-rev = "wenbo"
+git-tree-sha1 = "0e84e9cef4987b62d30be7bfa17974679a6bea8a"
+repo-rev = "master"
 repo-url = "https://github.com/Dale-Black/DistanceTransforms.jl"
 uuid = "71182807-4d06-4237-8dd0-bdafe4d097e2"
 version = "0.2.2"
