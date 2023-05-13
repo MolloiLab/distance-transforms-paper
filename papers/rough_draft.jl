@@ -220,25 +220,6 @@ md"""
 Figure 4. Average epoch time (s) for various loss functions. The baseline, ``\text{Loss}_{DSC}``, took 5.77s on average per step. The previously proposed hybrid Dice and HD loss function, ``\text{Loss}_{Scipy}``, took 8.38s on average per step. Our new loss function, ``\text{Loss}_{FelzenszwalbGPU}``, took 6.60s on average per step.
 """
 
-# ╔═╡ 458c4a6a-4b0e-4a71-bb07-380be9309c51
-# begin
-# 	perc_increase(a, b) = ((b - a) / a) * 100
-	
-# 	dice = 0.59
-# 	hd_cpu = 0.91
-# 	hd_gpu = 0.67
-# 	@info perc_increase(dice, hd_cpu)
-# 	@info perc_increase(dice, hd_gpu)
-# 	@info perc_increase(hd_gpu, hd_cpu)
-
-# 	dice2 = 2.37
-# 	hd_cpu2 = 3.64
-# 	hd_gpu2 = 2.69
-# 	@info perc_increase(dice2, hd_cpu2)
-# 	@info perc_increase(dice2, hd_gpu2)
-# 	@info perc_increase(hd_gpu2, hd_cpu2)
-# end
-
 # ╔═╡ e548262f-15fc-4446-afa0-e684a0526ad0
 md"""
 ## 3.4 - Accuracy
@@ -333,7 +314,6 @@ md"""
 # ╟─96fe5180-b3e9-4994-aa62-fab24592b6cd
 # ╟─2ba9e25b-d46e-4b1e-8455-e30e1ff8c155
 # ╟─311657af-b191-480c-9bd3-4cc769b108d0
-# ╟─458c4a6a-4b0e-4a71-bb07-380be9309c51
 # ╟─e548262f-15fc-4446-afa0-e684a0526ad0
 # ╟─efa8acce-9697-44ae-8518-38faafb27807
 # ╟─43c081f1-14c6-4f72-b112-8fa192d862f1
