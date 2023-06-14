@@ -287,7 +287,7 @@ function training_step()
     barplot!(table, heights1; color=colors[1:3], bar_labels=[l1, l2, l3])
 
 	ylims!(ax; low=0, high=10)
-	save(plotsdir("training_step.png"), f)
+	save(plotsdir("training.png"), f)
 	
 	return f
 end
