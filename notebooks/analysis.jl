@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.25
+# v0.19.26
 
 using Markdown
 using InteractiveUtils
@@ -251,13 +251,13 @@ md"""
 """
 
 # ╔═╡ 787cc572-bbd5-4ca5-90c1-cb88bba40f7e
-df_epochs = CSV.read(datadir("results", "loop_timing_Task02_Heart_all.csv"), DataFrame);
+df_epochs = CSV.read(datadir("results", "epoch_time_2023_06_09.csv"), DataFrame);
 
 # ╔═╡ 29e64a2f-1eac-4be1-9d88-b18dcebe0b24
 begin
-	epoch_julia_dice = mean(df_epochs[2:end-5, :Dice_times]) * 1e-9
-	epoch_julia_hd_scipy = mean(df_epochs[2:end-5, :Dice_HD_Scipy_times]) * 1e-9
-	epoch_julia_hd_fenz = mean(df_epochs[2:end-5, :Dice_HD_Felzenszwalb_CPU_times]) * 1e-9
+	epoch_julia_dice = mean(df_epochs[2:40, :Dice]) * 1e-9
+	epoch_julia_hd_scipy = mean(df_epochs[2:40, :Scipy]) * 1e-9
+	epoch_julia_hd_fenz = mean(df_epochs[2:40, :Felzenszwalb_gpu]) * 1e-9
 end
 
 # ╔═╡ 59f7d51c-2bf7-4ad0-b3b6-d584eed50cf9
@@ -387,196 +387,24 @@ md"""
 ## Load and prepare data
 """
 
-# ╔═╡ 6a0ae2dd-f584-4bf2-90a0-35cbf90f9015
-# ╠═╡ disabled = true
-#=╠═╡
-# const data_dir = "/Users/daleblack/Library/CloudStorage/GoogleDrive-djblack@uci.edu/My Drive/Datasets/Task02_Heart"
-const data_dir = joinpath(dirname(dirname(dirname(pwd()))), "datasets/Task02_Heart")
-  ╠═╡ =#
-
-# ╔═╡ da41cb15-042c-4f00-9430-d509c30d381b
-# ╠═╡ disabled = true
-#=╠═╡
-# const model_path = "/Users/daleblack/Library/CloudStorage/GoogleDrive-djblack@uci.edu/My Drive/Datasets/hd-loss models"
-const model_path = joinpath(dirname(dirname(dirname(pwd()))), "datasets/hd-loss models")
-  ╠═╡ =#
-
-# ╔═╡ c65bb13d-3f2a-4e50-a092-1a7cc2925c7e
-#=╠═╡
-task2, model_dsc = loadtaskmodel(joinpath(model_path, "bigger_NN_0.001_Dice_270.jld2"))
-  ╠═╡ =#
-
-# ╔═╡ dd01154e-ceac-4fcd-9b9a-5a9268e7b2ea
-#=╠═╡
-_, model_hd = loadtaskmodel(joinpath(model_path, "bigger_NN_0.001_HD_Dice_270.jld2"))
-  ╠═╡ =#
-
-# ╔═╡ a70682fa-01fe-4efa-a944-e328f546fb5b
-#=╠═╡
-begin
-	model_dsc_gpu = model_dsc |> gpu
-	model_hd_gpu = model_hd |> gpu
-end;
-  ╠═╡ =#
-
-# ╔═╡ 22a5453f-72e7-4990-86ea-68ef6cc466cb
-#=╠═╡
-begin
-	images(dir) = mapobs(loadfn_image, Glob.glob("*.nii*", dir))
-	masks(dir) =  mapobs(loadfn_label, Glob.glob("*.nii*", dir))
-	pre_data = (
-	    images(joinpath(data_dir, "imagesTr")),
-	    masks(joinpath(data_dir, "labelsTr")),
-	)
-end
-  ╠═╡ =#
-
 # ╔═╡ 76091037-b59c-4f82-99f4-39202b344180
 image_size = (96, 96, 96)
 
-# ╔═╡ f67046b8-1174-4306-8ebf-422203dcfdf7
-#=╠═╡
-img_container, mask_container = presize(pre_data)
-  ╠═╡ =#
-
-# ╔═╡ 8fd5c922-cd1b-4143-869b-7f4f6ab3e382
-#=╠═╡
-data_resized = (img_container, mask_container);
-  ╠═╡ =#
-
-# ╔═╡ 023d9b3a-5fb7-4543-91b3-d2fbb2350a24
-# ╠═╡ show_logs = false
-#=╠═╡
-a, b = FastVision.imagedatasetstats(img_container, Gray{N0f8})
-  ╠═╡ =#
-
-# ╔═╡ 3c4ac7bd-cc6f-42e5-abfb-0e6fba855a49
-#=╠═╡
-means, stds = SVector{1, Float32}(a[1]), SVector{1, Float32}(b[1])
-  ╠═╡ =#
-
-# ╔═╡ edfb1f5f-01ff-4f31-9898-5a26db1818b7
-#=╠═╡
-task = SupervisedTask(
-    (FastVision.Image{3}(), Mask{3}(1:2)),
-    (
-        ProjectiveTransforms((image_size)),
-        ImagePreprocessing(means = means, stds = stds, C = Gray{N0f8}),
-        FastAI.OneHot()
-    )
-)
-  ╠═╡ =#
-
-# ╔═╡ 76d13603-7ab9-4c60-8f3a-9b6bce6e317a
-#=╠═╡
-train_files, val_files = MLDataPattern.splitobs(data_resized, 0.8);
-  ╠═╡ =#
-
 # ╔═╡ 9afada46-48f4-4e22-86c3-351425e7c3ab
 batch_size = 1
-
-# ╔═╡ d816d63d-6875-4a70-8483-e469603660b9
-#=╠═╡
-tdl, vdl = FastAI.taskdataloaders(train_files, val_files, task, batch_size);
-  ╠═╡ =#
 
 # ╔═╡ 35af3308-ab47-4c94-ab87-a6d3ca09717f
 md"""
 ## Apply image from dataloader to model
 """
 
-# ╔═╡ 4325537e-47c3-45ae-a162-133eda8d03d4
-#=╠═╡
-begin
-	(example,) = vdl
-    img, msk = example
-end;
-  ╠═╡ =#
-
-# ╔═╡ af635d0c-bd5c-4e93-8295-53795afbe4cf
-# ╠═╡ show_logs = false
-#=╠═╡
-begin
-	pred_dsc = model_dsc_gpu(img |> gpu)
-	pred_hd = model_hd_gpu(img |> gpu)
-	
-	pred_dsc = pred_dsc |> cpu
-	pred_hd = pred_hd |> cpu
-
-	pred_dsc = keep_largest_component(argmax_2ch(pred_dsc))
-	pred_hd = keep_largest_component(argmax_2ch(pred_hd))
-end;
-  ╠═╡ =#
-
 # ╔═╡ 315e6f9b-447e-4ef4-8aaf-e74f83b31012
 img_size = (512, 512, 112)
-
-# ╔═╡ bc3528e9-3115-458a-a928-2e9e23033568
-#=╠═╡
-begin
-	img1 = imresize(img[:, :, :, 1, 1], img_size)
-	img2 = imresize(img[:, :, :, 1, 2], img_size)
-
-	msk1 = Bool.(round.(imresize(msk[:, :, :, 2, 1] .> 0, img_size)))
-	msk2 = Bool.(round.(imresize(msk[:, :, :, 2, 2] .> 0, img_size)))
-
-	pred_dsc1 = Bool.(round.(imresize(pred_dsc[:, :, :, 1], img_size)))
-	pred_dsc2 = Bool.(round.(imresize(pred_dsc[:, :, :, 2], img_size)))
-
-	pred_hd1 = Bool.(round.(imresize(pred_hd[:, :, :, 1], img_size)))
-	pred_hd2 = Bool.(round.(imresize(pred_hd[:, :, :, 2], img_size)))
-end;
-  ╠═╡ =#
 
 # ╔═╡ e1b32b84-998d-41e9-a7a8-a9680147f056
 md"""
 ## Heatmap
 """
-
-# ╔═╡ c1d410ff-c17e-4532-b1ad-777b242b3770
-#=╠═╡
-@bind a1 PlutoUI.Slider(axes(img, 3), default=70, show_value=true)
-  ╠═╡ =#
-
-# ╔═╡ 470102a3-0aa6-4d34-a5f7-eb081e812edb
-#=╠═╡
-let
-	img = img1[:, :, a1]
-	edges_gt = find_edge_idxs(msk1[:, :, a1])
-	edges_dsc = find_edge_idxs(pred_dsc1[:, :, a1])
-	edges_hd = find_edge_idxs(pred_hd1[:, :, a1])
-
-	f = Figure(; resolution=(1200, 800))
-	alpha = 1
-	markersize = 4
-	
-    ax = Axis(
-		f[1, 1],
-		title = labels[1]
-	)
-    heatmap!(img; colormap=:grays)
-	scatter!(edges_gt; markersize=markersize, color = :red, label="Ground Truth")
-	scatter!(edges_hd; markersize=markersize, color = :blue, label="Predicted")
-	hidedecorations!(ax)
-
-	ax = Axis(
-		f[1, 2],
-		title = labels[3]
-	)
-    heatmap!(img; colormap=:grays)
-	scatter!(edges_gt; markersize=markersize, color = :red, label="Ground Truth")
-	scatter!(edges_hd; markersize=markersize, color = :blue, label="Predicted")
-	hidedecorations!(ax)
-
-	axislegend(ax)
-	f
-end
-  ╠═╡ =#
-
-# ╔═╡ 784a6e9f-4a12-4b2c-be22-45e606fea872
-#=╠═╡
-unique(pred_dsc1[:, :, a1] - pred_hd1[:, :, a1])
-  ╠═╡ =#
 
 # ╔═╡ 4f43c115-20eb-4041-9f8a-40286a9fd7e5
 # let
@@ -686,29 +514,10 @@ unique(pred_dsc1[:, :, a1] - pred_hd1[:, :, a1])
 # ╟─f88c873b-469e-4a2f-b5cb-ce0bca21ca9f
 # ╟─b7338313-06bd-484f-adcd-3cb6aa836018
 # ╠═f81ac05c-b5f2-4e96-b370-adc3b073d5c9
-# ╠═6a0ae2dd-f584-4bf2-90a0-35cbf90f9015
-# ╠═da41cb15-042c-4f00-9430-d509c30d381b
-# ╠═c65bb13d-3f2a-4e50-a092-1a7cc2925c7e
-# ╠═dd01154e-ceac-4fcd-9b9a-5a9268e7b2ea
-# ╠═a70682fa-01fe-4efa-a944-e328f546fb5b
-# ╠═22a5453f-72e7-4990-86ea-68ef6cc466cb
 # ╠═76091037-b59c-4f82-99f4-39202b344180
-# ╠═f67046b8-1174-4306-8ebf-422203dcfdf7
-# ╠═8fd5c922-cd1b-4143-869b-7f4f6ab3e382
-# ╠═023d9b3a-5fb7-4543-91b3-d2fbb2350a24
-# ╠═3c4ac7bd-cc6f-42e5-abfb-0e6fba855a49
-# ╠═edfb1f5f-01ff-4f31-9898-5a26db1818b7
-# ╠═76d13603-7ab9-4c60-8f3a-9b6bce6e317a
 # ╠═9afada46-48f4-4e22-86c3-351425e7c3ab
-# ╠═d816d63d-6875-4a70-8483-e469603660b9
 # ╟─35af3308-ab47-4c94-ab87-a6d3ca09717f
 # ╠═20114ef8-cf6b-4a92-89b8-40a85571d6c2
-# ╠═4325537e-47c3-45ae-a162-133eda8d03d4
-# ╠═af635d0c-bd5c-4e93-8295-53795afbe4cf
 # ╠═315e6f9b-447e-4ef4-8aaf-e74f83b31012
-# ╠═bc3528e9-3115-458a-a928-2e9e23033568
 # ╟─e1b32b84-998d-41e9-a7a8-a9680147f056
-# ╟─c1d410ff-c17e-4532-b1ad-777b242b3770
-# ╟─470102a3-0aa6-4d34-a5f7-eb081e812edb
-# ╠═784a6e9f-4a12-4b2c-be22-45e606fea872
 # ╠═4f43c115-20eb-4041-9f8a-40286a9fd7e5
