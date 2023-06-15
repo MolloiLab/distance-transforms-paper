@@ -297,7 +297,7 @@ function training_step()
     barplot!(table, heights1; color=colors[1:3], bar_labels=[l1, l2, l3])
 
 	ylims!(ax; low=0, high=10)
-	save(plotsdir("training_step.png"), f)
+	save(plotsdir("training.png"), f)
 	
 	return f
 end
@@ -408,19 +408,19 @@ task = SupervisedTask(
 train_files, val_files = MLDataPattern.splitobs(data_resized, 0.8);
 
 # ╔═╡ 9afada46-48f4-4e22-86c3-351425e7c3ab
-batch_size = 1
+batch_size = 2
 
 # ╔═╡ d816d63d-6875-4a70-8483-e469603660b9
 tdl, vdl = FastAI.taskdataloaders(train_files, val_files, task, batch_size);
 
 # ╔═╡ 35af3308-ab47-4c94-ab87-a6d3ca09717f
 md"""
-## Apply image from dataloader to model
+## Apply image from dataloader to models
 """
 
 # ╔═╡ 4325537e-47c3-45ae-a162-133eda8d03d4
 begin
-	(example,) = vdl
+	(example, ) = vdl
     img, msk = example
 end;
 
@@ -432,9 +432,6 @@ begin
 	
 	pred_dsc = pred_dsc |> cpu
 	pred_hd = pred_hd |> cpu
-
-	pred_dsc = keep_largest_component(argmax_2ch(pred_dsc))
-	pred_hd = keep_largest_component(argmax_2ch(pred_hd))
 end;
 
 # ╔═╡ 315e6f9b-447e-4ef4-8aaf-e74f83b31012
@@ -444,16 +441,33 @@ img_size = (512, 512, 112)
 begin
 	img1 = imresize(img[:, :, :, 1, 1], img_size)
 	img2 = imresize(img[:, :, :, 1, 2], img_size)
+	img3 = imresize(img[:, :, :, 1, 3], img_size)
+	img4 = imresize(img[:, :, :, 1, 4], img_size)
 
 	msk1 = Bool.(round.(imresize(msk[:, :, :, 2, 1] .> 0, img_size)))
 	msk2 = Bool.(round.(imresize(msk[:, :, :, 2, 2] .> 0, img_size)))
-
-	pred_dsc1 = Bool.(round.(imresize(pred_dsc[:, :, :, 1], img_size)))
-	pred_dsc2 = Bool.(round.(imresize(pred_dsc[:, :, :, 2], img_size)))
-
-	pred_hd1 = Bool.(round.(imresize(pred_hd[:, :, :, 1], img_size)))
-	pred_hd2 = Bool.(round.(imresize(pred_hd[:, :, :, 2], img_size)))
+	msk3 = Bool.(round.(imresize(msk[:, :, :, 2, 3] .> 0, img_size)))
+	msk4 = Bool.(round.(imresize(msk[:, :, :, 2, 4] .> 0, img_size)))
 end;
+
+# ╔═╡ d1c00ac4-9ab0-4579-aa0b-b775503a2fb3
+begin
+	pred_dsc1 = Bool.(round.(imresize(pred_dsc[:, :, :, 2, 1] .> 0, img_size)))
+	pred_dsc2 = Bool.(round.(imresize(pred_dsc[:, :, :, 2, 2] .> 0, img_size)))
+	pred_dsc3 = Bool.(round.(imresize(pred_dsc[:, :, :, 2, 3] .> 0, img_size)))
+	pred_dsc4 = Bool.(round.(imresize(pred_dsc[:, :, :, 2, 4] .> 0, img_size)))
+
+	pred_hd1 = Bool.(round.(imresize(pred_hd[:, :, :, 2, 1] .> 0, img_size)))
+	pred_hd2 = Bool.(round.(imresize(pred_hd[:, :, :, 2, 2] .> 0, img_size)))
+	pred_hd3 = Bool.(round.(imresize(pred_hd[:, :, :, 2, 3] .> 0, img_size)))
+	pred_hd4 = Bool.(round.(imresize(pred_hd[:, :, :, 2, 4] .> 0, img_size)))
+end;
+
+# ╔═╡ b7f28aad-ba4a-41a0-9ffe-1f558fd61e24
+function find_edge_idxs(mask)
+	edge = erode(mask) .⊻ mask
+	return Tuple.(findall(isone, edge))
+end
 
 # ╔═╡ e1b32b84-998d-41e9-a7a8-a9680147f056
 md"""
@@ -461,27 +475,76 @@ md"""
 """
 
 # ╔═╡ c1d410ff-c17e-4532-b1ad-777b242b3770
-@bind a1 PlutoUI.Slider(axes(img, 3), default=70, show_value=true)
+# @bind a1 PlutoUI.Slider(axes(img, 3), default=70, show_value=true)
+
+# ╔═╡ 6c84a364-7fc2-4aeb-9717-34968b722dca
+# begin
+# 	edges_gt1 = find_edge_idxs(msk1[:, :, a1])
+# 	edges_gt2 = find_edge_idxs(msk2[:, :, a1])
+# 	edges_gt3 = find_edge_idxs(msk3[:, :, a1])
+# 	edges_gt4 = find_edge_idxs(msk4[:, :, a1])
+	
+# 	edges_dsc1 = find_edge_idxs(pred_dsc1[:, :, a1])
+# 	edges_dsc2 = find_edge_idxs(pred_dsc2[:, :, a1])
+# 	edges_dsc3 = find_edge_idxs(pred_dsc3[:, :, a1])
+# 	edges_dsc4 = find_edge_idxs(pred_dsc4[:, :, a1])
+	
+# 	edges_hd1 = find_edge_idxs(pred_hd1[:, :, a1])
+# 	edges_hd2 = find_edge_idxs(pred_hd2[:, :, a1])
+# 	edges_hd3 = find_edge_idxs(pred_hd3[:, :, a1])
+# 	edges_hd4 = find_edge_idxs(pred_hd4[:, :, a1])
+# end;
 
 # ╔═╡ 470102a3-0aa6-4d34-a5f7-eb081e812edb
-let
-	img = img1[:, :, a1]
-	edges_gt = find_edge_idxs(msk1[:, :, a1])
-	edges_dsc = find_edge_idxs(pred_dsc1[:, :, a1])
-	edges_hd = find_edge_idxs(pred_hd1[:, :, a1])
-
-	f = Figure(; resolution=(1200, 800))
-	alpha = 1
-	markersize = 4
+# let
+# 	f = Figure(; resolution=(1200, 800))
+# 	alpha = 1
+# 	markersize = 4
 	
+#     ax = Axis(
+# 		f[1, 1],
+# 		title = labels[1]
+# 	)
+#     heatmap!(img4[:, :, a1]; colormap=:grays)
+# 	scatter!(edges_gt4; markersize=markersize, color = :red, label="Ground Truth")
+# 	scatter!(edges_dsc4; markersize=markersize, color = :blue, label="Predicted")
+# 	hidedecorations!(ax)
+
+# 	ax = Axis(
+# 		f[1, 2],
+# 		title = labels[3]
+# 	)
+#     heatmap!(img4[:, :, a1]; colormap=:grays)
+# 	scatter!(edges_gt4; markersize=markersize, color = :red, label="Ground Truth")
+# 	scatter!(edges_hd4; markersize=markersize, color = :blue, label="Predicted")
+# 	hidedecorations!(ax)
+
+# 	axislegend(ax)
+# 	f
+# end
+
+# ╔═╡ 4f43c115-20eb-4041-9f8a-40286a9fd7e5
+function countours()
+	f = Figure(resolution = (1200, 2000))
+	alpha = 1
+	markersize = 2
+
+	#------ Row 1 ------#
     ax = Axis(
 		f[1, 1],
-		title = labels[1]
+		title = labels[1],
+		ylabel = "Patient 1"
 	)
-    heatmap!(img; colormap=:grays)
+	z = 85
+	img = img1[:, :, z]
+	edges_gt = find_edge_idxs(msk1[:, :, z])
+	edges_dsc = find_edge_idxs(pred_dsc1[:, :, z])
+	edges_hd = find_edge_idxs(pred_hd1[:, :, z])
+    
+	heatmap!(img; colormap=:grays)
 	scatter!(edges_gt; markersize=markersize, color = :red, label="Ground Truth")
-	scatter!(edges_hd; markersize=markersize, color = :blue, label="Predicted")
-	hidedecorations!(ax)
+	scatter!(edges_dsc; markersize=markersize, color = :blue, label="Predicted")
+	hidedecorations!(ax, label = false)
 
 	ax = Axis(
 		f[1, 2],
@@ -491,73 +554,72 @@ let
 	scatter!(edges_gt; markersize=markersize, color = :red, label="Ground Truth")
 	scatter!(edges_hd; markersize=markersize, color = :blue, label="Predicted")
 	hidedecorations!(ax)
+	elem_gt = LineElement(color = :red, linestyle = nothing)
+	elem_pred = LineElement(color = :blue, linestyle = nothing)
+	
+	# axislegend(ax)
 
-	axislegend(ax)
+	#------ Row 2 ------#
+    ax = Axis(
+		f[2, 1],
+		ylabel = "Patient 2"
+	)
+	z = 60
+	img = img2[:, :, z]
+	edges_gt = find_edge_idxs(msk2[:, :, z])
+	edges_dsc = find_edge_idxs(pred_dsc2[:, :, z])
+	edges_hd = find_edge_idxs(pred_hd2[:, :, z])
+    
+	heatmap!(img; colormap=:grays)
+	scatter!(edges_gt; markersize=markersize, color = :red, label="Ground Truth")
+	scatter!(edges_dsc; markersize=markersize, color = :blue, label="Predicted")
+	hidedecorations!(ax, label = false)
+
+	ax = Axis(
+		f[2, 2],
+	)
+    heatmap!(img; colormap=:grays)
+	scatter!(edges_gt; markersize=markersize, color = :red, label="Ground Truth")
+	scatter!(edges_hd; markersize=markersize, color = :blue, label="Predicted")
+	hidedecorations!(ax)
+
+	#------ Row 3 ------#
+    ax = Axis(
+		f[3, 1],
+		ylabel = "Patient 3"
+	)
+	z = 57
+	img = img4[:, :, z]
+	edges_gt = find_edge_idxs(msk4[:, :, z])
+	edges_dsc = find_edge_idxs(pred_dsc4[:, :, z])
+	edges_hd = find_edge_idxs(pred_hd4[:, :, z])
+    
+	heatmap!(img; colormap=:grays)
+	scatter!(edges_gt; markersize=markersize, color = :red, label="Ground Truth")
+	scatter!(edges_dsc; markersize=markersize, color = :blue, label="Predicted")
+	hidedecorations!(ax, label = false)
+
+	ax = Axis(
+		f[3, 2],
+	)
+    heatmap!(img; colormap=:grays)
+	scatter!(edges_gt; markersize=markersize, color = :red, label="Ground Truth")
+	scatter!(edges_hd; markersize=markersize, color = :blue, label="Predicted")
+	hidedecorations!(ax)
+
+	Legend(
+		f[2, 3],
+    	[elem_gt, elem_pred,],
+    	["Ground Truth", "Predicted"],
+		framevisible = false
+	)
+
+	save(plotsdir("contours.png"), f)
 	f
 end
 
-# ╔═╡ 784a6e9f-4a12-4b2c-be22-45e606fea872
-unique(pred_dsc1[:, :, a1] - pred_hd1[:, :, a1])
-
-# ╔═╡ 4f43c115-20eb-4041-9f8a-40286a9fd7e5
-# let
-# 	f = Figure(
-# 	)
-# 	alpha = 1
-# 	markersize = 2
-
-# 	slice_1 = 70
-# 	y1_edge, y1_pred_edge, y1_pred_dice_edge = get_mask_edges(y1[:, :, slice_1], y1_pred[:, :, slice_1], y1_pred_dice[:, :, slice_1])
-# 	y1_edge, y1_pred_edge, y1_pred_dice_edge = Tuple.(y1_edge), Tuple.(y1_pred_edge), Tuple.(y1_pred_dice_edge)
-	
-#     ax1 = Axis(
-# 		f[1, 1],
-# 		title = "Dice Loss"
-# 	)
-#     heatmap!(x1[:, :, slice_1]; colormap=:grays)
-# 	scatter!(y1_edge; markersize=markersize, color = (:red, alpha), label="Ground Truth")
-# 	scatter!(y1_pred_dice_edge; markersize=markersize, color = (:blue, alpha), label="Predicted")
-# 	hidedecorations!(ax1)
-	
-
-# 	ax2 = Axis(
-# 		f[1, 2],
-# 		title = "HD-Dice Loss"
-# 	)
-#     heatmap!(x1[:, :, slice_1]; colormap=:grays)
-# 	scatter!(y1_edge; markersize=markersize, color = (:red, alpha), label="Ground Truth")
-# 	scatter!(y1_pred_edge; markersize=markersize, color = (:blue, alpha), label="Predicted")
-# 	hidedecorations!(ax2)
-
-
-# 	slice_2 = 43
-# 	y2_edge, y2_pred_edge, y2_pred_dice_edge = get_mask_edges(y2[:, :, slice_2], y2_pred[:, :, slice_2], y2_pred_dice[:, :, slice_2])
-# 	y2_edge, y2_pred_edge, y2_pred_dice_edge = Tuple.(y2_edge), Tuple.(y2_pred_edge), Tuple.(y2_pred_dice_edge)
-
-# 	ax3 = Axis(
-# 		f[2, 1]
-# 	)
-#     heatmap!(x2[:, :, slice_2]; colormap=:grays)
-# 	scatter!(y2_edge; markersize=markersize, color = (:red, alpha), label="Ground Truth")
-# 	scatter!(y2_pred_dice_edge; markersize=markersize, color = (:blue, alpha), label="Predicted")
-# 	hidedecorations!(ax3)
-	
-# 	ax4 = Axis(
-# 		f[2, 2]
-# 	)
-#     heatmap!(x2[:, :, slice_2]; colormap=:grays)
-# 	scatter!(y2_edge; markersize=markersize, color = (:red, alpha), label="Ground Truth")
-# 	scatter!(y2_pred_edge; markersize=markersize, color = (:blue, alpha), label="Predicted")
-# 	hidedecorations!(ax4)
-
-# 	Legend(f[1:2, 3],
-#     [LineElement(color = :red, linestyle = nothing), LineElement(color = :blue, linestyle = nothing)],
-#     ["Ground Truth", "Predicted"]; framevisible=false)
-
-# 	save(plotsdir("contours.png"), f)
-	
-#     f
-# end
+# ╔═╡ cb17ad69-3cf6-4dbc-b226-d8a11efb82b1
+with_theme(countours, medphys_theme)
 
 # ╔═╡ Cell order:
 # ╠═5463443f-a69e-4766-bfc2-0b7ca0fd48c9
@@ -625,8 +687,11 @@ unique(pred_dsc1[:, :, a1] - pred_hd1[:, :, a1])
 # ╠═af635d0c-bd5c-4e93-8295-53795afbe4cf
 # ╠═315e6f9b-447e-4ef4-8aaf-e74f83b31012
 # ╠═bc3528e9-3115-458a-a928-2e9e23033568
+# ╠═d1c00ac4-9ab0-4579-aa0b-b775503a2fb3
+# ╠═b7f28aad-ba4a-41a0-9ffe-1f558fd61e24
 # ╟─e1b32b84-998d-41e9-a7a8-a9680147f056
-# ╟─c1d410ff-c17e-4532-b1ad-777b242b3770
-# ╟─470102a3-0aa6-4d34-a5f7-eb081e812edb
-# ╠═784a6e9f-4a12-4b2c-be22-45e606fea872
-# ╠═4f43c115-20eb-4041-9f8a-40286a9fd7e5
+# ╠═c1d410ff-c17e-4532-b1ad-777b242b3770
+# ╠═6c84a364-7fc2-4aeb-9717-34968b722dca
+# ╠═470102a3-0aa6-4d34-a5f7-eb081e812edb
+# ╟─4f43c115-20eb-4041-9f8a-40286a9fd7e5
+# ╟─cb17ad69-3cf6-4dbc-b226-d8a11efb82b1
