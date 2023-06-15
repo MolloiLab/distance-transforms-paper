@@ -1,18 +1,8 @@
 ### A Pluto.jl notebook ###
-# v0.19.25
+# v0.19.26
 
 using Markdown
 using InteractiveUtils
-
-# This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
-macro bind(def, element)
-    quote
-        local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
-        local el = $(esc(element))
-        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
-        el
-    end
-end
 
 # ╔═╡ 5463443f-a69e-4766-bfc2-0b7ca0fd48c9
 # ╠═╡ show_logs = false
@@ -261,13 +251,13 @@ md"""
 """
 
 # ╔═╡ 787cc572-bbd5-4ca5-90c1-cb88bba40f7e
-df_epochs = CSV.read(datadir("results", "loop_timing_Task02_Heart_all.csv"), DataFrame);
+df_epochs = CSV.read(datadir("results", "epoch_time_2023_06_09.csv"), DataFrame);
 
 # ╔═╡ 29e64a2f-1eac-4be1-9d88-b18dcebe0b24
 begin
-	epoch_julia_dice = mean(df_epochs[2:end-5, :Dice_times]) * 1e-9
-	epoch_julia_hd_scipy = mean(df_epochs[2:end-5, :Dice_HD_Scipy_times]) * 1e-9
-	epoch_julia_hd_fenz = mean(df_epochs[2:end-5, :Dice_HD_Felzenszwalb_CPU_times]) * 1e-9
+	epoch_julia_dice = mean(df_epochs[2:40, :Dice]) * 1e-9
+	epoch_julia_hd_scipy = mean(df_epochs[2:40, :Scipy]) * 1e-9
+	epoch_julia_hd_fenz = mean(df_epochs[2:40, :Felzenszwalb_gpu]) * 1e-9
 end
 
 # ╔═╡ 59f7d51c-2bf7-4ad0-b3b6-d584eed50cf9
@@ -313,30 +303,79 @@ md"""
 # ╔═╡ 32da60ed-0d18-477b-bbba-51b1d8080539
 df_metrics = CSV.read(datadir("results", "metrics_Task02_Heart_lr_is_0.001.csv"), DataFrame);
 
+# ╔═╡ 98c45c64-092b-437b-8cb2-99094210e1ad
+function training_metrics()
+	f = Figure()
+
+	ax = Axis(
+		f[1, 1],
+		title = "Dice Metric",
+		xlabel = "Epoch",
+		ylabel = "Dice Similarity Coefficient",
+	)
+	lines!(df_metrics[!, :epoch_idx], df_metrics[!, :dice_metric_of_dice_model_valid_set], label=labels[1])
+	lines!(df_metrics[!, :epoch_idx], df_metrics[!, :dice_metric_of_HD_Dice_model_valid_set], label=labels[3])
+
+	ax = Axis(
+		f[2, 1],
+		title = "Hausdorff Metric",
+		xlabel = "Epoch",
+		ylabel = "Hausdorff Distance",
+	)
+	lines!(df_metrics[!, :epoch_idx], df_metrics[!, :hd_metric_of_dice_model_valid_set], label=labels[1])
+	lines!(df_metrics[!, :epoch_idx], df_metrics[!, :hd_metric_of_HD_Dice_model_valid_set], label=labels[3])
+	
+	f[1:2, 2] = Legend(f, ax; framevisible=false)
+    for (label, layout) in zip(["A", "B"], [f[1, 1], f[2, 1]])
+        Label(
+            layout[1, 1, TopLeft()],
+            label;
+            padding=(0, 0, 40, 0),
+            halign=:right,
+        )
+    end
+	save(plotsdir("dice_hd_julia.png"), f)
+	f
+end
+
+# ╔═╡ bfb6cd41-9ff2-4f21-8059-2e2771a2b708
+with_theme(training_metrics, medphys_theme)
+
 # ╔═╡ 63f3eda3-5404-4053-bee3-05a6b77b950e
 row = 27
 
 # ╔═╡ 812f6634-8509-4588-a4ce-9a06e9fa8c15
 epoch_idx = df_metrics[row, :epoch_idx]
 
+# ╔═╡ f7bcc6a9-f15d-4e92-aec8-94ae6f022053
+df_metrics
+
 # ╔═╡ 9e5416b9-b737-4964-9baf-15d5cbdc9474
 begin
-	dsc_dicemetric = df_metrics[row, :dice_metric_of_dice_model_valid_set]
-	hd_dicemetric = df_metrics[row, :dice_metric_of_HD_Dice_model_valid_set]
+	dsc_dicemetric = maximum(df_metrics[:, :dice_metric_of_dice_model_valid_set])
+	hd_dicemetric = maximum(df_metrics[:, :dice_metric_of_HD_Dice_model_valid_set])
 
-	dsc_hausdorffmetric = df_metrics[row, :hd_metric_of_dice_model_valid_set]
-	hd_hausdorffmetric = df_metrics[row, :hd_metric_of_HD_Dice_model_valid_set]
-end;
+	dsc_hausdorffmetric = minimum(df_metrics[:, :hd_metric_of_dice_model_valid_set])
+	hd_hausdorffmetric = minimum(df_metrics[:, :hd_metric_of_HD_Dice_model_valid_set])
+
+	dsc_dicemetric_perc = percentile(df_metrics[:, :dice_metric_of_dice_model_valid_set], 90)
+	hd_dicemetric_perc = percentile(df_metrics[:, :dice_metric_of_HD_Dice_model_valid_set], 90)
+
+	dsc_hausdorffmetric_perc = percentile(df_metrics[:, :hd_metric_of_dice_model_valid_set], 10)
+	hd_hausdorffmetric_perc = percentile(df_metrics[:, :hd_metric_of_HD_Dice_model_valid_set], 10)
+end
 
 # ╔═╡ 475618b0-885a-4fb3-90aa-57a7a649ddcb
 df_metrics_results = DataFrame(
-	"Loss Function" => [labels[1], labels[3]],
-	"Dice Similarity Coefficient" => [dsc_dicemetric, hd_dicemetric],
-	"Hausdorff Distance (mm)" => [dsc_hausdorffmetric, hd_hausdorffmetric]
+	"Loss Function" => ["Loss_{DSC}", "Loss_{FelzenszwalbGPU}"],
+	"Dice Similarity Coefficient (Best)" => [dsc_dicemetric, hd_dicemetric],
+	"Dice Similarity Coefficient (90th %)" => [dsc_dicemetric_perc, hd_dicemetric_perc],
+	"Hausdorff Distance (Best) (mm)" => [dsc_hausdorffmetric, hd_hausdorffmetric],
+	"Hausdorff Distance (10th %) (mm)" => [dsc_hausdorffmetric_perc, hd_hausdorffmetric_perc],
 )
 
-# ╔═╡ 7e586270-1111-490a-849c-f41a5f55059c
-save(datadir("analysis", "df_metrics_results.csv"), df_metrics_results)
+# ╔═╡ f83c86f5-45e0-461a-a583-e2995981f33d
+save(datadir("analysis", "metrics_results.csv"), df_metrics_results)
 
 # ╔═╡ f88c873b-469e-4a2f-b5cb-ce0bca21ca9f
 md"""
@@ -348,70 +387,11 @@ md"""
 ## Load and prepare data
 """
 
-# ╔═╡ 6a0ae2dd-f584-4bf2-90a0-35cbf90f9015
-# const data_dir = "/Users/daleblack/Library/CloudStorage/GoogleDrive-djblack@uci.edu/My Drive/Datasets/Task02_Heart"
-const data_dir = joinpath(dirname(dirname(dirname(pwd()))), "datasets/Task02_Heart")
-
-# ╔═╡ da41cb15-042c-4f00-9430-d509c30d381b
-# const model_path = "/Users/daleblack/Library/CloudStorage/GoogleDrive-djblack@uci.edu/My Drive/Datasets/hd-loss models"
-const model_path = joinpath(dirname(dirname(dirname(pwd()))), "datasets/hd-loss models")
-
-# ╔═╡ c65bb13d-3f2a-4e50-a092-1a7cc2925c7e
-task2, model_dsc = loadtaskmodel(joinpath(model_path, "bigger_NN_0.001_Dice_270.jld2"))
-
-# ╔═╡ dd01154e-ceac-4fcd-9b9a-5a9268e7b2ea
-_, model_hd = loadtaskmodel(joinpath(model_path, "bigger_NN_0.001_HD_Dice_270.jld2"))
-
-# ╔═╡ a70682fa-01fe-4efa-a944-e328f546fb5b
-begin
-	model_dsc_gpu = model_dsc |> gpu
-	model_hd_gpu = model_hd |> gpu
-end;
-
-# ╔═╡ 22a5453f-72e7-4990-86ea-68ef6cc466cb
-begin
-	images(dir) = mapobs(loadfn_image, Glob.glob("*.nii*", dir))
-	masks(dir) =  mapobs(loadfn_label, Glob.glob("*.nii*", dir))
-	pre_data = (
-	    images(joinpath(data_dir, "imagesTr")),
-	    masks(joinpath(data_dir, "labelsTr")),
-	)
-end
-
 # ╔═╡ 76091037-b59c-4f82-99f4-39202b344180
 image_size = (96, 96, 96)
 
-# ╔═╡ f67046b8-1174-4306-8ebf-422203dcfdf7
-img_container, mask_container = presize(pre_data)
-
-# ╔═╡ 8fd5c922-cd1b-4143-869b-7f4f6ab3e382
-data_resized = (img_container, mask_container);
-
-# ╔═╡ 023d9b3a-5fb7-4543-91b3-d2fbb2350a24
-# ╠═╡ show_logs = false
-a, b = FastVision.imagedatasetstats(img_container, Gray{N0f8})
-
-# ╔═╡ 3c4ac7bd-cc6f-42e5-abfb-0e6fba855a49
-means, stds = SVector{1, Float32}(a[1]), SVector{1, Float32}(b[1])
-
-# ╔═╡ edfb1f5f-01ff-4f31-9898-5a26db1818b7
-task = SupervisedTask(
-    (FastVision.Image{3}(), Mask{3}(1:2)),
-    (
-        ProjectiveTransforms((image_size)),
-        ImagePreprocessing(means = means, stds = stds, C = Gray{N0f8}),
-        FastAI.OneHot()
-    )
-)
-
-# ╔═╡ 76d13603-7ab9-4c60-8f3a-9b6bce6e317a
-train_files, val_files = MLDataPattern.splitobs(data_resized, 0.8);
-
 # ╔═╡ 9afada46-48f4-4e22-86c3-351425e7c3ab
 batch_size = 2
-
-# ╔═╡ d816d63d-6875-4a70-8483-e469603660b9
-tdl, vdl = FastAI.taskdataloaders(train_files, val_files, task, batch_size);
 
 # ╔═╡ 35af3308-ab47-4c94-ab87-a6d3ca09717f
 md"""
@@ -633,7 +613,7 @@ with_theme(countours, medphys_theme)
 # ╟─95a525fe-e10b-42ee-a1b9-9405fe16b50c
 # ╠═0960ac79-d976-42a7-aaac-4d07ec94927e
 # ╟─c1659832-9e1a-4af5-9bf6-fd4d6f12589f
-# ╠═aa312920-1c67-46f7-a7b1-dfe42f54c769
+# ╟─aa312920-1c67-46f7-a7b1-dfe42f54c769
 # ╠═6349d56d-f837-4395-9819-e8e7f34ba01f
 # ╠═a0ea7e69-1249-4d47-9366-ec9f44568236
 # ╠═5059495d-6905-4043-b03e-3ea73f67d341
@@ -658,33 +638,21 @@ with_theme(countours, medphys_theme)
 # ╟─a9b48266-a3b5-4734-9d35-f4484aed2e95
 # ╟─0eac4ad2-2484-4e2e-aebd-49f3b370555e
 # ╠═32da60ed-0d18-477b-bbba-51b1d8080539
+# ╟─98c45c64-092b-437b-8cb2-99094210e1ad
+# ╠═bfb6cd41-9ff2-4f21-8059-2e2771a2b708
 # ╠═63f3eda3-5404-4053-bee3-05a6b77b950e
 # ╠═812f6634-8509-4588-a4ce-9a06e9fa8c15
+# ╠═f7bcc6a9-f15d-4e92-aec8-94ae6f022053
 # ╠═9e5416b9-b737-4964-9baf-15d5cbdc9474
 # ╠═475618b0-885a-4fb3-90aa-57a7a649ddcb
-# ╠═7e586270-1111-490a-849c-f41a5f55059c
+# ╠═f83c86f5-45e0-461a-a583-e2995981f33d
 # ╟─f88c873b-469e-4a2f-b5cb-ce0bca21ca9f
 # ╟─b7338313-06bd-484f-adcd-3cb6aa836018
 # ╠═f81ac05c-b5f2-4e96-b370-adc3b073d5c9
-# ╠═6a0ae2dd-f584-4bf2-90a0-35cbf90f9015
-# ╠═da41cb15-042c-4f00-9430-d509c30d381b
-# ╠═c65bb13d-3f2a-4e50-a092-1a7cc2925c7e
-# ╠═dd01154e-ceac-4fcd-9b9a-5a9268e7b2ea
-# ╠═a70682fa-01fe-4efa-a944-e328f546fb5b
-# ╠═22a5453f-72e7-4990-86ea-68ef6cc466cb
 # ╠═76091037-b59c-4f82-99f4-39202b344180
-# ╠═f67046b8-1174-4306-8ebf-422203dcfdf7
-# ╠═8fd5c922-cd1b-4143-869b-7f4f6ab3e382
-# ╠═023d9b3a-5fb7-4543-91b3-d2fbb2350a24
-# ╠═3c4ac7bd-cc6f-42e5-abfb-0e6fba855a49
-# ╠═edfb1f5f-01ff-4f31-9898-5a26db1818b7
-# ╠═76d13603-7ab9-4c60-8f3a-9b6bce6e317a
 # ╠═9afada46-48f4-4e22-86c3-351425e7c3ab
-# ╠═d816d63d-6875-4a70-8483-e469603660b9
 # ╟─35af3308-ab47-4c94-ab87-a6d3ca09717f
 # ╠═20114ef8-cf6b-4a92-89b8-40a85571d6c2
-# ╠═4325537e-47c3-45ae-a162-133eda8d03d4
-# ╠═af635d0c-bd5c-4e93-8295-53795afbe4cf
 # ╠═315e6f9b-447e-4ef4-8aaf-e74f83b31012
 # ╠═bc3528e9-3115-458a-a928-2e9e23033568
 # ╠═d1c00ac4-9ab0-4579-aa0b-b775503a2fb3
