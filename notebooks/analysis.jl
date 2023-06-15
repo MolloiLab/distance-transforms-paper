@@ -395,26 +395,39 @@ md"""
 """
 
 # ╔═╡ b8e95843-d445-4ca4-b708-7ad116734bcc
+# ╠═╡ disabled = true
+#=╠═╡
 # const data_dir = "/Users/daleblack/Library/CloudStorage/GoogleDrive-djblack@uci.edu/My Drive/Datasets/Task02_Heart"
 const data_dir = "/home/djblack/datasets/Task02_Heart/"
+  ╠═╡ =#
 
 # ╔═╡ d25a1106-f868-4deb-aad8-e1e76680c8fa
+# ╠═╡ disabled = true
+#=╠═╡
 # const model_path = "/Users/daleblack/Library/CloudStorage/GoogleDrive-djblack@uci.edu/My Drive/Datasets/hd-loss models"
 const model_path = "/home/djblack/datasets/hd-loss models/"
+  ╠═╡ =#
 
 # ╔═╡ 1f081830-f902-4e50-977f-0917f9403687
+#=╠═╡
 task2, model_dsc = loadtaskmodel(joinpath(model_path, "bigger_NN_0.001_Dice_270.jld2"))
+  ╠═╡ =#
 
 # ╔═╡ 770483b8-2a44-48d2-a75f-8b854e1c91b8
+#=╠═╡
 _, model_hd = loadtaskmodel(joinpath(model_path, "bigger_NN_0.001_HD_Dice_270.jld2"))
+  ╠═╡ =#
 
 # ╔═╡ 6a6efbed-03a6-4126-b354-7f8898d12ea9
+#=╠═╡
 begin
 	model_dsc_gpu = model_dsc |> gpu
 	model_hd_gpu = model_hd |> gpu
 end;
+  ╠═╡ =#
 
 # ╔═╡ 5e95a08f-20bd-4b2e-bdf0-fc9954d0e514
+#=╠═╡
 begin
 	images(dir) = mapobs(loadfn_image, Glob.glob("*.nii*", dir))
 	masks(dir) =  mapobs(loadfn_label, Glob.glob("*.nii*", dir))
@@ -423,27 +436,39 @@ begin
 	    masks(joinpath(data_dir, "labelsTr")),
 	)
 end
+  ╠═╡ =#
 
 # ╔═╡ 1a3b4232-ad2d-4784-8f93-3b33ce3221d4
+#=╠═╡
 pre_data
+  ╠═╡ =#
 
 # ╔═╡ b9e338f3-a14a-4595-a6e0-6fefddf83c43
 image_size = (512, 512, 112)
 
 # ╔═╡ 68c89c35-cfdf-4a04-b4c2-d00b55db65db
+#=╠═╡
 img_container, mask_container = presize(pre_data)
+  ╠═╡ =#
 
 # ╔═╡ 22910954-8280-4442-9e9c-e6de92887523
+#=╠═╡
 data_resized = (img_container, mask_container);
+  ╠═╡ =#
 
 # ╔═╡ 34b385ae-fef6-4a3c-a104-b5943419d02e
 # ╠═╡ show_logs = false
+#=╠═╡
 a, b = FastVision.imagedatasetstats(img_container, Gray{N0f8})
+  ╠═╡ =#
 
 # ╔═╡ 0790febe-3d34-46d8-b783-59ac2415db5b
+#=╠═╡
 means, stds = SVector{1, Float32}(a[1]), SVector{1, Float32}(b[1])
+  ╠═╡ =#
 
 # ╔═╡ a37e8540-275b-4f45-b6b3-ddf8b49972f6
+#=╠═╡
 task = SupervisedTask(
     (FastVision.Image{3}(), Mask{3}(1:2)),
     (
@@ -452,15 +477,20 @@ task = SupervisedTask(
         FastAI.OneHot()
     )
 )
+  ╠═╡ =#
 
 # ╔═╡ 7bc8bd3e-eaaa-43b0-8553-89330eaa263a
+#=╠═╡
 train_files, val_files = MLDataPattern.splitobs(data_resized, 0.8);
+  ╠═╡ =#
 
 # ╔═╡ dce18f05-93c7-48a4-8edc-38df589f06a2
 batch_size = 2
 
 # ╔═╡ fdfa6d4c-f264-4b41-b63b-ea8fc6717b2d
+#=╠═╡
 tdl, vdl = FastAI.taskdataloaders(train_files, val_files, task, batch_size);
+  ╠═╡ =#
 
 # ╔═╡ 73d8aaa2-0312-4361-affe-fa21e3f42480
 md"""
@@ -468,12 +498,15 @@ md"""
 """
 
 # ╔═╡ 6180ac4f-6a3c-49bb-964a-032f0b3e8423
+#=╠═╡
 begin
 	(example, ) = vdl
     img, msk = example
 end;
+  ╠═╡ =#
 
 # ╔═╡ e29213ef-fce6-4db3-8032-7217755961fd
+#=╠═╡
 begin
 	pred_dsc = model_dsc_gpu(img |> gpu)
 	pred_hd = model_hd_gpu(img |> gpu)
@@ -481,11 +514,13 @@ begin
 	pred_dsc = pred_dsc |> cpu
 	pred_hd = pred_hd |> cpu
 end;
+  ╠═╡ =#
 
 # ╔═╡ d5f17216-1603-4040-b585-d93a156d3004
 img_size = (512, 512, 112)
 
 # ╔═╡ fd31532b-0804-42ea-85e2-838bf8bebcbf
+#=╠═╡
 begin
 	img1 = imresize(img[:, :, :, 1, 1], img_size)
 	img2 = imresize(img[:, :, :, 1, 2], img_size)
@@ -497,8 +532,10 @@ begin
 	msk3 = Bool.(round.(imresize(msk[:, :, :, 2, 3] .> 0, img_size)))
 	msk4 = Bool.(round.(imresize(msk[:, :, :, 2, 4] .> 0, img_size)))
 end;
+  ╠═╡ =#
 
 # ╔═╡ f378726d-7773-4c80-a028-3faab3f3ec01
+#=╠═╡
 begin
 	pred_dsc1 = Bool.(round.(imresize(pred_dsc[:, :, :, 2, 1] .> 0, img_size)))
 	pred_dsc2 = Bool.(round.(imresize(pred_dsc[:, :, :, 2, 2] .> 0, img_size)))
@@ -510,6 +547,7 @@ begin
 	pred_hd3 = Bool.(round.(imresize(pred_hd[:, :, :, 2, 3] .> 0, img_size)))
 	pred_hd4 = Bool.(round.(imresize(pred_hd[:, :, :, 2, 4] .> 0, img_size)))
 end;
+  ╠═╡ =#
 
 # ╔═╡ d2712678-9e42-46d2-a520-00adc206b058
 function find_edge_idxs(mask)
@@ -572,6 +610,7 @@ md"""
 # end
 
 # ╔═╡ 4f43c115-20eb-4041-9f8a-40286a9fd7e5
+#=╠═╡
 function countours()
 	f = Figure(resolution = (1200, 2000))
 	alpha = 1
@@ -665,9 +704,12 @@ function countours()
 	save(plotsdir("contours.png"), f)
 	f
 end
+  ╠═╡ =#
 
 # ╔═╡ cb17ad69-3cf6-4dbc-b226-d8a11efb82b1
+#=╠═╡
 with_theme(countours, medphys_theme)
+  ╠═╡ =#
 
 # ╔═╡ Cell order:
 # ╠═5463443f-a69e-4766-bfc2-0b7ca0fd48c9
