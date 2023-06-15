@@ -1,8 +1,18 @@
 ### A Pluto.jl notebook ###
-# v0.19.26
+# v0.19.25
 
 using Markdown
 using InteractiveUtils
+
+# This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
+macro bind(def, element)
+    quote
+        local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
+        local el = $(esc(element))
+        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
+        el
+    end
+end
 
 # ╔═╡ 5463443f-a69e-4766-bfc2-0b7ca0fd48c9
 # ╠═╡ show_logs = false
@@ -19,13 +29,10 @@ using PlutoUI, Statistics, CSV, DataFrames, GLM, CairoMakie, HypothesisTests, Co
 # ╔═╡ d1a12515-a9d0-468b-8978-dbb26a1ee667
 using CairoMakie: Axis, Label
 
+# ╔═╡ eb13b184-0d44-4aba-8e97-5554a3d293d0
+include(srcdir("load_model.jl"))
+
 # ╔═╡ f88c7074-8b5c-4dc7-83d5-e65a24b88ab0
-include(srcdir("load_model.jl")), include(srcdir("postprocessing.jl")); 
-
-# ╔═╡ f81ac05c-b5f2-4e96-b370-adc3b073d5c9
-include(srcdir("load_model.jl"));
-
-# ╔═╡ 20114ef8-cf6b-4a92-89b8-40a85571d6c2
 include(srcdir("postprocessing.jl"))
 
 # ╔═╡ 278dfa0e-46e1-4789-9f51-eb3463a9fb00
@@ -382,30 +389,91 @@ md"""
 # Visualization
 """
 
-# ╔═╡ b7338313-06bd-484f-adcd-3cb6aa836018
+# ╔═╡ 7d5db393-a32f-43d2-a0a6-2310dac3914c
 md"""
 ## Load and prepare data
 """
 
-# ╔═╡ 76091037-b59c-4f82-99f4-39202b344180
-image_size = (96, 96, 96)
+# ╔═╡ b8e95843-d445-4ca4-b708-7ad116734bcc
+# const data_dir = "/Users/daleblack/Library/CloudStorage/GoogleDrive-djblack@uci.edu/My Drive/Datasets/Task02_Heart"
+const data_dir = "/home/djblack/datasets/Task02_Heart/"
 
-# ╔═╡ 9afada46-48f4-4e22-86c3-351425e7c3ab
+# ╔═╡ d25a1106-f868-4deb-aad8-e1e76680c8fa
+# const model_path = "/Users/daleblack/Library/CloudStorage/GoogleDrive-djblack@uci.edu/My Drive/Datasets/hd-loss models"
+const model_path = "/home/djblack/datasets/hd-loss models/"
+
+# ╔═╡ 1f081830-f902-4e50-977f-0917f9403687
+task2, model_dsc = loadtaskmodel(joinpath(model_path, "bigger_NN_0.001_Dice_270.jld2"))
+
+# ╔═╡ 770483b8-2a44-48d2-a75f-8b854e1c91b8
+_, model_hd = loadtaskmodel(joinpath(model_path, "bigger_NN_0.001_HD_Dice_270.jld2"))
+
+# ╔═╡ 6a6efbed-03a6-4126-b354-7f8898d12ea9
+begin
+	model_dsc_gpu = model_dsc |> gpu
+	model_hd_gpu = model_hd |> gpu
+end;
+
+# ╔═╡ 5e95a08f-20bd-4b2e-bdf0-fc9954d0e514
+begin
+	images(dir) = mapobs(loadfn_image, Glob.glob("*.nii*", dir))
+	masks(dir) =  mapobs(loadfn_label, Glob.glob("*.nii*", dir))
+	pre_data = (
+	    images(joinpath(data_dir, "imagesTr")),
+	    masks(joinpath(data_dir, "labelsTr")),
+	)
+end
+
+# ╔═╡ 1a3b4232-ad2d-4784-8f93-3b33ce3221d4
+pre_data
+
+# ╔═╡ b9e338f3-a14a-4595-a6e0-6fefddf83c43
+image_size = (512, 512, 112)
+
+# ╔═╡ 68c89c35-cfdf-4a04-b4c2-d00b55db65db
+img_container, mask_container = presize(pre_data)
+
+# ╔═╡ 22910954-8280-4442-9e9c-e6de92887523
+data_resized = (img_container, mask_container);
+
+# ╔═╡ 34b385ae-fef6-4a3c-a104-b5943419d02e
+# ╠═╡ show_logs = false
+a, b = FastVision.imagedatasetstats(img_container, Gray{N0f8})
+
+# ╔═╡ 0790febe-3d34-46d8-b783-59ac2415db5b
+means, stds = SVector{1, Float32}(a[1]), SVector{1, Float32}(b[1])
+
+# ╔═╡ a37e8540-275b-4f45-b6b3-ddf8b49972f6
+task = SupervisedTask(
+    (FastVision.Image{3}(), Mask{3}(1:2)),
+    (
+        ProjectiveTransforms((image_size)),
+        ImagePreprocessing(means = means, stds = stds, C = Gray{N0f8}),
+        FastAI.OneHot()
+    )
+)
+
+# ╔═╡ 7bc8bd3e-eaaa-43b0-8553-89330eaa263a
+train_files, val_files = MLDataPattern.splitobs(data_resized, 0.8);
+
+# ╔═╡ dce18f05-93c7-48a4-8edc-38df589f06a2
 batch_size = 2
 
-# ╔═╡ 35af3308-ab47-4c94-ab87-a6d3ca09717f
+# ╔═╡ fdfa6d4c-f264-4b41-b63b-ea8fc6717b2d
+tdl, vdl = FastAI.taskdataloaders(train_files, val_files, task, batch_size);
+
+# ╔═╡ 73d8aaa2-0312-4361-affe-fa21e3f42480
 md"""
 ## Apply image from dataloader to models
 """
 
-# ╔═╡ 4325537e-47c3-45ae-a162-133eda8d03d4
+# ╔═╡ 6180ac4f-6a3c-49bb-964a-032f0b3e8423
 begin
 	(example, ) = vdl
     img, msk = example
 end;
 
-# ╔═╡ af635d0c-bd5c-4e93-8295-53795afbe4cf
-# ╠═╡ show_logs = false
+# ╔═╡ e29213ef-fce6-4db3-8032-7217755961fd
 begin
 	pred_dsc = model_dsc_gpu(img |> gpu)
 	pred_hd = model_hd_gpu(img |> gpu)
@@ -414,10 +482,10 @@ begin
 	pred_hd = pred_hd |> cpu
 end;
 
-# ╔═╡ 315e6f9b-447e-4ef4-8aaf-e74f83b31012
+# ╔═╡ d5f17216-1603-4040-b585-d93a156d3004
 img_size = (512, 512, 112)
 
-# ╔═╡ bc3528e9-3115-458a-a928-2e9e23033568
+# ╔═╡ fd31532b-0804-42ea-85e2-838bf8bebcbf
 begin
 	img1 = imresize(img[:, :, :, 1, 1], img_size)
 	img2 = imresize(img[:, :, :, 1, 2], img_size)
@@ -430,7 +498,7 @@ begin
 	msk4 = Bool.(round.(imresize(msk[:, :, :, 2, 4] .> 0, img_size)))
 end;
 
-# ╔═╡ d1c00ac4-9ab0-4579-aa0b-b775503a2fb3
+# ╔═╡ f378726d-7773-4c80-a028-3faab3f3ec01
 begin
 	pred_dsc1 = Bool.(round.(imresize(pred_dsc[:, :, :, 2, 1] .> 0, img_size)))
 	pred_dsc2 = Bool.(round.(imresize(pred_dsc[:, :, :, 2, 2] .> 0, img_size)))
@@ -443,7 +511,7 @@ begin
 	pred_hd4 = Bool.(round.(imresize(pred_hd[:, :, :, 2, 4] .> 0, img_size)))
 end;
 
-# ╔═╡ b7f28aad-ba4a-41a0-9ffe-1f558fd61e24
+# ╔═╡ d2712678-9e42-46d2-a520-00adc206b058
 function find_edge_idxs(mask)
 	edge = erode(mask) .⊻ mask
 	return Tuple.(findall(isone, edge))
@@ -606,7 +674,6 @@ with_theme(countours, medphys_theme)
 # ╠═6495cb7b-67ec-49da-bc5d-f7a63ca9e5e9
 # ╠═ec608b5e-a6d5-4b12-a3a4-cc1738dbc6ed
 # ╠═d1a12515-a9d0-468b-8978-dbb26a1ee667
-# ╠═f88c7074-8b5c-4dc7-83d5-e65a24b88ab0
 # ╠═278dfa0e-46e1-4789-9f51-eb3463a9fb00
 # ╠═8608a972-73c0-4903-bdd7-9a23f7c57337
 # ╠═02f182d4-f5ab-46a3-8009-33ed641fcf27
@@ -647,16 +714,32 @@ with_theme(countours, medphys_theme)
 # ╠═475618b0-885a-4fb3-90aa-57a7a649ddcb
 # ╠═f83c86f5-45e0-461a-a583-e2995981f33d
 # ╟─f88c873b-469e-4a2f-b5cb-ce0bca21ca9f
-# ╟─b7338313-06bd-484f-adcd-3cb6aa836018
-# ╠═f81ac05c-b5f2-4e96-b370-adc3b073d5c9
-# ╠═76091037-b59c-4f82-99f4-39202b344180
-# ╠═9afada46-48f4-4e22-86c3-351425e7c3ab
-# ╟─35af3308-ab47-4c94-ab87-a6d3ca09717f
-# ╠═20114ef8-cf6b-4a92-89b8-40a85571d6c2
-# ╠═315e6f9b-447e-4ef4-8aaf-e74f83b31012
-# ╠═bc3528e9-3115-458a-a928-2e9e23033568
-# ╠═d1c00ac4-9ab0-4579-aa0b-b775503a2fb3
-# ╠═b7f28aad-ba4a-41a0-9ffe-1f558fd61e24
+# ╟─7d5db393-a32f-43d2-a0a6-2310dac3914c
+# ╠═eb13b184-0d44-4aba-8e97-5554a3d293d0
+# ╠═f88c7074-8b5c-4dc7-83d5-e65a24b88ab0
+# ╠═b8e95843-d445-4ca4-b708-7ad116734bcc
+# ╠═d25a1106-f868-4deb-aad8-e1e76680c8fa
+# ╠═1f081830-f902-4e50-977f-0917f9403687
+# ╠═770483b8-2a44-48d2-a75f-8b854e1c91b8
+# ╠═6a6efbed-03a6-4126-b354-7f8898d12ea9
+# ╠═5e95a08f-20bd-4b2e-bdf0-fc9954d0e514
+# ╠═1a3b4232-ad2d-4784-8f93-3b33ce3221d4
+# ╠═b9e338f3-a14a-4595-a6e0-6fefddf83c43
+# ╠═68c89c35-cfdf-4a04-b4c2-d00b55db65db
+# ╠═22910954-8280-4442-9e9c-e6de92887523
+# ╠═34b385ae-fef6-4a3c-a104-b5943419d02e
+# ╠═0790febe-3d34-46d8-b783-59ac2415db5b
+# ╠═a37e8540-275b-4f45-b6b3-ddf8b49972f6
+# ╠═7bc8bd3e-eaaa-43b0-8553-89330eaa263a
+# ╠═dce18f05-93c7-48a4-8edc-38df589f06a2
+# ╠═fdfa6d4c-f264-4b41-b63b-ea8fc6717b2d
+# ╟─73d8aaa2-0312-4361-affe-fa21e3f42480
+# ╠═6180ac4f-6a3c-49bb-964a-032f0b3e8423
+# ╠═e29213ef-fce6-4db3-8032-7217755961fd
+# ╠═d5f17216-1603-4040-b585-d93a156d3004
+# ╠═fd31532b-0804-42ea-85e2-838bf8bebcbf
+# ╠═f378726d-7773-4c80-a028-3faab3f3ec01
+# ╠═d2712678-9e42-46d2-a520-00adc206b058
 # ╟─e1b32b84-998d-41e9-a7a8-a9680147f056
 # ╠═c1d410ff-c17e-4532-b1ad-777b242b3770
 # ╠═6c84a364-7fc2-4aeb-9717-34968b722dca
