@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.25
+# v0.19.26
 
 using Markdown
 using InteractiveUtils
@@ -119,6 +119,7 @@ function dt()
 		df_dt[!, :dt_fenz_gpu_3D] * 1e-9, 
 		label=L"\text{DT}_{FelzenszwalbGPU}"
 	)
+	vlines!(96^3, label = L"96 \times 96 \times 96"; linestyle = :dash)
 
     ##-- LABELS --##
     f[1:2, 2] = Legend(f, ax; framevisible=false)
@@ -215,6 +216,8 @@ function loss()
 		label=L"\text{HD}_{FelzenszwalbGPU}"
 	)
 
+	vlines!(96^3, label = L"96 \times 96 \times 96"; linestyle = :dash)
+
     ##-- LABELS --##
     f[1:2, 2] = Legend(f, ax; framevisible=false)
     for (label, layout) in zip(["A", "B"], [f[1, 1], f[2, 1]])
@@ -271,7 +274,7 @@ end
 labels = [L"\text{Loss}_{DSC}", L"\text{Loss}_{Scipy}", L"\text{Loss}_{FelzenszwalbGPU}"]
 
 # ╔═╡ 2d8a4e37-6dd9-4e46-9a3d-bd8cd71f5f65
-function training_step()
+function training()
     f = Figure()
     colors = Makie.wong_colors()
 
@@ -293,14 +296,14 @@ function training_step()
 	l3 = @sprintf "%.2f" h3
     barplot!(table, heights1; color=colors[1:3], bar_labels=[l1, l2, l3])
 
-	ylims!(ax; low=0, high=10)
+	ylims!(ax; low=0, high=8)
 	save(plotsdir("training.png"), f)
 	
 	return f
 end
 
 # ╔═╡ a9b48266-a3b5-4734-9d35-f4484aed2e95
-with_theme(training_step, medphys_theme)
+with_theme(training, medphys_theme)
 
 # ╔═╡ 0eac4ad2-2484-4e2e-aebd-49f3b370555e
 md"""
@@ -744,7 +747,7 @@ with_theme(countours, medphys_theme)
 # ╠═29e64a2f-1eac-4be1-9d88-b18dcebe0b24
 # ╠═59f7d51c-2bf7-4ad0-b3b6-d584eed50cf9
 # ╟─2d8a4e37-6dd9-4e46-9a3d-bd8cd71f5f65
-# ╟─a9b48266-a3b5-4734-9d35-f4484aed2e95
+# ╠═a9b48266-a3b5-4734-9d35-f4484aed2e95
 # ╟─0eac4ad2-2484-4e2e-aebd-49f3b370555e
 # ╠═32da60ed-0d18-477b-bbba-51b1d8080539
 # ╟─98c45c64-092b-437b-8cb2-99094210e1ad
