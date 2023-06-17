@@ -240,20 +240,47 @@ with_theme(loss, medphys_theme)
 # ╔═╡ 94f27ea3-f2f1-4680-9ace-8a31ee66ddfb
 (x_hd, y_hd, z_hd) = df_loss[end, :hd_scipy], df_loss[end, :hd_fenz], df_loss[end, :hd_fenz_gpu]
 
+# ╔═╡ 7280f1c1-eb9b-4134-9ab9-99b0865685d2
+imsize = 96^3
+
+# ╔═╡ 842590d9-04a3-4728-b846-25ebf7199fa7
+sizes = df_loss[:, :sizes_hd]
+
+# ╔═╡ 1a330de6-239f-43bc-b947-fb10e44fd4ae
+idx = findfirst(x -> x > imsize, sizes)
+
 # ╔═╡ 7bebe56e-99d1-4f03-8571-195bffd2fc37
 gpu_vs_scipy_hd = x_hd / z_hd
+
+# ╔═╡ bafc8804-1b76-40dd-9069-3eb0154014a6
+cpu_vs_scipy_hd = x_hd / y_hd
 
 # ╔═╡ 75e00691-8ac8-4962-8df6-e21dff335d3e
 gpu_vs_cpu_hd = x_hd / y_hd
 
+# ╔═╡ 92cdc308-2fd4-460e-ae0c-a16912eb426c
+df_loss[idx, :hd_scipy] / df_loss[idx, :hd_fenz_gpu]
+
 # ╔═╡ bd505ac6-1959-4a4e-8a04-894b9a8956a3
 (x_3D_hd, y_3D_hd, z_3D_hd) = df_loss[end, :hd_scipy_3D], df_loss[end, :hd_fenz_3D], df_loss[end, :hd_fenz_gpu_3D]
+
+# ╔═╡ a1879153-6214-40d6-a4c9-88f781d6912e
+sizes_3D = df_loss[:, :sizes_hd_3D]
+
+# ╔═╡ 5c58e022-da39-44d0-b526-c2086649e2d2
+idx_3D = findfirst(x -> x > imsize, sizes_3D)
 
 # ╔═╡ b2288c31-8895-48c7-b6b6-d276b25d434e
 gpu_vs_scipy_3D_hd = x_3D_hd / z_3D_hd
 
+# ╔═╡ 0a7c2718-7854-47f2-8d7a-d4e02423f62e
+df_loss[end, :hd_scipy_3D] / df_loss[end, :hd_fenz_3D]
+
 # ╔═╡ fc6d116f-b04f-4907-9476-237680776689
 gpu_vs_cpu_3Dhd = x_3D_hd / y_3D_hd
+
+# ╔═╡ 1663e6dd-9737-4a6c-8efb-f843f32aa430
+df_loss[idx_3D, :hd_scipy_3D] / df_loss[idx_3D, :hd_fenz_gpu_3D]
 
 # ╔═╡ 24e42441-7d63-4c81-a901-5ebfaeb3e7a3
 md"""
@@ -304,6 +331,15 @@ end
 
 # ╔═╡ a9b48266-a3b5-4734-9d35-f4484aed2e95
 with_theme(training, medphys_theme)
+
+# ╔═╡ d271b73b-966b-451b-8928-03944b8d657c
+(epoch_julia_hd_scipy / epoch_julia_dice * 100) - 100
+
+# ╔═╡ 51cadf12-3c42-44d0-a91e-a87f13d33c05
+(epoch_julia_hd_fenz / epoch_julia_dice * 100) - 100
+
+# ╔═╡ 88830a42-77d0-4b66-9db7-e34a1862332b
+(epoch_julia_hd_scipy / epoch_julia_hd_fenz * 100) - 100
 
 # ╔═╡ 0eac4ad2-2484-4e2e-aebd-49f3b370555e
 md"""
@@ -378,10 +414,10 @@ end
 # ╔═╡ 475618b0-885a-4fb3-90aa-57a7a649ddcb
 df_metrics_results = DataFrame(
 	"Loss Function" => ["Loss_{DSC}", "Loss_{FelzenszwalbGPU}"],
-	"Dice Similarity Coefficient (Best)" => [dsc_dicemetric, hd_dicemetric],
-	"Dice Similarity Coefficient (90th %)" => [dsc_dicemetric_perc, hd_dicemetric_perc],
-	"Hausdorff Distance (Best) (mm)" => [dsc_hausdorffmetric, hd_hausdorffmetric],
-	"Hausdorff Distance (10th %) (mm)" => [dsc_hausdorffmetric_perc, hd_hausdorffmetric_perc],
+	"Dice Similarity Coefficient (Best)" => round.([dsc_dicemetric, hd_dicemetric]; digits = 3),
+	"Dice Similarity Coefficient (90th %)" => round.([dsc_dicemetric_perc, hd_dicemetric_perc]; digits = 3),
+	"Hausdorff Distance (Best) (mm)" => round.([dsc_hausdorffmetric, hd_hausdorffmetric]; digits = 3),
+	"Hausdorff Distance (10th %) (mm)" => round.([dsc_hausdorffmetric_perc, hd_hausdorffmetric_perc]; digits = 3),
 )
 
 # ╔═╡ f83c86f5-45e0-461a-a583-e2995981f33d
@@ -737,17 +773,29 @@ with_theme(countours, medphys_theme)
 # ╟─b7236b7b-cf97-4962-b49d-58037b52201d
 # ╟─7e3ac952-005a-45e6-a395-eea36ba255b5
 # ╠═94f27ea3-f2f1-4680-9ace-8a31ee66ddfb
+# ╠═7280f1c1-eb9b-4134-9ab9-99b0865685d2
+# ╠═842590d9-04a3-4728-b846-25ebf7199fa7
+# ╠═1a330de6-239f-43bc-b947-fb10e44fd4ae
 # ╠═7bebe56e-99d1-4f03-8571-195bffd2fc37
+# ╠═bafc8804-1b76-40dd-9069-3eb0154014a6
 # ╠═75e00691-8ac8-4962-8df6-e21dff335d3e
+# ╠═92cdc308-2fd4-460e-ae0c-a16912eb426c
 # ╠═bd505ac6-1959-4a4e-8a04-894b9a8956a3
+# ╠═a1879153-6214-40d6-a4c9-88f781d6912e
+# ╠═5c58e022-da39-44d0-b526-c2086649e2d2
 # ╠═b2288c31-8895-48c7-b6b6-d276b25d434e
+# ╠═0a7c2718-7854-47f2-8d7a-d4e02423f62e
 # ╠═fc6d116f-b04f-4907-9476-237680776689
+# ╠═1663e6dd-9737-4a6c-8efb-f843f32aa430
 # ╟─24e42441-7d63-4c81-a901-5ebfaeb3e7a3
 # ╠═787cc572-bbd5-4ca5-90c1-cb88bba40f7e
 # ╠═29e64a2f-1eac-4be1-9d88-b18dcebe0b24
 # ╠═59f7d51c-2bf7-4ad0-b3b6-d584eed50cf9
 # ╟─2d8a4e37-6dd9-4e46-9a3d-bd8cd71f5f65
 # ╠═a9b48266-a3b5-4734-9d35-f4484aed2e95
+# ╠═d271b73b-966b-451b-8928-03944b8d657c
+# ╠═51cadf12-3c42-44d0-a91e-a87f13d33c05
+# ╠═88830a42-77d0-4b66-9db7-e34a1862332b
 # ╟─0eac4ad2-2484-4e2e-aebd-49f3b370555e
 # ╠═32da60ed-0d18-477b-bbba-51b1d8080539
 # ╟─98c45c64-092b-437b-8cb2-99094210e1ad

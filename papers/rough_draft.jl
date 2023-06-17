@@ -117,13 +117,13 @@ Previous HD loss functions utilized a readily available distance transform algor
 	\State \Return D
 	\end{algorithmic}
 	\label{algo}
-\end{algorithm}
+\end{algorithmic}
 ```
 ```julia
 function transform(f::AbstractVector; 
-				   output=similar(f, Float32), 
-				   v=ones(Int32, length(f)), 
-				   z=ones(Float32, length(f)+1))
+				   output = similar(f, Float32), 
+				   v = ones(Int32, length(f)), 
+				   z = ones(Float32, length(f)+1))
 	z[1] = -1f10
 	z[2] = 1f10
 	k = 1 # Index of the rightmost parabola in the lower envelope
@@ -151,9 +151,9 @@ end
 
 ```julia
 function transform(vol::AbstractArray;
-            output=similar(vol, Float32), 
-			v=ones(Int32, size(vol)), 
-			z=ones(Float32, size(vol) .+ 1))
+            output = similar(vol, Float32), 
+			v = ones(Int32, size(vol)), 
+			z = ones(Float32, size(vol) .+ 1))
         	
 	for k in CartesianIndices(@view(vol[1,:,:]))
 		transform(vol[:, k]; output=output[:, k], v=v[:, k], z=z[:, k])
@@ -394,37 +394,37 @@ md"""
 # ╟─0caacaf2-0dd5-4e19-9a60-8fd87953bc15
 # ╟─06cccce0-3f96-4a92-a7f7-4d16495d94f0
 # ╟─0d12bc5b-53f6-4c1a-99b6-0dc8ad0af5b2
-# ╟─7596996f-140c-4ffa-9c73-a8ec7746ca9a
+# ╠═7596996f-140c-4ffa-9c73-a8ec7746ca9a
 # ╟─0039da08-5d0b-4dfe-be30-bdec06f526e3
 # ╟─2c835912-8e15-44da-a512-775730bb5281
-# ╟─585cb69a-98d0-4fe6-8428-4904a4d41dcc
+# ╠═585cb69a-98d0-4fe6-8428-4904a4d41dcc
 # ╟─38c0828f-72a0-44b2-b2e8-9d8c241b1fee
-# ╟─5ff24d6d-d385-4efc-807c-c45f0f4a419c
+# ╠═5ff24d6d-d385-4efc-807c-c45f0f4a419c
 # ╟─68bc23e7-774d-4378-a9fb-07167ed44411
-# ╟─fcf6e65d-783d-4839-9b0e-b6f5e9d642eb
+# ╠═fcf6e65d-783d-4839-9b0e-b6f5e9d642eb
 # ╟─fb417691-9c1a-46ec-aa2c-3c9c325c1d73
 # ╟─13b6d018-9b3c-4eaa-868e-1947c51f0b6f
 # ╟─9c02f72e-ee10-4a58-a449-16461a475809
-# ╟─da0eead6-0a37-4b5c-889f-b2f2ff5dbeca
+# ╠═da0eead6-0a37-4b5c-889f-b2f2ff5dbeca
 # ╟─d5fd0b05-54fa-43b8-9f35-eea3fd260176
-# ╟─4f0ef647-cf78-4f68-be48-2bfffa23f77b
+# ╠═4f0ef647-cf78-4f68-be48-2bfffa23f77b
 # ╟─4449f6a2-7727-4bd5-a1b6-394ec1864b81
-# ╟─03763d64-afbd-4bac-8a5c-ad700c3200f9
+# ╠═03763d64-afbd-4bac-8a5c-ad700c3200f9
 # ╟─ec837694-cfa1-4abe-8de3-9efcf4b46004
-# ╟─a2566ddd-c945-4933-a16d-7f8d1ced2314
+# ╠═a2566ddd-c945-4933-a16d-7f8d1ced2314
 # ╟─d899cdf6-4b94-496a-a058-73e394a7ea6a
-# ╟─96fe5180-b3e9-4994-aa62-fab24592b6cd
+# ╠═96fe5180-b3e9-4994-aa62-fab24592b6cd
 # ╟─2ba9e25b-d46e-4b1e-8455-e30e1ff8c155
-# ╟─311657af-b191-480c-9bd3-4cc769b108d0
+# ╠═311657af-b191-480c-9bd3-4cc769b108d0
 # ╟─e548262f-15fc-4446-afa0-e684a0526ad0
-# ╟─efa8acce-9697-44ae-8518-38faafb27807
+# ╠═efa8acce-9697-44ae-8518-38faafb27807
 # ╟─43c081f1-14c6-4f72-b112-8fa192d862f1
 # ╟─4d8340f7-e4ca-4403-bb71-66e245036183
 # ╟─c39110b1-ba24-45bc-bb8f-372e51eb8d85
 # ╟─37c90298-c36f-4ced-a3df-af5140d1f23b
 # ╟─4e1069cb-039c-4c62-97b7-96c34c1ed55e
 # ╟─8b77b013-f70f-4470-b1bb-5b538edee5e9
-# ╟─09cee8f5-a5f5-4dac-b964-386e55404a8a
+# ╠═09cee8f5-a5f5-4dac-b964-386e55404a8a
 # ╠═0a319ec1-d4bb-4acd-8da2-ec3a40ecadf9
 # ╟─afe38064-9194-447c-8f88-23980727bab4
 # ╟─e2de2050-059b-43ae-8bf9-237dcff9f2a6
