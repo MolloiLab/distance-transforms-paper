@@ -4,6 +4,16 @@
 using Markdown
 using InteractiveUtils
 
+# This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
+macro bind(def, element)
+    quote
+        local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
+        local el = $(esc(element))
+        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
+        el
+    end
+end
+
 # ╔═╡ c3a61cfa-7bed-43de-aec3-d9c2f78fbd2a
 # ╠═╡ show_logs = false
 using Pkg; Pkg.instantiate()
@@ -15,197 +25,335 @@ using DrWatson
 # ╠═╡ show_logs = false
 @quickactivate "hd-loss"
 
-# ╔═╡ 532d695d-5cd5-4636-b1f3-2ed0d85dc4aa
+# ╔═╡ 2f14c39b-355f-49a2-9d84-05e71fcae24a
 # ╠═╡ show_logs = false
-using CSV: read
+using PlutoUI: TableOfContents, bind, Slider
 
-# ╔═╡ 3ea09ae8-11b9-4834-ac51-aba7165e7cce
-using Statistics: mean, std
-
-# ╔═╡ 76724b75-7b20-4e06-9f7f-67f3b741d440
-using DataFrames: DataFrame
-
-# ╔═╡ 6032d697-594b-4e64-a80e-1ae34ae22c9b
-using ChainRulesCore: ignore_derivatives
-
-# ╔═╡ 3796367c-41a7-4024-bfdb-afc5efbbb0cf
-using DistanceTransforms: transform, boolean_indicator
-
-# ╔═╡ 99ce5436-50ac-4237-b2a8-bd6c575cba0d
-using Losers: dice_loss, hausdorff_loss
+# ╔═╡ e4e6c5a0-c3df-4124-9e60-2af55719482e
+using Random: MersenneTwister, seed!
 
 # ╔═╡ 247ef623-1521-474d-9943-4fdf2587f4d9
 using NIfTI: niread
 
-# ╔═╡ f6af8e21-e6f5-4670-b771-206ade2a7e47
-using Glob: glob
-
-# ╔═╡ 2f14c39b-355f-49a2-9d84-05e71fcae24a
+# ╔═╡ 77147872-8931-45d3-b819-c788ae0afc5f
 # ╠═╡ show_logs = false
-using PlutoUI, CairoMakie
+using MLUtils: DataLoader, mapobs, splitobs, getobs
 
-# ╔═╡ 743ee7cb-4c25-49f0-aa15-d2354075e80a
-using Lux, LuxCUDA, Random, Optimisers, Zygote
+# ╔═╡ a4bef095-718e-4b5c-a68b-296454f7914f
+using ImageTransformations: imresize
+
+# ╔═╡ ed3122e6-2d3d-4582-9bd4-e4ed016f2686
+# ╠═╡ show_logs = false
+using Lux
+
+# ╔═╡ e9885bd2-444a-42ff-8d36-0c7b5c5fbbfb
+using LuxCUDA
 
 # ╔═╡ b8429eef-bd66-4934-af2a-42527e5ffbc1
 # ╠═╡ show_logs = false
 using CUDA; CUDA.set_runtime_version!(v"11.8")
 
-# ╔═╡ 6164d96e-7db7-43a5-8e02-7997850537dc
-using MLUtils
+# ╔═╡ c53f5aba-5b87-4528-873f-7a36a673222f
+using CairoMakie: Figure, Axis, heatmap!
 
-# ╔═╡ 076c9334-d6db-43e0-967c-3a118d3f3c45
-using MLDatasets
+# ╔═╡ 6032d697-594b-4e64-a80e-1ae34ae22c9b
+using ChainRulesCore: ignore_derivatives
 
-# ╔═╡ 653c9fa1-ff86-4129-b432-2f9863c6f480
-using FileIO
-
-# ╔═╡ 77147872-8931-45d3-b819-c788ae0afc5f
-using MLUtils: DataLoader
-
-# ╔═╡ fe96874c-5e26-4f84-9c61-b6f1914e4ab3
-md"""
-# Setup
-"""
-
-# ╔═╡ 8da9f6ae-8df5-418b-b77a-dd7746d0d236
-md"""
-## Imports
-"""
+# ╔═╡ 3ea09ae8-11b9-4834-ac51-aba7165e7cce
+using Statistics: mean, std
 
 # ╔═╡ 21d86c36-78ab-4735-b5aa-05fb44fb3df4
 TableOfContents()
 
-# ╔═╡ 93599014-9428-407e-89a1-611390c6f4d2
-md"""
-# Data Preprocessing
-"""
-
-# ╔═╡ b751c68f-af71-45f4-98a5-aae84b8ff84c
+# ╔═╡ 1aa1582f-66a2-4d1f-ae0d-04189c6282ba
 begin
-	function load_image(path)
-	    img = niread(path).raw
-	    return convert(Array{Float32}, img) / maximum(img)
+	rng = MersenneTwister()
+	seed!(rng, 12345)
+end;
+
+# ╔═╡ a66c190a-df54-4c84-a5d8-d380dbbb83f7
+begin
+	struct ImageCASDataset
+		image_paths::Vector{String}
+		label_paths::Vector{String}
 	end
 	
-	function load_label(path)
-	    label = niread(path).raw
-	    return convert(Array{UInt8}, label) .+ 1
+	function ImageCASDataset(data_dir::String)
+	    patient_folders = [joinpath(data_dir, folder) for folder in readdir(data_dir)]
+	    image_paths = String[]
+	    label_paths = String[]
+	
+	    for folder in patient_folders
+	        push!(image_paths, joinpath(folder, "img.nii.gz"))
+	        push!(label_paths, joinpath(folder, "label.nii.gz"))
+	    end
+	
+	    return ImageCASDataset(image_paths, label_paths)
 	end
 	
-	struct ImageLabelDataset
-	    folders::Vector{String}
-	end
+	Base.length(d::ImageCASDataset) = length(d.image_paths)
 	
-	# Define the length method for your struct
-	Base.length(data::ImageLabelDataset) = length(data.folders)
-	
-	# Define the getobs method for your struct
-	function getobs(data::ImageLabelDataset, idx)
-	    folder_path = data.folders[idx]
-	    image_file = glob("img.nii.gz", folder_path)[1]
-	    label_file = glob("label.nii.gz", folder_path)[1]
-	    image = load_image(image_file)
-	    label = load_label(label_file)
+	function Base.getindex(d::ImageCASDataset, i::Int)
+	    image = niread(d.image_paths[i]).raw
+	    label = niread(d.label_paths[i]).raw
 	    return (image, label)
 	end
-end
-
-# ╔═╡ a2b2bb11-05a2-4b79-8529-9c1d89884381
-begin
-	# Directory containing patient folders
-	data_dir = "/dfs7/symolloi-lab/imageCAS"
-	patient_folders = [joinpath(data_dir, folder) for folder in readdir(data_dir)]
 	
-	dataset = ImageLabelDataset(patient_folders)
-	dataloader = DataLoader(dataset, batchsize=1)
-
-	count = 0
-	for (image, label) in dataloader
-		count += 1
-		if count > 2
-			break
-		end
+	function Base.getindex(d::ImageCASDataset, idxs::AbstractVector{Int})
+	    images = Vector{Array{Float32, 3}}(undef, length(idxs))
+	    labels = Vector{Array{UInt8, 3}}(undef, length(idxs))
+	    for (index, i) in enumerate(idxs)
+	        images[index] = niread(d.image_paths[i]).raw
+	        labels[index]  = niread(d.label_paths[i]).raw
+	    end
+	    return (images, labels)
 	end
 end
 
-# ╔═╡ a9caef6e-45aa-4d02-8782-d648869bdb58
-# begin
-# 	data_dir = "/dfs7/symolloi-lab/imageCAS"
-# 	image_paths = [joinpath(data_dir, folder, "img.nii.gz") for folder in readdir(data_dir)]
-# 	label_paths = [joinpath(data_dir, folder, "label.nii.gz") for folder in readdir(data_dir)]
-	
-# 	# Create FileDataset instances
-# 	image_dataset = FileDataset(load_image, image_paths)
-# 	label_dataset = FileDataset(load_label, label_paths)
-# end
+# ╔═╡ 363a2415-9c74-4f86-9eb1-eabaaa7f8de7
+md"""
+# Setup
+"""
 
-# ╔═╡ de160e29-903d-4388-9a2e-d1f62a3bc61c
-# begin
-# 	bs = 2
-# 	dataloader = DataLoader((image_dataset, label_dataset), batchsize=bs)
-	
-# 	# for (images, labels) in dataloader
-# 	#     @info size(images)
-# 	# end
-# end
-
-# ╔═╡ 284e824c-7013-4f47-9a73-857c5f136520
-
-
-# ╔═╡ 32007e30-2cae-425f-a9c3-f5234a77a5ef
-
-
-# ╔═╡ 4e582530-3d16-4f68-9bfa-a412a6285b38
-
+# ╔═╡ d16c87b3-4fea-4084-8d89-f03e84fff49e
+md"""
+## Environment
+"""
 
 # ╔═╡ 87a5da94-2ec4-48c6-886d-2e3ddeb7cb93
 md"""
 ## Randomness
 """
 
-# ╔═╡ 1aa1582f-66a2-4d1f-ae0d-04189c6282ba
-begin
-	rng = MersenneTwister()
-	Random.seed!(rng, 12345)
-end;
-
-# ╔═╡ 7251ba20-17ba-4518-a601-27b11a2860d1
+# ╔═╡ a08c5e89-b1d2-43f1-ac11-5758235298fb
 md"""
-# Model (FCN)
+# Data Preparation
 """
 
-# ╔═╡ 439939a1-48c6-4d53-8d9b-61bc6233f7eb
+# ╔═╡ e81b97f5-9a6b-4866-b0a8-6f7b69b7e045
+md"""
+## Dataset
+"""
+
+# ╔═╡ 187a9e23-987d-4a58-9862-4d7262f181fd
+data_dir = "/dfs7/symolloi-lab/imageCAS"
+
+# ╔═╡ 61ceda68-bd27-465b-8a9d-ded5b9c6191a
+data = ImageCASDataset(data_dir)
+
+# ╔═╡ e42fdf29-ac12-43ba-b7ed-55f63acd1794
+md"""
+## Preprocessing
+"""
+
+# ╔═╡ f1b57532-c87a-4e99-ab7a-e65891d25e6f
+function adjust_image_size(
+    volume::Array{T, 3}, 
+    target_size::Tuple{Int, Int, Int};
+    max_crop_percentage::Float64 = 0.15
+) where T
+    current_size = size(volume)
+    
+    # Check if the image is already the target size
+    if isequal(current_size, target_size)
+        return volume
+    end
+
+    # Calculate the maximum allowable crop size
+    max_crop_size = round.(Int, current_size .* (1 - max_crop_percentage))
+
+    # Resize if the image is smaller than the target size
+    if all(x -> x[1] < x[2], zip(current_size, target_size))
+        return imresize(volume, target_size)
+    end
+
+    # Adjust if the image is larger than the target size
+    if all(x -> x[1] > x[2], zip(current_size, target_size))
+        # Determine crop size, limited by the max crop size
+        crop_size = max.(max_crop_size, target_size)
+
+        # Center crop
+        center = div.(current_size, 2)
+        start_idx = max.(1, center .- div.(crop_size, 2))
+        end_idx = start_idx .+ crop_size .- 1
+		cropped_volume = volume[start_idx[1]:end_idx[1], start_idx[2]:end_idx[2], start_idx[3]:end_idx[3]]
+
+        # Resize if cropped size is not yet the target size
+        if any(x -> x[1] != x[2], zip(size(cropped_volume), target_size))
+            return imresize(cropped_volume, target_size)
+        else
+            return cropped_volume
+        end
+    end
+
+    # Return the original volume if none of the above conditions are met
+    return volume
+end
+
+# ╔═╡ d9366696-2f06-4ac0-abea-e80d0262ef4b
+function one_hot_encode(label::Array{T, 3}, num_classes::Int) where {T}
+	one_hot = zeros(T, size(label)..., num_classes)
+	
+    for k in 1:num_classes
+        one_hot[:, :, :, k] = label .== k-1
+    end
+	
+    return one_hot
+end
+
+# ╔═╡ 4605121b-55a7-44b4-b1f2-3947dc3d4807
+function preprocess_image_label_pair(pair, target_size)
+    # Check if pair[1] and pair[2] are individual arrays or collections of arrays
+    is_individual = ndims(pair[1]) == 3 && ndims(pair[2]) == 3
+
+    if is_individual
+        # Handle a single pair
+        cropped_image = adjust_image_size(pair[1], target_size)
+        cropped_label = one_hot_encode(adjust_image_size(pair[2], target_size), 2)
+        processed_image = reshape(cropped_image, size(cropped_image)..., 1)
+        return (Float32.(processed_image), Float32.(cropped_label))
+    else
+        # Handle a batch of pairs
+		@info pair[1]
+		cropped_images = [adjust_image_size(img, target_size) for img in pair[1]]
+		cropped_labels = [one_hot_encode(adjust_image_size(lbl, target_size), 2) for lbl in pair[2]]
+		processed_images = [reshape(img, size(img)..., 1) for img in cropped_images]
+        return (Float32.(processed_images), Float32.(cropped_labels))
+    end
+end
+
+# ╔═╡ ed3e593d-8580-4e70-bb21-bea904b594dd
+if LuxCUDA.functional()
+	target_size = (512, 512, 256)
+else
+	target_size = (64, 64, 32)
+end
+
+# ╔═╡ cc2ec55c-75c4-4033-8b0d-1fc15f543143
+transformed_data = mapobs(
+	x -> preprocess_image_label_pair(x, target_size),
+	data
+)
+
+# ╔═╡ df15933f-ebd6-403b-b0d6-2abf048abbfa
+md"""
+## Dataloaders
+"""
+
+# ╔═╡ aa2b57d7-d6c2-431a-a4c0-809d2146809b
+train_data, val_data = splitobs(transformed_data; at = 0.75)
+
+# ╔═╡ 492d4b52-a19c-4277-a123-da856e7ff441
+bs = 1
+
+# ╔═╡ a3922176-be46-4c39-8e19-7ae1659a318c
+begin
+	train_loader = DataLoader(train_data; batchsize = bs, collate = true)
+	val_loader = DataLoader(val_data; batchsize = bs, collate = true)
+end
+
+# ╔═╡ 2d2f7e84-fd88-4f05-90d1-b17b305f7bee
+md"""
+# Data Visualization
+"""
+
+# ╔═╡ 80b023f8-55a2-4312-b4ae-381f72885e45
+md"""
+## Original Data
+"""
+
+# ╔═╡ 4384cd1a-179b-487d-97da-298172a50de1
+image_raw, label_raw = getobs(data, 1);
+
+# ╔═╡ f4fd62b4-305a-46d3-9c95-9d6617b254b7
+@bind z1 Slider(axes(image_raw, 3), show_value = true, default = div(size(image_raw, 3), 2))
+
+# ╔═╡ c0119a87-10e1-4a12-b908-c1c09d862357
+let
+	f = Figure(size = (700, 500))
+	ax = Axis(
+		f[1, 1],
+		title = "Original Image"
+	)
+	heatmap!(image_raw[:, :, z1]; colormap = :grays)
+
+	ax = Axis(
+		f[1, 2],
+		title = "Original Label (Overlayed)"
+	)
+	heatmap!(image_raw[:, :, z1]; colormap = :grays)
+	heatmap!(label_raw[:, :, z1]; colormap = (:jet, 0.4))
+	f
+end
+
+# ╔═╡ 4c1da79b-8389-4248-ba50-cfd7577aa6df
+md"""
+## Transformed Data
+"""
+
+# ╔═╡ ceb2145b-1d2e-4615-9494-076f525f842a
+image_tfm, label_tfm = getobs(transformed_data, 1);
+
+# ╔═╡ d617ca19-d915-48a5-b282-5af0ec09b362
+unique(label_tfm)
+
+# ╔═╡ 84e9b251-c83e-4bb7-a065-6ca1a9cffb49
+@bind z2 Slider(1:target_size[3], show_value = true, default = div(target_size[3], 2))
+
+# ╔═╡ 337e609b-15d9-4ce3-82cd-5bceb0e479af
+let
+	f = Figure(size = (700, 500))
+	ax = Axis(
+		f[1, 1],
+		title = "Transformed Image"
+	)
+	heatmap!(image_tfm[:, :, z2, 1]; colormap = :grays)
+
+	ax = Axis(
+		f[1, 2],
+		title = "Transformed Label (Overlayed)"
+	)
+	heatmap!(image_tfm[:, :, z2, 1]; colormap = :grays)
+	heatmap!(label_tfm[:, :, z2, 2]; colormap = (:jet, 0.4))
+	f
+end
+
+# ╔═╡ e501bc02-a1f0-4a3c-9587-e81237a10bc8
+md"""
+# Model
+"""
+
+# ╔═╡ 50983336-c945-4835-a9ee-b56a6476ad74
 md"""
 ## Helper functions
 """
 
-# ╔═╡ b45964ca-5f30-4731-8f05-3efd523a2b66
+# ╔═╡ 0b10cb62-6a4d-4acf-aef1-f471e21ef5e8
 function create_unet_layers(
     kernel_size, de_kernel_size, channel_list;
     downsample = true)
 
     padding = (kernel_size - 1) ÷ 2
 
-    conv1 = Conv((kernel_size, kernel_size, kernel_size), channel_list[1] => channel_list[2], stride=1, pad=padding)
-    conv2 = Conv((kernel_size, kernel_size, kernel_size), channel_list[2] => channel_list[3], stride=1, pad=padding)
+	conv1 = Conv((kernel_size, kernel_size, kernel_size), channel_list[1] => channel_list[2], stride=1, pad=padding)
+	conv2 = Conv((kernel_size, kernel_size, kernel_size), channel_list[2] => channel_list[3], stride=1, pad=padding)
 
     relu1 = relu
     relu2 = relu
     bn1 = BatchNorm(channel_list[2])
     bn2 = BatchNorm(channel_list[3])
 
-    bridge_conv = Conv((kernel_size, kernel_size, kernel_size), channel_list[1] => channel_list[3], stride=1, pad=padding)
+	bridge_conv = Conv((kernel_size, kernel_size, kernel_size), channel_list[1] => channel_list[3], stride=1, pad=padding)
 
     if downsample
         sample = Chain(
-            Conv((de_kernel_size, de_kernel_size, de_kernel_size), channel_list[3] => channel_list[3], stride=2, pad=(de_kernel_size - 1) ÷ 2, dilation=1),
+			Conv((de_kernel_size, de_kernel_size, de_kernel_size), channel_list[3] => channel_list[3], stride=2, pad=(de_kernel_size - 1) ÷ 2, dilation=1),
             BatchNorm(channel_list[3]),
             relu
         )
     else
         sample = Chain(
-            ConvTranspose((de_kernel_size, de_kernel_size, de_kernel_size), channel_list[3] => channel_list[3], stride=2, pad=(de_kernel_size - 1) ÷ 2),
+			ConvTranspose((de_kernel_size, de_kernel_size, de_kernel_size), channel_list[3] => channel_list[3], stride=2, pad=(de_kernel_size - 1) ÷ 2),
             BatchNorm(channel_list[3]),
             relu
         )
@@ -214,14 +362,14 @@ function create_unet_layers(
     return (conv1, conv2, relu1, relu2, bn1, bn2, bridge_conv, sample)
 end
 
-# ╔═╡ 61e86c10-6bc4-45b1-af0d-db23cb544f0b
+# ╔═╡ 0cd872e4-357b-49f6-9212-3b02e09aa020
 md"""
-## Unet module
+## Contracting Block
 """
 
-# ╔═╡ c0f42d65-7de1-4cbe-b1a2-729169454f65
+# ╔═╡ fb697e38-a345-4297-90b8-0d686f4ecec3
 begin
-    struct UNetModule <: Lux.AbstractExplicitContainerLayer{
+    struct ContractBlock <: Lux.AbstractExplicitContainerLayer{
         (:conv1, :conv2, :bn1, :bn2, :bridge_conv, :sample)
     }
         conv1::Conv
@@ -234,20 +382,21 @@ begin
         sample::Chain
     end
 
-    function UNetModule(
+    function ContractBlock(
         kernel_size, de_kernel_size, channel_list;
         downsample = true
     )
 
-        conv1, conv2, relu1, relu2, bn1, bn2, bridge_conv, sample = create_unet_layers(
+
+		conv1, conv2, relu1, relu2, bn1, bn2, bridge_conv, sample = create_unet_layers(
             kernel_size, de_kernel_size, channel_list;
             downsample = downsample
         )
 
-        UNetModule(conv1, conv2, relu1, relu2, bn1, bn2, bridge_conv, sample)
+        ContractBlock(conv1, conv2, relu1, relu2, bn1, bn2, bridge_conv, sample)
     end
 
-    function (m::UNetModule)(x, ps, st::NamedTuple)
+    function (m::ContractBlock)(x, ps, st::NamedTuple)
         res, st_bridge_conv = m.bridge_conv(x, ps.bridge_conv, st.bridge_conv)
         x, st_conv1 = m.conv1(x, ps.conv1, st.conv1)
         x, st_bn1 = m.bn1(x, ps.bn1, st.bn1)
@@ -261,19 +410,19 @@ begin
 
         next_layer, st_sample = m.sample(x, ps.sample, st.sample)
 
-        st = (conv1=st_conv1, conv2=st_conv2, bn1=st_bn1, bn2=st_bn2, bridge_conv=st_bridge_conv, sample=st_sample)
+		st = (conv1=st_conv1, conv2=st_conv2, bn1=st_bn1, bn2=st_bn2, bridge_conv=st_bridge_conv, sample=st_sample)
         return next_layer, x, st
     end
 end
 
-# ╔═╡ 7f5d2c84-58df-4ba5-9f09-a08d637356c4
+# ╔═╡ 9228b077-9b18-4485-93a0-07c84edd7c48
 md"""
-## Deconv module
+## Expanding Block
 """
 
-# ╔═╡ 7801a31f-8c70-4289-8bf5-c58d8f877032
+# ╔═╡ 45ded54e-8ee3-4aa5-a1a5-79224a416b47
 begin
-    struct DeConvModule <: Lux.AbstractExplicitContainerLayer{
+    struct ExpandBlock <: Lux.AbstractExplicitContainerLayer{
         (:conv1, :conv2, :bn1, :bn2, :bridge_conv, :sample)
     }
         conv1::Conv
@@ -286,19 +435,19 @@ begin
         sample::Chain
     end
 
-    function DeConvModule(
+    function ExpandBlock(
         kernel_size, de_kernel_size, channel_list;
         downsample = false)
 
-        conv1, conv2, relu1, relu2, bn1, bn2, bridge_conv, sample = create_unet_layers(
+		conv1, conv2, relu1, relu2, bn1, bn2, bridge_conv, sample = create_unet_layers(
             kernel_size, de_kernel_size, channel_list;
             downsample = downsample
         )
 
-        DeConvModule(conv1, conv2, relu1, relu2, bn1, bn2, bridge_conv, sample)
+        ExpandBlock(conv1, conv2, relu1, relu2, bn1, bn2, bridge_conv, sample)
     end
 
-    function (m::DeConvModule)(x, ps, st::NamedTuple)
+    function (m::ExpandBlock)(x, ps, st::NamedTuple)
         x, x1 = x[1], x[2]
         x = cat(x, x1; dims=4)
 
@@ -316,34 +465,34 @@ begin
 
         next_layer, st_sample = m.sample(x, ps.sample, st.sample)
 
-        st = (conv1=st_conv1, conv2=st_conv2, bn1=st_bn1, bn2=st_bn2, bridge_conv=st_bridge_conv, sample=st_sample)
+		st = (conv1=st_conv1, conv2=st_conv2, bn1=st_bn1, bn2=st_bn2, bridge_conv=st_bridge_conv, sample=st_sample)
         return next_layer, st
     end
 end
 
-# ╔═╡ d3f35a6c-eb52-47c3-9638-4ef7c1914211
+# ╔═╡ 8c0ea123-42db-4b95-bde8-46f2bafff2c9
 md"""
-## FCN
+## U-Net
 """
 
-# ╔═╡ 7d8bc6d7-38a1-4e35-9b59-b54cc609944d
+# ╔═╡ d762f8e2-853a-455c-9fc7-691e54a04593
 begin
-    struct FCN <: Lux.AbstractExplicitContainerLayer{
+    struct UNet <: Lux.AbstractExplicitContainerLayer{
         (:conv1, :conv2, :conv3, :conv4, :conv5, :de_conv1, :de_conv2, :de_conv3, :de_conv4, :last_conv)
     }
         conv1::Chain
         conv2::Chain
-        conv3::UNetModule
-        conv4::UNetModule
-        conv5::UNetModule
-        de_conv1::UNetModule
-        de_conv2::DeConvModule
-        de_conv3::DeConvModule
-        de_conv4::DeConvModule
+        conv3::ContractBlock
+        conv4::ContractBlock
+        conv5::ContractBlock
+        de_conv1::ContractBlock
+        de_conv2::ExpandBlock
+        de_conv3::ExpandBlock
+        de_conv4::ExpandBlock
         last_conv::Conv
     end
 
-    function FCN(channel)
+    function UNet(channel)
         conv1 = Chain(
             Conv((5, 5, 5), 1 => channel, stride=1, pad=2),
             BatchNorm(channel),
@@ -354,44 +503,44 @@ begin
             BatchNorm(2 * channel),
             relu
         )
-        conv3 = UNetModule(5, 2, [2 * channel, 2 * channel, 4 * channel])
-        conv4 = UNetModule(5, 2, [4 * channel, 4 * channel, 8 * channel])
-        conv5 = UNetModule(5, 2, [8 * channel, 8 * channel, 16 * channel])
+        conv3 = ContractBlock(5, 2, [2 * channel, 2 * channel, 4 * channel])
+        conv4 = ContractBlock(5, 2, [4 * channel, 4 * channel, 8 * channel])
+        conv5 = ContractBlock(5, 2, [8 * channel, 8 * channel, 16 * channel])
 
-        de_conv1 = UNetModule(
+        de_conv1 = ContractBlock(
             5, 2, [16 * channel, 32 * channel, 16 * channel];
             downsample = false
         )
-        de_conv2 = DeConvModule(
+        de_conv2 = ExpandBlock(
             5, 2, [32 * channel, 8 * channel, 8 * channel];
             downsample = false
         )
-        de_conv3 = DeConvModule(
+        de_conv3 = ExpandBlock(
             5, 2, [16 * channel, 4 * channel, 4 * channel];
             downsample = false
         )
-        de_conv4 = DeConvModule(
+        de_conv4 = ExpandBlock(
             5, 2, [8 * channel, 2 * channel, channel];
             downsample = false
         )
 
-        last_conv = Conv((1, 1, 1), 2 * channel => 1, stride=1, pad=0)
+        last_conv = Conv((1, 1, 1), 2 * channel => 2, stride=1, pad=0)
 
-        FCN(conv1, conv2, conv3, conv4, conv5, de_conv1, de_conv2, de_conv3, de_conv4, last_conv)
+		UNet(conv1, conv2, conv3, conv4, conv5, de_conv1, de_conv2, de_conv3, de_conv4, last_conv)
     end
 
-    function (m::FCN)(x, ps, st::NamedTuple)
+    function (m::UNet)(x, ps, st::NamedTuple)
         # Convolutional layers
         x, st_conv1 = m.conv1(x, ps.conv1, st.conv1)
         x_1 = x  # Store for skip connection
         x, st_conv2 = m.conv2(x, ps.conv2, st.conv2)
 
-        # Downscaling UNet modules
+        # Downscaling Blocks
         x, x_2, st_conv3 = m.conv3(x, ps.conv3, st.conv3)
         x, x_3, st_conv4 = m.conv4(x, ps.conv4, st.conv4)
         x, x_4, st_conv5 = m.conv5(x, ps.conv5, st.conv5)
 
-        # Upscaling DeConv modules
+        # Upscaling Blocks
         x, _, st_de_conv1 = m.de_conv1(x, ps.de_conv1, st.de_conv1)
         x, st_de_conv2 = m.de_conv2((x, x_4), ps.de_conv2, st.de_conv2)
         x, st_de_conv3 = m.de_conv3((x, x_3), ps.de_conv3, st.de_conv3)
@@ -403,185 +552,248 @@ begin
 
         # Merge states
         st = (
-        conv1=st_conv1, conv2=st_conv2, conv3=st_conv3, conv4=st_conv4, conv5=st_conv5, de_conv1=st_de_conv1, de_conv2=st_de_conv2, de_conv3=st_de_conv3, de_conv4=st_de_conv4, last_conv=st_last_conv
+		conv1=st_conv1, conv2=st_conv2, conv3=st_conv3, conv4=st_conv4, conv5=st_conv5, de_conv1=st_de_conv1, de_conv2=st_de_conv2, de_conv3=st_de_conv3, de_conv4=st_de_conv4, last_conv=st_last_conv
         )
 
         return x, st
     end
 end
 
-# ╔═╡ c940f458-4b49-48e5-83a2-dd32a356fe42
-model = FCN(4);
-
-# ╔═╡ d86b5bdb-0d85-4f4b-80a1-2f14b45bfdeb
-ps, st = Lux.setup(rng, model)
-
-# ╔═╡ 6cc22ec9-932e-4428-8a16-32d0fd909f05
+# ╔═╡ b444cb9d-987c-482f-a0c8-634538a8829f
 md"""
-# Basics
+# Training Set Up
 """
 
-# ╔═╡ 8f6e03ea-60c4-47ea-8955-d871dd097566
+# ╔═╡ 3796367c-41a7-4024-bfdb-afc5efbbb0cf
+# using DistanceTransforms: transform, boolean_indicator
+
+# ╔═╡ 99ce5436-50ac-4237-b2a8-bd6c575cba0d
+# using Losers: dice_loss, hausdorff_loss
+
+# ╔═╡ d9eb6d05-78fc-4c7b-a390-1ba4c1db1d47
+import Zygote
+
+# ╔═╡ 43fe8326-fd33-4869-9d0c-0ccfe4ec01cf
+import Optimisers
+
+# ╔═╡ 14e78c3b-1e86-4d64-b280-938e3e181f36
 md"""
-## Optimizer
+## Optimiser
 """
 
-# ╔═╡ 387be07e-0540-423c-98ca-95d8b554d31d
+# ╔═╡ c7dbbbcd-65c5-4a0b-ad71-79f1b1ce1767
 function create_optimiser(ps)
     opt = Optimisers.ADAM(0.01f0)
     return Optimisers.setup(opt, ps)
 end
 
-# ╔═╡ 345f92b7-5d03-4ac3-a958-5bc2217e1397
+# ╔═╡ 0d10693a-a77a-4550-a1c1-e198ec11c985
 md"""
-## Loss function(s)
+## Loss function
 """
 
-# ╔═╡ 209403e7-46e2-417d-bd72-154afc3efb29
-function compute_loss_dice(x, y, model, ps, st)
-    y_pred, st = model(x, ps, st)
-	local loss
-	for b in axes(y, 5)
-		_y_pred = copy(round.(y_pred[:, :, :, 1, b]))
-		_y = copy(y[:, :, :, 1, b])
-		loss = dice_loss(_y_pred, _y)
-	end
-    return loss, y_pred, st
-end
+# ╔═╡ 3d9ffa18-cb55-4bf1-b874-d7e1aa04355b
+# function compute_loss(x, y, model, ps, st, epoch)
+#     alpha = max(1.0 - 0.01 * epoch, 0.01)
+#     beta = 1.0 - alpha
 
-# ╔═╡ 5fdbbfd3-25ec-4eef-8629-72cb0d1c0889
-function compute_loss_hd_proposed(x, y, model, ps, st)
-    y_pred, st = model(x, ps, st)
-	local loss
-	for b in axes(y, 5)
-		_y_pred = copy(round.(y_pred[:, :, :, 1, b]))
-		_y = copy(y[:, :, :, 1, b])
+#     y_pred, st = model(x, ps, st)
 
-		local _y_dtm, _y_pred_dtm
-		ignore_derivatives() do
-			_y_dtm = transform(boolean_indicator(_y))
-			_y_pred_dtm = transform(boolean_indicator(_y_pred))
-		end
-		hd = hausdorff_loss(_y_pred, _y, _y_pred_dtm, _y_dtm)
+#     y_pred_softmax = softmax(y_pred, dims=4)
+#     y_pred_binary = round.(y_pred_softmax[:, :, :, 2, :])
+#     y_binary = y[:, :, :, 2, :]
+
+#     # Compute loss
+#     loss = 0.0
+#     for b in axes(y, 5)
+#         _y_pred = y_pred_binary[:, :, :, b]
+#         _y = y_binary[:, :, :, b]
+
+# 		local _y_dtm, _y_pred_dtm
+# 		ignore_derivatives() do
+# 			_y_dtm = transform(boolean_indicator(_y))
+# 			_y_pred_dtm = transform(boolean_indicator(_y_pred))
+# 		end
 		
-		dsc = dice_loss(_y_pred, _y)
-		
-		loss = hd + dsc
-	end
-    return loss, y_pred, st
-end
-
-# ╔═╡ 510b4f66-f6cd-4e39-b787-276fa94d3ce4
-md"""
-# Training
-"""
-
-# ╔═╡ 8fa58c10-82e1-4c62-81a1-1ba2615051ad
-function run_epoch!(train_loader, dev, compute_loss, model, ps, st, opt_state)
-	# Train the model
-	for (x, y) in train_loader
-		x = x |> dev
-		y = y |> dev
-		(loss, y_pred, st), back = pullback(
-			compute_loss, x, y, model, ps, st
-		)
-		gs = back((one(loss), nothing, nothing))[4]
-		opt_state, ps = Optimisers.update(opt_state, ps, gs)
-	end
-end
-
-# ╔═╡ ff74b51d-f747-4ccc-a369-5bcd17e4e8c1
-function train!(model, ps, st, train_loader, compute_loss)
-    dev = cpu_device()
-    ps = ps |> dev
-    st = st |> dev
-
-    # Create the optimiser
-    opt_state = create_optimiser(ps)
-	run_epoch!(train_loader, dev, compute_loss, model, ps, st, opt_state)
-end
-
-# ╔═╡ 926479fe-6fc6-4b47-91c5-8cb28c14b3f9
-img_size = (512, 512, 256)
-
-# ╔═╡ b84872fe-843e-4e97-b272-3c45349458dd
-channels = 1
-
-# ╔═╡ 835781d1-033b-4c30-97da-ea855151cdb5
-num_imgs = 2
-
-# ╔═╡ 67e1a847-98bb-4089-a39c-6637268acaf4
-batch_size = 1
-
-# ╔═╡ 0101059c-f92a-4c51-bb89-52f308b05dd7
-# begin
-# 	img_data = rand(Float32, img_size..., channels, num_imgs)
-# 	lbl_data = rand([0f0, 1f0], img_size..., channels, num_imgs)
-# 	(img_train, lbl_train), (img_val, lbl_val) = splitobs((img_data, lbl_data); at=0.8, shuffle=true)
-# 	train_loader = DataLoader(collect.((img_train, lbl_train)); batchsize=batch_size, shuffle=true)
+# 		hd = hausdorff_loss(_y_pred, _y, _y_pred_dtm, _y_dtm)
+# 		dsc = dice_loss(_y_pred, _y)
+# 		loss += alpha * dsc + beta * hd
+#     end
+	
+#     return loss / size(y, 5), y_pred_binary, st
 # end
 
-# ╔═╡ 1de3ae29-6ef4-4d64-bb8f-0b3e3c608ed6
-# ╠═╡ skip_as_script = true
+# ╔═╡ 1066f4c7-d463-4119-821c-e7c50e84a909
+function dice_loss(ŷ, y, ϵ=1e-5)
+    return loss = 1 - ((2 * sum(ŷ .* y) + ϵ) / (sum(ŷ .* ŷ) + sum(y .* y) + ϵ))
+end
+
+# ╔═╡ 6990e258-7dbe-47f2-b225-fe9b1ff6f607
+function compute_loss(x, y, model, ps, st)
+
+    y_pred, st = model(x, ps, st)
+
+    y_pred_softmax = softmax(y_pred, dims=4)
+    y_pred_binary = round.(y_pred_softmax[:, :, :, 2, :])
+    y_binary = y[:, :, :, 2, :]
+
+    # Compute loss
+    loss = 0.0
+    for b in axes(y, 5)
+        _y_pred = y_pred_binary[:, :, :, b]
+        _y = y_binary[:, :, :, b]
+		
+		dsc = dice_loss(_y_pred, _y)
+		loss += dsc
+    end
+	
+    return loss / size(y, 5), y_pred_binary, st
+end
+
+# ╔═╡ 075c60a6-d1d3-4f64-9186-1fbf1a8abc08
+md"""
+# Train
+"""
+
+# ╔═╡ df358406-3547-472c-8d12-02dea6719145
+dev = gpu_device()
+
+# ╔═╡ 5ff89b95-29c0-4b62-b55e-0d23afba43f5
+model = UNet(4)
+
+# ╔═╡ 72efcca2-5300-4524-b2b5-09545bdacb92
+begin
+	ps, st = Lux.setup(rng, model)
+	ps, st = ps |> dev, st |> dev
+end
+
+# ╔═╡ 6c4dcde0-c72b-4562-b4d9-ea4e15eba84c
+function train_model(model, ps, st, train_loader, num_epochs, dev)
+    opt_state = create_optimiser(ps)
+
+    for epoch in 1:num_epochs
+		@info "Epoch: $epoch"
+
+		# Training Phase
+        for (x, y) in train_loader
+			x = x |> dev
+			y = y |> dev
+			
+            # Forward pass
+            y_pred, st = Lux.apply(model, x, ps, st)
+            loss, y_pred, st = compute_loss(x, y, model, ps, st)
+			# @info "Training Loss: $loss"
+
+            # Backward pass
+			(loss_grad, st_), back = Zygote.pullback(p -> Lux.apply(model, x, p, st), ps)
+            gs = back((one.(loss_grad), nothing))[1]
+
+            # Update parameters
+            opt_state, ps = Optimisers.update(opt_state, ps, gs)
+        end
+
+		# Validation Phase
+		total_loss = 0.0
+		num_batches = 0
+	    for (x, y) in val_loader
+			x, y = x |> dev, y |> dev
+			
+	        # Forward Pass
+	        y_pred, st = Lux.apply(model, x, ps, st)
+	        loss, _, _ = compute_loss(x, y, model, ps, st)
+	
+	        total_loss += loss
+	        num_batches += 1
+	    end
+		avg_loss = total_loss / num_batches
+		@info "Validation Loss: $avg_loss"
+    end
+
+    return ps, st
+end
+
+# ╔═╡ 2259e733-0210-4e4d-839d-8471c462c694
+if LuxCUDA.functional()
+	num_epochs = 20
+else
+	num_epochs = 2
+end
+
+# ╔═╡ 62a09464-b6d1-4131-8565-a1754ba634d5
+# ╠═╡ disabled = true
 #=╠═╡
-# train!(model, ps, st, train_loader, compute_loss_dice)
+train_model(model, ps, st, train_loader, num_epochs, dev)
   ╠═╡ =#
 
 # ╔═╡ Cell order:
-# ╟─fe96874c-5e26-4f84-9c61-b6f1914e4ab3
-# ╟─8da9f6ae-8df5-418b-b77a-dd7746d0d236
+# ╟─363a2415-9c74-4f86-9eb1-eabaaa7f8de7
+# ╟─d16c87b3-4fea-4084-8d89-f03e84fff49e
 # ╠═8fa34e64-9ba2-11ee-2b38-8fbf1139c9c9
 # ╠═3dad7c76-b87d-4a98-8d5d-e79807dc56ce
 # ╠═c3a61cfa-7bed-43de-aec3-d9c2f78fbd2a
 # ╠═b8429eef-bd66-4934-af2a-42527e5ffbc1
-# ╠═532d695d-5cd5-4636-b1f3-2ed0d85dc4aa
-# ╠═3ea09ae8-11b9-4834-ac51-aba7165e7cce
-# ╠═76724b75-7b20-4e06-9f7f-67f3b741d440
-# ╠═6032d697-594b-4e64-a80e-1ae34ae22c9b
+# ╠═2f14c39b-355f-49a2-9d84-05e71fcae24a
+# ╠═21d86c36-78ab-4735-b5aa-05fb44fb3df4
+# ╟─87a5da94-2ec4-48c6-886d-2e3ddeb7cb93
+# ╠═e4e6c5a0-c3df-4124-9e60-2af55719482e
+# ╠═1aa1582f-66a2-4d1f-ae0d-04189c6282ba
+# ╟─a08c5e89-b1d2-43f1-ac11-5758235298fb
+# ╠═247ef623-1521-474d-9943-4fdf2587f4d9
+# ╠═77147872-8931-45d3-b819-c788ae0afc5f
+# ╠═a4bef095-718e-4b5c-a68b-296454f7914f
+# ╠═ed3122e6-2d3d-4582-9bd4-e4ed016f2686
+# ╠═e9885bd2-444a-42ff-8d36-0c7b5c5fbbfb
+# ╟─e81b97f5-9a6b-4866-b0a8-6f7b69b7e045
+# ╠═a66c190a-df54-4c84-a5d8-d380dbbb83f7
+# ╠═187a9e23-987d-4a58-9862-4d7262f181fd
+# ╠═61ceda68-bd27-465b-8a9d-ded5b9c6191a
+# ╟─e42fdf29-ac12-43ba-b7ed-55f63acd1794
+# ╠═f1b57532-c87a-4e99-ab7a-e65891d25e6f
+# ╠═d9366696-2f06-4ac0-abea-e80d0262ef4b
+# ╠═4605121b-55a7-44b4-b1f2-3947dc3d4807
+# ╠═ed3e593d-8580-4e70-bb21-bea904b594dd
+# ╠═cc2ec55c-75c4-4033-8b0d-1fc15f543143
+# ╟─df15933f-ebd6-403b-b0d6-2abf048abbfa
+# ╠═aa2b57d7-d6c2-431a-a4c0-809d2146809b
+# ╠═492d4b52-a19c-4277-a123-da856e7ff441
+# ╠═a3922176-be46-4c39-8e19-7ae1659a318c
+# ╟─2d2f7e84-fd88-4f05-90d1-b17b305f7bee
+# ╠═c53f5aba-5b87-4528-873f-7a36a673222f
+# ╟─80b023f8-55a2-4312-b4ae-381f72885e45
+# ╠═4384cd1a-179b-487d-97da-298172a50de1
+# ╟─f4fd62b4-305a-46d3-9c95-9d6617b254b7
+# ╟─c0119a87-10e1-4a12-b908-c1c09d862357
+# ╟─4c1da79b-8389-4248-ba50-cfd7577aa6df
+# ╠═ceb2145b-1d2e-4615-9494-076f525f842a
+# ╠═d617ca19-d915-48a5-b282-5af0ec09b362
+# ╟─84e9b251-c83e-4bb7-a065-6ca1a9cffb49
+# ╟─337e609b-15d9-4ce3-82cd-5bceb0e479af
+# ╟─e501bc02-a1f0-4a3c-9587-e81237a10bc8
+# ╟─50983336-c945-4835-a9ee-b56a6476ad74
+# ╠═0b10cb62-6a4d-4acf-aef1-f471e21ef5e8
+# ╟─0cd872e4-357b-49f6-9212-3b02e09aa020
+# ╠═fb697e38-a345-4297-90b8-0d686f4ecec3
+# ╟─9228b077-9b18-4485-93a0-07c84edd7c48
+# ╠═45ded54e-8ee3-4aa5-a1a5-79224a416b47
+# ╟─8c0ea123-42db-4b95-bde8-46f2bafff2c9
+# ╠═d762f8e2-853a-455c-9fc7-691e54a04593
+# ╟─b444cb9d-987c-482f-a0c8-634538a8829f
 # ╠═3796367c-41a7-4024-bfdb-afc5efbbb0cf
 # ╠═99ce5436-50ac-4237-b2a8-bd6c575cba0d
-# ╠═247ef623-1521-474d-9943-4fdf2587f4d9
-# ╠═f6af8e21-e6f5-4670-b771-206ade2a7e47
-# ╠═2f14c39b-355f-49a2-9d84-05e71fcae24a
-# ╠═743ee7cb-4c25-49f0-aa15-d2354075e80a
-# ╠═6164d96e-7db7-43a5-8e02-7997850537dc
-# ╠═076c9334-d6db-43e0-967c-3a118d3f3c45
-# ╠═653c9fa1-ff86-4129-b432-2f9863c6f480
-# ╠═21d86c36-78ab-4735-b5aa-05fb44fb3df4
-# ╟─93599014-9428-407e-89a1-611390c6f4d2
-# ╠═77147872-8931-45d3-b819-c788ae0afc5f
-# ╠═b751c68f-af71-45f4-98a5-aae84b8ff84c
-# ╠═a2b2bb11-05a2-4b79-8529-9c1d89884381
-# ╠═a9caef6e-45aa-4d02-8782-d648869bdb58
-# ╠═de160e29-903d-4388-9a2e-d1f62a3bc61c
-# ╠═284e824c-7013-4f47-9a73-857c5f136520
-# ╠═32007e30-2cae-425f-a9c3-f5234a77a5ef
-# ╠═4e582530-3d16-4f68-9bfa-a412a6285b38
-# ╟─87a5da94-2ec4-48c6-886d-2e3ddeb7cb93
-# ╠═1aa1582f-66a2-4d1f-ae0d-04189c6282ba
-# ╟─7251ba20-17ba-4518-a601-27b11a2860d1
-# ╟─439939a1-48c6-4d53-8d9b-61bc6233f7eb
-# ╠═b45964ca-5f30-4731-8f05-3efd523a2b66
-# ╟─61e86c10-6bc4-45b1-af0d-db23cb544f0b
-# ╠═c0f42d65-7de1-4cbe-b1a2-729169454f65
-# ╟─7f5d2c84-58df-4ba5-9f09-a08d637356c4
-# ╠═7801a31f-8c70-4289-8bf5-c58d8f877032
-# ╟─d3f35a6c-eb52-47c3-9638-4ef7c1914211
-# ╠═7d8bc6d7-38a1-4e35-9b59-b54cc609944d
-# ╠═c940f458-4b49-48e5-83a2-dd32a356fe42
-# ╠═d86b5bdb-0d85-4f4b-80a1-2f14b45bfdeb
-# ╟─6cc22ec9-932e-4428-8a16-32d0fd909f05
-# ╟─8f6e03ea-60c4-47ea-8955-d871dd097566
-# ╠═387be07e-0540-423c-98ca-95d8b554d31d
-# ╟─345f92b7-5d03-4ac3-a958-5bc2217e1397
-# ╠═209403e7-46e2-417d-bd72-154afc3efb29
-# ╠═5fdbbfd3-25ec-4eef-8629-72cb0d1c0889
-# ╟─510b4f66-f6cd-4e39-b787-276fa94d3ce4
-# ╠═8fa58c10-82e1-4c62-81a1-1ba2615051ad
-# ╠═ff74b51d-f747-4ccc-a369-5bcd17e4e8c1
-# ╠═926479fe-6fc6-4b47-91c5-8cb28c14b3f9
-# ╠═b84872fe-843e-4e97-b272-3c45349458dd
-# ╠═835781d1-033b-4c30-97da-ea855151cdb5
-# ╠═67e1a847-98bb-4089-a39c-6637268acaf4
-# ╠═0101059c-f92a-4c51-bb89-52f308b05dd7
-# ╠═1de3ae29-6ef4-4d64-bb8f-0b3e3c608ed6
+# ╠═d9eb6d05-78fc-4c7b-a390-1ba4c1db1d47
+# ╠═43fe8326-fd33-4869-9d0c-0ccfe4ec01cf
+# ╠═6032d697-594b-4e64-a80e-1ae34ae22c9b
+# ╟─14e78c3b-1e86-4d64-b280-938e3e181f36
+# ╠═c7dbbbcd-65c5-4a0b-ad71-79f1b1ce1767
+# ╟─0d10693a-a77a-4550-a1c1-e198ec11c985
+# ╠═3d9ffa18-cb55-4bf1-b874-d7e1aa04355b
+# ╠═1066f4c7-d463-4119-821c-e7c50e84a909
+# ╠═6990e258-7dbe-47f2-b225-fe9b1ff6f607
+# ╟─075c60a6-d1d3-4f64-9186-1fbf1a8abc08
+# ╠═3ea09ae8-11b9-4834-ac51-aba7165e7cce
+# ╠═df358406-3547-472c-8d12-02dea6719145
+# ╠═5ff89b95-29c0-4b62-b55e-0d23afba43f5
+# ╠═72efcca2-5300-4524-b2b5-09545bdacb92
+# ╠═6c4dcde0-c72b-4562-b4d9-ea4e15eba84c
+# ╠═2259e733-0210-4e4d-839d-8471c462c694
+# ╠═62a09464-b6d1-4131-8565-a1754ba634d5

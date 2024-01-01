@@ -35,6 +35,9 @@ using NIfTI: niread
 # ╔═╡ db2ccf3a-437a-4dfa-ad05-2526c0e2bde0
 using Glob: glob
 
+# ╔═╡ 6727ede2-57db-4f0d-b264-ae478e1058ec
+using LuxCUDA
+
 # ╔═╡ 8e2f2c6d-127d-42a6-9906-970c09a22e61
 using CairoMakie: Figure, Axis, heatmap!
 
@@ -47,15 +50,8 @@ using DistanceTransforms: transform, boolean_indicator
 # ╔═╡ dfc9377a-7cc1-43ba-bb43-683d24e67d79
 using ComputerVisionMetrics: hausdorff_metric, dice_metric
 
-# ╔═╡ 70bc36db-9ee3-4e1d-992d-abbf55c52070
-using Losers: hausdorff_loss, dice_loss
-
 # ╔═╡ c283f9a3-6a76-4186-859f-21cd9efc131f
 using ChainRulesCore: ignore_derivatives
-
-# ╔═╡ 317c1571-d232-4cab-ac10-9fc3b7ad33b0
-# ╠═╡ show_logs = false
-using LuxCUDA
 
 # ╔═╡ c8d6553a-90df-4aeb-aa6d-a213e16fab48
 TableOfContents()
@@ -66,7 +62,7 @@ begin
     seed!(rng, 0)
 end
 
-# ╔═╡ cdfd2412-897d-4642-bb69-f8031c418446
+# ╔═╡ 10f0f5c4-86a3-4913-aca4-3dc466a3c902
 function download_dataset(heart_url, target_directory)
     if isempty(readdir(target_directory))
         local_tar_file = joinpath(target_directory, "heart_dataset.tar")
@@ -80,17 +76,17 @@ function download_dataset(heart_url, target_directory)
     end
 end
 
-# ╔═╡ b1516500-ad83-41d2-8a1d-093cd0d948e3
+# ╔═╡ ab48404f-ca08-436a-9881-23fb9a28e47b
 heart_url = "https://msd-for-monai.s3-us-west-2.amazonaws.com/Task02_Heart.tar"
 
-# ╔═╡ 3e896957-61d8-4750-89bd-be02383417ec
+# ╔═╡ f106e5b2-6c68-4841-8379-aa8f99cbfd1b
 target_directory = mktempdir()
 
-# ╔═╡ 99211382-7de9-4e97-872f-d0c01b8f8307
+# ╔═╡ 50dab23a-3449-490d-9613-d006752b65d0
 # ╠═╡ show_logs = false
 data_dir = download_dataset(heart_url, target_directory)
 
-# ╔═╡ 6d34b756-4da8-427c-91f5-dfb022c4e715
+# ╔═╡ 4fd5a70b-53d5-418e-9615-75a6fafae343
 begin
 	struct ImageCASDataset
 		image_paths::Vector{String}
@@ -133,20 +129,20 @@ md"""
 # Data Preparation
 """
 
-# ╔═╡ ec7734c3-33a5-43c7-82db-2db4dbdc9587
+# ╔═╡ 2fafd628-37af-43e1-ba49-5d5702e20b41
 md"""
 ## Dataset
 """
 
-# ╔═╡ 9577b91b-faa4-4fc5-9ec2-ed8ca94f2afe
+# ╔═╡ 6f327dcc-b617-4066-89d8-a70d2dd109d4
 data = ImageCASDataset(data_dir)
 
-# ╔═╡ ae3d24e4-2216-4744-9093-0d2a8bbaae2d
+# ╔═╡ c9eeebd2-f017-4863-810f-2111d5be2b85
 md"""
 ## Preprocessing
 """
 
-# ╔═╡ 18b31959-9cdf-41d9-a389-7c18febf7b07
+# ╔═╡ e49721a6-b9f4-4221-9704-fc4e89d502be
 function center_crop(volume::Array{T, 3}, target_size::Tuple{Int, Int, Int}) where {T}
     center = div.(size(volume), 2)
 
@@ -157,9 +153,9 @@ function center_crop(volume::Array{T, 3}, target_size::Tuple{Int, Int, Int}) whe
     return cropped_volume
 end
 
-# ╔═╡ 72827ad5-4820-4545-8099-1033d962970e
-function one_hot_encode(label::Array{UInt8, 3}, num_classes::Int)
-	one_hot = zeros(UInt8, size(label, 1), size(label, 2), size(label, 3), num_classes)
+# ╔═╡ 6a286450-6d05-4fd0-928c-ee45c0dfd9fa
+function one_hot_encode(label::Array{T, 3}, num_classes::Int) where {T}
+	one_hot = zeros(T, size(label)..., num_classes)
 	
     for k in 1:num_classes
         one_hot[:, :, :, k] = label .== k-1
@@ -168,7 +164,7 @@ function one_hot_encode(label::Array{UInt8, 3}, num_classes::Int)
     return one_hot
 end
 
-# ╔═╡ 8ad7b2bb-1672-473a-a7b5-bf505733f7a3
+# ╔═╡ 87e1e444-fcdc-416d-a3c9-9bedcfaff489
 function preprocess_image_label_pair(pair, target_size)
     # Check if pair[1] and pair[2] are individual arrays or collections of arrays
     is_individual = ndims(pair[1]) == 3 && ndims(pair[2]) == 3
@@ -177,42 +173,42 @@ function preprocess_image_label_pair(pair, target_size)
         # Handle a single pair
         cropped_image = center_crop(pair[1], target_size)
         cropped_label = one_hot_encode(center_crop(pair[2], target_size), 2)
-        processed_image = reshape(cropped_image, size(cropped_image, 1), size(cropped_image, 2), size(cropped_image, 3), 1)
+        processed_image = reshape(cropped_image, size(cropped_image)..., 1)
         return (processed_image, cropped_label)
     else
         # Handle a batch of pairs
-        cropped_images = [center_crop(img, target_size) for img in pair[1]]
+		cropped_images = [center_crop(img, target_size) for img in pair[1]]
 		cropped_labels = [one_hot_encode(center_crop(lbl, target_size), 2) for lbl in pair[2]]
-		processed_images = [reshape(img, size(img, 1), size(img, 2), size(img, 3), 1) for img in cropped_images]
+		processed_images = [reshape(img, size(img)..., 1) for img in cropped_images]
         return (processed_images, cropped_labels)
     end
 end
 
-# ╔═╡ ac2ed012-2b64-42b2-b97c-2a5352af9ec8
+# ╔═╡ e4df967e-7532-4a29-8bb2-9ace78e87eba
 if LuxCUDA.functional()
 	target_size = (128, 128, 64)
 else
-	target_size = (64, 64, 64)
+	target_size = (64, 64, 32)
 end
 
-# ╔═╡ c5539898-6b0c-4172-ba6c-9bfe2819c9fb
+# ╔═╡ c2dcef00-9430-466f-8ca1-f135caefde2b
 transformed_data = mapobs(
 	x -> preprocess_image_label_pair(x, target_size),
 	data
 )
 
-# ╔═╡ 03bab55a-6e5e-4b9f-b56a-7e9f993576eb
+# ╔═╡ e4e695dd-9d49-4384-b0ae-ea20f7a3f576
 md"""
 ## Dataloaders
 """
 
-# ╔═╡ d40f19dc-f06e-44ef-b82b-9763ff1f1189
+# ╔═╡ 00844aac-3f48-400c-9baa-3b2d6fcfbe74
 train_indices, val_indices = splitobs(1:length(data); at = 0.75)
 
-# ╔═╡ 4d75f114-225f-45e2-a683-e82ff137d909
+# ╔═╡ 298db622-9bc3-428b-bc40-dd51acb32cd2
 bs = 4
 
-# ╔═╡ 2032b7e6-ceb7-4c08-9b0d-bc704f5e4104
+# ╔═╡ 29d50357-630e-4448-a46f-43d9b949e1c4
 begin
 	train_loader = DataLoader(transformed_data[train_indices]; batchsize = bs, collate = true)
 	val_loader = DataLoader(transformed_data[val_indices]; batchsize = bs, collate = true)
@@ -533,26 +529,63 @@ import Zygote
 # ╔═╡ 12d42392-ad7b-4c5f-baf5-1f2c6052669e
 import Optimisers
 
-# ╔═╡ 7cde37c8-4c59-4583-8995-2b01eda95cb3
+# ╔═╡ eff59129-3133-4a56-a7cd-da0d9bc849d7
+# using Losers: hausdorff_loss, dice_loss
+
+# ╔═╡ af7e12f9-c9d4-4cf0-b1e9-1fdea5f50509
+# function compute_loss(x, y, model, ps, st, epoch)
+#     alpha = max(1.0 - 0.01 * epoch, 0.01)
+#     beta = 1.0 - alpha
+
+#     y_pred, st = model(x, ps, st)
+
+#     y_pred_softmax = softmax(y_pred, dims=4)
+#     y_pred_binary = round.(y_pred_softmax[:, :, :, 2, :])
+#     y_binary = y[:, :, :, 2, :]
+
+#     # Compute loss
+#     loss = 0.0
+#     for b in axes(y, 5)
+#         _y_pred = y_pred_binary[:, :, :, b]
+#         _y = y_binary[:, :, :, b]
+
+# 		local _y_dtm, _y_pred_dtm
+# 		ignore_derivatives() do
+# 			_y_dtm = transform(boolean_indicator(_y))
+# 			_y_pred_dtm = transform(boolean_indicator(_y_pred))
+# 		end
+		
+# 		hd = hausdorff_loss(_y_pred, _y, _y_pred_dtm, _y_dtm)
+# 		dsc = dice_loss(_y_pred, _y)
+# 		loss += alpha * dsc + beta * hd
+#     end
+	
+#     return loss / size(y, 5), y_pred_binary, st
+# end
+
+# ╔═╡ 2bf605e0-c245-454b-9c81-42701ac4f369
 md"""
 ## Optimiser
 """
 
-# ╔═╡ 10007ee0-5339-4544-bbcd-ac4eed043f50
+# ╔═╡ 15adbe95-47e5-4a63-a00e-420c62dc1d05
 function create_optimiser(ps)
     opt = Optimisers.ADAM(0.01f0)
     return Optimisers.setup(opt, ps)
 end
 
-# ╔═╡ a25bdfe6-b24d-446b-926f-6e0727d647a2
+# ╔═╡ 7a1e65ab-21bd-4b86-a281-69c64108eda5
 md"""
 ## Loss function
 """
 
-# ╔═╡ 8598dfca-8929-4ec3-9eb5-09c240c3fdba
-function compute_loss(x, y, model, ps, st, epoch)
-    alpha = max(1.0 - 0.01 * epoch, 0.01)
-    beta = 1.0 - alpha
+# ╔═╡ 49d4d322-a66b-4672-968a-d4c412968b5a
+function dice_loss(ŷ, y, ϵ=1e-5)
+    return loss = 1 - ((2 * sum(ŷ .* y) + ϵ) / (sum(ŷ .* ŷ) + sum(y .* y) + ϵ))
+end
+
+# ╔═╡ 9c2557fb-4026-40ff-8ad4-871282327b24
+function compute_loss(x, y, model, ps, st)
 
     y_pred, st = model(x, ps, st)
 
@@ -562,28 +595,14 @@ function compute_loss(x, y, model, ps, st, epoch)
 
     # Compute loss
     loss = 0.0
-  #   for b in axes(y, 5)
-  #       _y_pred = y_pred_binary[:, :, :, b]
-  #       _y = y_binary[:, :, :, b]
-
-		# local _y_dtm, _y_pred_dtm
-		# ignore_derivatives() do
-		# 	_y_dtm = transform(boolean_indicator(_y))
-		# 	_y_pred_dtm = transform(boolean_indicator(_y_pred))
-		# end
-		
-		# hd = hausdorff_loss(_y_pred, _y, _y_pred_dtm, _y_dtm)
-		# dsc = dice_loss(_y_pred, _y)
-		# loss += alpha * dsc + beta * hd
-  #   end
-
-	for b in axes(y, 5)
+    for b in axes(y, 5)
         _y_pred = y_pred_binary[:, :, :, b]
         _y = y_binary[:, :, :, b]
 		
 		dsc = dice_loss(_y_pred, _y)
 		loss += dsc
     end
+	
     return loss / size(y, 5), y_pred_binary, st
 end
 
@@ -617,7 +636,7 @@ function train_model(model, ps, st, train_loader, num_epochs, dev)
 			
             # Forward pass
             y_pred, st = Lux.apply(model, x, ps, st)
-            loss, y_pred, st = compute_loss(x, y, model, ps, st, epoch)
+            loss, y_pred, st = compute_loss(x, y, model, ps, st)
 			# @info "Training Loss: $loss"
 
             # Backward pass
@@ -636,7 +655,7 @@ function train_model(model, ps, st, train_loader, num_epochs, dev)
 			
 	        # Forward Pass
 	        y_pred, st = Lux.apply(model, x, ps, st)
-	        loss, _, _ = compute_loss(x, y, model, ps, st, epoch)
+	        loss, _, _ = compute_loss(x, y, model, ps, st)
 	
 	        total_loss += loss
 	        num_batches += 1
@@ -663,7 +682,6 @@ ComputerVisionMetrics = "56beca70-ca20-45da-83c4-a042539b6c19"
 DistanceTransforms = "71182807-4d06-4237-8dd0-bdafe4d097e2"
 Glob = "c27321d9-0574-5035-807b-f59d2c89b15c"
 HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
-Losers = "1785af8d-d312-496e-9b53-daf6ddaba92c"
 Lux = "b2108857-7c20-44ae-9111-449ecde12c47"
 LuxCUDA = "d0bbae9a-e099-4d5b-a835-1c6931763bda"
 MLUtils = "f1d291b0-491e-4a28-83b9-f70985020b54"
@@ -681,7 +699,6 @@ ComputerVisionMetrics = "~0.1.0"
 DistanceTransforms = "~0.2.1"
 Glob = "~1.3.1"
 HTTP = "~1.10.1"
-Losers = "~0.1.0"
 Lux = "~0.5.13"
 LuxCUDA = "~0.3.1"
 MLUtils = "~0.4.3"
@@ -695,9 +712,9 @@ Zygote = "~0.6.67"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.10.0-rc2"
+julia_version = "1.10.0"
 manifest_format = "2.0"
-project_hash = "d60e6c53fab769efe43ba88267656e404a0fbc84"
+project_hash = "5a04f57e481641433d3b821920ae23a3e38f5d87"
 
 [[deps.ADTypes]]
 git-tree-sha1 = "332e5d7baeff8497b923b730b994fa480601efc7"
@@ -1868,12 +1885,6 @@ weakdeps = ["ChainRulesCore", "ForwardDiff", "SpecialFunctions"]
     ForwardDiffExt = ["ChainRulesCore", "ForwardDiff"]
     SpecialFunctionsExt = "SpecialFunctions"
 
-[[deps.Losers]]
-deps = ["Statistics"]
-git-tree-sha1 = "7d85766280061a4c145cf4f3478c802423c0540d"
-uuid = "1785af8d-d312-496e-9b53-daf6ddaba92c"
-version = "0.1.0"
-
 [[deps.Lux]]
 deps = ["ADTypes", "Adapt", "ChainRulesCore", "ConcreteStructs", "ConstructionBase", "Functors", "LinearAlgebra", "LuxCore", "LuxDeviceUtils", "LuxLib", "MacroTools", "Markdown", "Optimisers", "PackageExtensionCompat", "Random", "Reexport", "Setfield", "SparseArrays", "Statistics", "TruncatedStacktraces", "WeightInitializers"]
 git-tree-sha1 = "08b7e6647e144e31cce846ec4a64cd5d6a77c755"
@@ -2716,7 +2727,7 @@ deps = ["Libdl", "LinearAlgebra", "Serialization", "SparseArrays"]
 uuid = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 
 [[deps.SuiteSparse_jll]]
-deps = ["Artifacts", "Libdl", "Pkg", "libblastrampoline_jll"]
+deps = ["Artifacts", "Libdl", "libblastrampoline_jll"]
 uuid = "bea87d4a-7f5b-5778-9afe-8cc45184846c"
 version = "7.2.1+1"
 
@@ -3054,26 +3065,26 @@ version = "3.5.0+0"
 # ╠═3ab44a2a-692f-4603-a5a8-81f1d260c13e
 # ╠═562b3772-89cc-4390-87c3-e7260c8aa86b
 # ╠═db2ccf3a-437a-4dfa-ad05-2526c0e2bde0
-# ╠═8e2f2c6d-127d-42a6-9906-970c09a22e61
-# ╟─ec7734c3-33a5-43c7-82db-2db4dbdc9587
-# ╠═cdfd2412-897d-4642-bb69-f8031c418446
-# ╠═b1516500-ad83-41d2-8a1d-093cd0d948e3
-# ╠═3e896957-61d8-4750-89bd-be02383417ec
-# ╠═99211382-7de9-4e97-872f-d0c01b8f8307
-# ╠═6d34b756-4da8-427c-91f5-dfb022c4e715
-# ╠═9577b91b-faa4-4fc5-9ec2-ed8ca94f2afe
-# ╟─ae3d24e4-2216-4744-9093-0d2a8bbaae2d
-# ╠═18b31959-9cdf-41d9-a389-7c18febf7b07
-# ╠═72827ad5-4820-4545-8099-1033d962970e
-# ╠═8ad7b2bb-1672-473a-a7b5-bf505733f7a3
-# ╠═317c1571-d232-4cab-ac10-9fc3b7ad33b0
-# ╠═ac2ed012-2b64-42b2-b97c-2a5352af9ec8
-# ╠═c5539898-6b0c-4172-ba6c-9bfe2819c9fb
-# ╟─03bab55a-6e5e-4b9f-b56a-7e9f993576eb
-# ╠═d40f19dc-f06e-44ef-b82b-9763ff1f1189
-# ╠═4d75f114-225f-45e2-a683-e82ff137d909
-# ╠═2032b7e6-ceb7-4c08-9b0d-bc704f5e4104
+# ╟─2fafd628-37af-43e1-ba49-5d5702e20b41
+# ╠═10f0f5c4-86a3-4913-aca4-3dc466a3c902
+# ╠═ab48404f-ca08-436a-9881-23fb9a28e47b
+# ╠═f106e5b2-6c68-4841-8379-aa8f99cbfd1b
+# ╠═50dab23a-3449-490d-9613-d006752b65d0
+# ╠═4fd5a70b-53d5-418e-9615-75a6fafae343
+# ╠═6f327dcc-b617-4066-89d8-a70d2dd109d4
+# ╟─c9eeebd2-f017-4863-810f-2111d5be2b85
+# ╠═e49721a6-b9f4-4221-9704-fc4e89d502be
+# ╠═6a286450-6d05-4fd0-928c-ee45c0dfd9fa
+# ╠═87e1e444-fcdc-416d-a3c9-9bedcfaff489
+# ╠═6727ede2-57db-4f0d-b264-ae478e1058ec
+# ╠═e4df967e-7532-4a29-8bb2-9ace78e87eba
+# ╠═c2dcef00-9430-466f-8ca1-f135caefde2b
+# ╟─e4e695dd-9d49-4384-b0ae-ea20f7a3f576
+# ╠═00844aac-3f48-400c-9baa-3b2d6fcfbe74
+# ╠═298db622-9bc3-428b-bc40-dd51acb32cd2
+# ╠═29d50357-630e-4448-a46f-43d9b949e1c4
 # ╟─2ec43028-c1ab-4df7-9cfe-cc1a4919a7cf
+# ╠═8e2f2c6d-127d-42a6-9906-970c09a22e61
 # ╟─a6316144-c809-4d2a-bda1-d5128dcf89d3
 # ╠═f8fc2cee-c1bd-477d-9595-9427e8764bd6
 # ╟─7cb986f8-b338-4046-b569-493e443a8dcb
@@ -3095,14 +3106,16 @@ version = "3.5.0+0"
 # ╟─df2dd9a7-045c-44a5-a62c-8d9f2541dc14
 # ╠═a6669580-de24-4111-a7cb-26d3e727a12e
 # ╠═dfc9377a-7cc1-43ba-bb43-683d24e67d79
-# ╠═70bc36db-9ee3-4e1d-992d-abbf55c52070
 # ╠═c283f9a3-6a76-4186-859f-21cd9efc131f
 # ╠═69880e6d-162a-4aae-94eb-103bd35ac3c9
 # ╠═12d42392-ad7b-4c5f-baf5-1f2c6052669e
-# ╟─7cde37c8-4c59-4583-8995-2b01eda95cb3
-# ╠═10007ee0-5339-4544-bbcd-ac4eed043f50
-# ╟─a25bdfe6-b24d-446b-926f-6e0727d647a2
-# ╠═8598dfca-8929-4ec3-9eb5-09c240c3fdba
+# ╟─eff59129-3133-4a56-a7cd-da0d9bc849d7
+# ╟─af7e12f9-c9d4-4cf0-b1e9-1fdea5f50509
+# ╟─2bf605e0-c245-454b-9c81-42701ac4f369
+# ╠═15adbe95-47e5-4a63-a00e-420c62dc1d05
+# ╟─7a1e65ab-21bd-4b86-a281-69c64108eda5
+# ╠═49d4d322-a66b-4672-968a-d4c412968b5a
+# ╠═9c2557fb-4026-40ff-8ad4-871282327b24
 # ╟─45949f7f-4e4a-4857-af43-ff013dbdd137
 # ╠═402ba194-350e-4ff3-832b-6651be1d9ce7
 # ╠═bbdaf5c5-9faa-4b61-afab-c0242b8ca034
