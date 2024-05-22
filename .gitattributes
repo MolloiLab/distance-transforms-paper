@@ -218,4 +218,4 @@ bin/	binary
 *.Rmd		text
 *.R text
       
-
+_research/* linguist-vendored
