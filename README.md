@@ -2,7 +2,7 @@
 
 ## Structure
 The `notebooks` folder holds all of the key notebooks for experimentation
-- `notebooks/benchmarks.jl` contains all of the julia-based distance transforms comparisons
+- `notebooks/benchmarks.jl` contains all of the julia-based distance transforms benchmarks
   - ImageMorphology.jl vs ours: single-threaded vs. multi-threaded vs. CUDA vs. AMDGPU vs. oneAPI vs. Metal
   - Save results to CSV files for analysis
   - [TODO]: add AMDGPU, oneAPI, and Metal to the benchmarks
@@ -10,16 +10,14 @@ The `notebooks` folder holds all of the key notebooks for experimentation
   - Scipy vs. cupoch vs. ... vs. ours: single-threaded vs. multi-threaded vs. CUDA vs. AMDGPU
   - Save results to CSV files for analysis
   - [TODO]: all python based comparisons
-- `notebooks/hd_loss_benchmarks.jl` contains the training code for the hybrid hausdorff loss + dice loss benchmarks compared to pure dice loss
-  - Save results to CSV files for analysis
-  - [TODO]: clean up code
-- `notebooks/hd_loss.jl` contains the full training code for the hybrid hausdorff loss + dice loss compared to pure dice loss accuracy
+- `notebooks/hd_loss.jl` contains the training code for our GPU hybrid hausdorff loss + dice loss vs. scipy CPU hybrid hausdorff loss + dice loss benchmarks compared to pure dice loss
+  - Timings, accuracy (dice metric, hd metric), and qualitative accuracy
   - Save results to CSV files for analysis
   - [TODO]: clean up code
 - `notebooks/watershed.jl` contains the watershed distance transforms benchmarks
   - Compare ImageMorphology.jl vs ours: single-threaded vs. multi-threaded vs. CUDA vs. AMDGPU vs. oneAPI vs. Metal in the watershed algorithm
   - [TODO]: all of it
-- `notebooks/analysis.jl` contains the benchmarks, accuracy metrics, and qualitative figures
+- `notebooks/analysis.jl` contains the figures and tables for the paper
   - [TODO]: update with new results
 
 
