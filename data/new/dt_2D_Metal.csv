@@ -1,0 +1,261 @@
+os_info,gpu_info,sizes,dt_maurer,dt_maurer_std,dt_fenz,dt_fenz_std,dt_fenz_multi,dt_fenz_multi_std,dt_proposed_metal,dt_proposed_metal_std
+"Julia Version 1.10.3
+Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+Build Info:
+  Official https://julialang.org/ release
+Platform Info:
+  OS: macOS (arm64-apple-darwin22.4.0)
+  CPU: 8 × Apple M1
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-15.0.7 (ORCJIT, apple-m1)
+Threads: 4 default, 0 interactive, 2 GC (on 4 virtual cores)
+Environment:
+  JULIA_REVISE_WORKER_ONLY = 1
+","macOS 14.0.0, Darwin 23.0.0
+
+Toolchain:
+- Julia: 1.10.3
+- LLVM: 15.0.7
+
+Julia packages: 
+- Metal.jl: 1.1.0
+- LLVMDowngrader_jll: 0.1.0+2
+
+1 device:
+- Apple M1 (6.938 GiB allocated)
+",64.0,2250.0,434.5782118586046,1459.0,621.6918582920856,6084.0,89930.91842915378,940750.0,271984.4260310383
+"Julia Version 1.10.3
+Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+Build Info:
+  Official https://julialang.org/ release
+Platform Info:
+  OS: macOS (arm64-apple-darwin22.4.0)
+  CPU: 8 × Apple M1
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-15.0.7 (ORCJIT, apple-m1)
+Threads: 4 default, 0 interactive, 2 GC (on 4 virtual cores)
+Environment:
+  JULIA_REVISE_WORKER_ONLY = 1
+","macOS 14.0.0, Darwin 23.0.0
+
+Toolchain:
+- Julia: 1.10.3
+- LLVM: 15.0.7
+
+Julia packages: 
+- Metal.jl: 1.1.0
+- LLVMDowngrader_jll: 0.1.0+2
+
+1 device:
+- Apple M1 (6.938 GiB allocated)
+",256.0,10334.0,2063.0212068711267,5542.0,1802.3852868413628,8250.0,138674.00586046718,1.179333e6,3.8044415400827974e6
+"Julia Version 1.10.3
+Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+Build Info:
+  Official https://julialang.org/ release
+Platform Info:
+  OS: macOS (arm64-apple-darwin22.4.0)
+  CPU: 8 × Apple M1
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-15.0.7 (ORCJIT, apple-m1)
+Threads: 4 default, 0 interactive, 2 GC (on 4 virtual cores)
+Environment:
+  JULIA_REVISE_WORKER_ONLY = 1
+","macOS 14.0.0, Darwin 23.0.0
+
+Toolchain:
+- Julia: 1.10.3
+- LLVM: 15.0.7
+
+Julia packages: 
+- Metal.jl: 1.1.0
+- LLVMDowngrader_jll: 0.1.0+2
+
+1 device:
+- Apple M1 (6.938 GiB allocated)
+",1024.0,31667.0,115253.18203194602,18667.0,5505.232328329921,50333.0,37479.49561263836,1.299208e6,492245.6567894733
+"Julia Version 1.10.3
+Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+Build Info:
+  Official https://julialang.org/ release
+Platform Info:
+  OS: macOS (arm64-apple-darwin22.4.0)
+  CPU: 8 × Apple M1
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-15.0.7 (ORCJIT, apple-m1)
+Threads: 4 default, 0 interactive, 2 GC (on 4 virtual cores)
+Environment:
+  JULIA_REVISE_WORKER_ONLY = 1
+","macOS 14.0.0, Darwin 23.0.0
+
+Toolchain:
+- Julia: 1.10.3
+- LLVM: 15.0.7
+
+Julia packages: 
+- Metal.jl: 1.1.0
+- LLVMDowngrader_jll: 0.1.0+2
+
+1 device:
+- Apple M1 (6.938 GiB allocated)
+",4096.0,262500.0,283162.6613185236,112125.0,42920.387710400646,73542.0,15268.695047565641,1.160875e6,213371.2278411866
+"Julia Version 1.10.3
+Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+Build Info:
+  Official https://julialang.org/ release
+Platform Info:
+  OS: macOS (arm64-apple-darwin22.4.0)
+  CPU: 8 × Apple M1
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-15.0.7 (ORCJIT, apple-m1)
+Threads: 4 default, 0 interactive, 2 GC (on 4 virtual cores)
+Environment:
+  JULIA_REVISE_WORKER_ONLY = 1
+","macOS 14.0.0, Darwin 23.0.0
+
+Toolchain:
+- Julia: 1.10.3
+- LLVM: 15.0.7
+
+Julia packages: 
+- Metal.jl: 1.1.0
+- LLVMDowngrader_jll: 0.1.0+2
+
+1 device:
+- Apple M1 (6.938 GiB allocated)
+",16384.0,338750.0,295544.20416693453,1.1605e6,145091.0524402981,324667.0,130341.71802701287,1.230667e6,838497.130629749
+"Julia Version 1.10.3
+Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+Build Info:
+  Official https://julialang.org/ release
+Platform Info:
+  OS: macOS (arm64-apple-darwin22.4.0)
+  CPU: 8 × Apple M1
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-15.0.7 (ORCJIT, apple-m1)
+Threads: 4 default, 0 interactive, 2 GC (on 4 virtual cores)
+Environment:
+  JULIA_REVISE_WORKER_ONLY = 1
+","macOS 14.0.0, Darwin 23.0.0
+
+Toolchain:
+- Julia: 1.10.3
+- LLVM: 15.0.7
+
+Julia packages: 
+- Metal.jl: 1.1.0
+- LLVMDowngrader_jll: 0.1.0+2
+
+1 device:
+- Apple M1 (6.938 GiB allocated)
+",65536.0,1.101833e6,1.9170379255090507e6,3.714125e6,654762.6261146095,1.300666e6,551738.0342024344,1.926292e6,997157.2777653093
+"Julia Version 1.10.3
+Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+Build Info:
+  Official https://julialang.org/ release
+Platform Info:
+  OS: macOS (arm64-apple-darwin22.4.0)
+  CPU: 8 × Apple M1
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-15.0.7 (ORCJIT, apple-m1)
+Threads: 4 default, 0 interactive, 2 GC (on 4 virtual cores)
+Environment:
+  JULIA_REVISE_WORKER_ONLY = 1
+","macOS 14.0.0, Darwin 23.0.0
+
+Toolchain:
+- Julia: 1.10.3
+- LLVM: 15.0.7
+
+Julia packages: 
+- Metal.jl: 1.1.0
+- LLVMDowngrader_jll: 0.1.0+2
+
+1 device:
+- Apple M1 (6.938 GiB allocated)
+",262144.0,4.806667e6,4.097245614947932e6,1.5057875e7,1.4004144553656846e6,4.813958e6,3.1378328525811853e6,3.058709e6,524924.9421891455
+"Julia Version 1.10.3
+Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+Build Info:
+  Official https://julialang.org/ release
+Platform Info:
+  OS: macOS (arm64-apple-darwin22.4.0)
+  CPU: 8 × Apple M1
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-15.0.7 (ORCJIT, apple-m1)
+Threads: 4 default, 0 interactive, 2 GC (on 4 virtual cores)
+Environment:
+  JULIA_REVISE_WORKER_ONLY = 1
+","macOS 14.0.0, Darwin 23.0.0
+
+Toolchain:
+- Julia: 1.10.3
+- LLVM: 15.0.7
+
+Julia packages: 
+- Metal.jl: 1.1.0
+- LLVMDowngrader_jll: 0.1.0+2
+
+1 device:
+- Apple M1 (6.938 GiB allocated)
+",1.048576e6,2.5136167e7,6.607585628351796e7,5.8642291e7,3.2826157804145634e7,2.8834125e7,1.0315920796074866e8,9.204625e6,2.412047203309403e6
+"Julia Version 1.10.3
+Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+Build Info:
+  Official https://julialang.org/ release
+Platform Info:
+  OS: macOS (arm64-apple-darwin22.4.0)
+  CPU: 8 × Apple M1
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-15.0.7 (ORCJIT, apple-m1)
+Threads: 4 default, 0 interactive, 2 GC (on 4 virtual cores)
+Environment:
+  JULIA_REVISE_WORKER_ONLY = 1
+","macOS 14.0.0, Darwin 23.0.0
+
+Toolchain:
+- Julia: 1.10.3
+- LLVM: 15.0.7
+
+Julia packages: 
+- Metal.jl: 1.1.0
+- LLVMDowngrader_jll: 0.1.0+2
+
+1 device:
+- Apple M1 (6.938 GiB allocated)
+",4.194304e6,1.0617175e8,4.705153985882141e7,2.56115291e8,8.630207234284905e7,1.41939291e8,1.0373976224046852e8,2.0469333e7,1.9756727722628318e7
+"Julia Version 1.10.3
+Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+Build Info:
+  Official https://julialang.org/ release
+Platform Info:
+  OS: macOS (arm64-apple-darwin22.4.0)
+  CPU: 8 × Apple M1
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-15.0.7 (ORCJIT, apple-m1)
+Threads: 4 default, 0 interactive, 2 GC (on 4 virtual cores)
+Environment:
+  JULIA_REVISE_WORKER_ONLY = 1
+","macOS 14.0.0, Darwin 23.0.0
+
+Toolchain:
+- Julia: 1.10.3
+- LLVM: 15.0.7
+
+Julia packages: 
+- Metal.jl: 1.1.0
+- LLVMDowngrader_jll: 0.1.0+2
+
+1 device:
+- Apple M1 (6.938 GiB allocated)
+",1.6777216e7,4.93458334e8,6.93020134131583e8,1.241101625e9,1.538534307979458e8,1.0687395e9,2.6531886313682294e8,7.0603375e7,5.355473461591941e7

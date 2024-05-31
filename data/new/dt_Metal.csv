@@ -1,0 +1,53 @@
+"os_info","gpu_info","sizes","dt_maurer","dt_maurer_std","dt_fenz","dt_fenz_std","dt_fenz_multi","dt_fenz_multi_std","sizes_3D","dt_maurer_3D","dt_maurer_std_3D","dt_fenz_3D","dt_fenz_std_3D","dt_fenz_multi_3D","dt_fenz_multi_std_3D","dt_proposed_metal","dt_proposed_metal_std","dt_proposed_metal_3D","dt_proposed_metal_std_3D"
+"Julia Version 1.10.3
+Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+Build Info:
+  Official https://julialang.org/ release
+Platform Info:
+  OS: macOS (arm64-apple-darwin22.4.0)
+  CPU: 8 × Apple M1
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-15.0.7 (ORCJIT, apple-m1)
+Threads: 4 default, 0 interactive, 2 GC (on 4 virtual cores)
+Environment:
+  JULIA_REVISE_WORKER_ONLY = 1
+","macOS 14.0.0, Darwin 23.0.0
+
+Toolchain:
+- Julia: 1.10.3
+- LLVM: 15.0.7
+
+Julia packages: 
+- Metal.jl: 1.1.0
+- LLVMDowngrader_jll: 0.1.0+2
+
+1 device:
+- Apple M1 (6.938 GiB allocated)
+",64.0,2250.0,434.5782118586046,1459.0,621.6918582920856,6084.0,89930.91842915378,1.0,417.0,2166.3974704564257,6875.0,473702.31667409017,14166.0,65386.28448782071,940750.0,271984.4260310383,1.279916e6,453583.27427893545
+"Julia Version 1.10.3
+Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+Build Info:
+  Official https://julialang.org/ release
+Platform Info:
+  OS: macOS (arm64-apple-darwin22.4.0)
+  CPU: 8 × Apple M1
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-15.0.7 (ORCJIT, apple-m1)
+Threads: 4 default, 0 interactive, 2 GC (on 4 virtual cores)
+Environment:
+  JULIA_REVISE_WORKER_ONLY = 1
+","macOS 14.0.0, Darwin 23.0.0
+
+Toolchain:
+- Julia: 1.10.3
+- LLVM: 15.0.7
+
+Julia packages: 
+- Metal.jl: 1.1.0
+- LLVMDowngrader_jll: 0.1.0+2
+
+1 device:
+- Apple M1 (6.938 GiB allocated)
+",256.0,10334.0,2063.0212068711267,5542.0,1802.3852868413628,8250.0,138674.00586046718,8.0,1084.0,110.847041

@@ -6,7 +6,7 @@ The `notebooks` folder holds all of the key notebooks for experimentation
   - ImageMorphology.jl vs ours: single-threaded vs. multi-threaded vs. CUDA vs. AMDGPU vs. oneAPI vs. Metal
   - Save results to CSV files for analysis
   - [TODO]: add AMDGPU, oneAPI, and Metal to the benchmarks
-- `notebooks/python/benchmarks.ipynb` contains all of the python-based distance transforms comparisons
+- `notebooks/benchmarks.ipynb` contains all of the python-based distance transforms comparisons
   - Scipy vs. cupoch vs. ... vs. ours: single-threaded vs. multi-threaded vs. CUDA vs. AMDGPU
   - Save results to CSV files for analysis
   - [TODO]: all python based comparisons
