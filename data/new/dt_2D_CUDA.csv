@@ -1,0 +1,411 @@
+os_info,gpu_info,sizes,dt_maurer,dt_maurer_std,dt_fenz,dt_fenz_std,dt_fenz_multi,dt_fenz_multi_std,dt_proposed_cuda,dt_proposed_cuda_std
+"Julia Version 1.10.3
+Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+Build Info:
+  Official https://julialang.org/ release
+Platform Info:
+  OS: Linux (x86_64-linux-gnu)
+  CPU: 32 × Intel(R) Xeon(R) Gold 6326 CPU @ 2.90GHz
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-15.0.7 (ORCJIT, icelake-server)
+Threads: 16 default, 0 interactive, 8 GC (on 32 virtual cores)
+Environment:
+  JULIA_REVISE_WORKER_ONLY = 1
+","CUDA runtime 11.8, artifact installation
+CUDA driver 12.4
+NVIDIA driver 535.54.3, originally for CUDA 12.2
+
+CUDA libraries: 
+- CUBLAS: 11.11.3
+- CURAND: 10.3.0
+- CUFFT: 10.9.0
+- CUSOLVER: 11.4.1
+- CUSPARSE: 11.7.5
+- CUPTI: 18.0.0
+- NVML: 12.0.0+535.54.3
+
+Julia packages: 
+- CUDA: 5.3.4
+- CUDA_Driver_jll: 0.8.1+0
+- CUDA_Runtime_jll: 0.12.1+0
+
+Toolchain:
+- Julia: 1.10.3
+- LLVM: 15.0.7
+
+Preferences:
+- CUDA_Runtime_jll.version: 11.8
+
+1 device:
+  0: NVIDIA A30 (sm_80, 21.772 GiB / 24.000 GiB available)
+",64.0,1554.0,1328.6386892856412,1780.0,519.8780733124942,40962.0,8869.156786301613,144641.0,NaN
+"Julia Version 1.10.3
+Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+Build Info:
+  Official https://julialang.org/ release
+Platform Info:
+  OS: Linux (x86_64-linux-gnu)
+  CPU: 32 × Intel(R) Xeon(R) Gold 6326 CPU @ 2.90GHz
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-15.0.7 (ORCJIT, icelake-server)
+Threads: 16 default, 0 interactive, 8 GC (on 32 virtual cores)
+Environment:
+  JULIA_REVISE_WORKER_ONLY = 1
+","CUDA runtime 11.8, artifact installation
+CUDA driver 12.4
+NVIDIA driver 535.54.3, originally for CUDA 12.2
+
+CUDA libraries: 
+- CUBLAS: 11.11.3
+- CURAND: 10.3.0
+- CUFFT: 10.9.0
+- CUSOLVER: 11.4.1
+- CUSPARSE: 11.7.5
+- CUPTI: 18.0.0
+- NVML: 12.0.0+535.54.3
+
+Julia packages: 
+- CUDA: 5.3.4
+- CUDA_Driver_jll: 0.8.1+0
+- CUDA_Runtime_jll: 0.12.1+0
+
+Toolchain:
+- Julia: 1.10.3
+- LLVM: 15.0.7
+
+Preferences:
+- CUDA_Runtime_jll.version: 11.8
+
+1 device:
+  0: NVIDIA A30 (sm_80, 21.772 GiB / 24.000 GiB available)
+",256.0,7409.0,1018.6347944403061,5289.0,731.9892303397185,46333.0,9176.482165477866,47703.0,8388.880839142568
+"Julia Version 1.10.3
+Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+Build Info:
+  Official https://julialang.org/ release
+Platform Info:
+  OS: Linux (x86_64-linux-gnu)
+  CPU: 32 × Intel(R) Xeon(R) Gold 6326 CPU @ 2.90GHz
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-15.0.7 (ORCJIT, icelake-server)
+Threads: 16 default, 0 interactive, 8 GC (on 32 virtual cores)
+Environment:
+  JULIA_REVISE_WORKER_ONLY = 1
+","CUDA runtime 11.8, artifact installation
+CUDA driver 12.4
+NVIDIA driver 535.54.3, originally for CUDA 12.2
+
+CUDA libraries: 
+- CUBLAS: 11.11.3
+- CURAND: 10.3.0
+- CUFFT: 10.9.0
+- CUSOLVER: 11.4.1
+- CUSPARSE: 11.7.5
+- CUPTI: 18.0.0
+- NVML: 12.0.0+535.54.3
+
+Julia packages: 
+- CUDA: 5.3.4
+- CUDA_Driver_jll: 0.8.1+0
+- CUDA_Runtime_jll: 0.12.1+0
+
+Toolchain:
+- Julia: 1.10.3
+- LLVM: 15.0.7
+
+Preferences:
+- CUDA_Runtime_jll.version: 11.8
+
+1 device:
+  0: NVIDIA A30 (sm_80, 21.772 GiB / 24.000 GiB available)
+",1024.0,79622.0,567113.1274458191,21933.0,5631.128183785397,80379.0,302981.9664662128,49554.0,14096.884368540446
+"Julia Version 1.10.3
+Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+Build Info:
+  Official https://julialang.org/ release
+Platform Info:
+  OS: Linux (x86_64-linux-gnu)
+  CPU: 32 × Intel(R) Xeon(R) Gold 6326 CPU @ 2.90GHz
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-15.0.7 (ORCJIT, icelake-server)
+Threads: 16 default, 0 interactive, 8 GC (on 32 virtual cores)
+Environment:
+  JULIA_REVISE_WORKER_ONLY = 1
+","CUDA runtime 11.8, artifact installation
+CUDA driver 12.4
+NVIDIA driver 535.54.3, originally for CUDA 12.2
+
+CUDA libraries: 
+- CUBLAS: 11.11.3
+- CURAND: 10.3.0
+- CUFFT: 10.9.0
+- CUSOLVER: 11.4.1
+- CUSPARSE: 11.7.5
+- CUPTI: 18.0.0
+- NVML: 12.0.0+535.54.3
+
+Julia packages: 
+- CUDA: 5.3.4
+- CUDA_Driver_jll: 0.8.1+0
+- CUDA_Runtime_jll: 0.12.1+0
+
+Toolchain:
+- Julia: 1.10.3
+- LLVM: 15.0.7
+
+Preferences:
+- CUDA_Runtime_jll.version: 11.8
+
+1 device:
+  0: NVIDIA A30 (sm_80, 21.772 GiB / 24.000 GiB available)
+",4096.0,981505.0,360844.547647383,141619.0,6709.166622365751,180422.0,21783.592561834237,52064.0,4039.625891644478
+"Julia Version 1.10.3
+Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+Build Info:
+  Official https://julialang.org/ release
+Platform Info:
+  OS: Linux (x86_64-linux-gnu)
+  CPU: 32 × Intel(R) Xeon(R) Gold 6326 CPU @ 2.90GHz
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-15.0.7 (ORCJIT, icelake-server)
+Threads: 16 default, 0 interactive, 8 GC (on 32 virtual cores)
+Environment:
+  JULIA_REVISE_WORKER_ONLY = 1
+","CUDA runtime 11.8, artifact installation
+CUDA driver 12.4
+NVIDIA driver 535.54.3, originally for CUDA 12.2
+
+CUDA libraries: 
+- CUBLAS: 11.11.3
+- CURAND: 10.3.0
+- CUFFT: 10.9.0
+- CUSOLVER: 11.4.1
+- CUSPARSE: 11.7.5
+- CUPTI: 18.0.0
+- NVML: 12.0.0+535.54.3
+
+Julia packages: 
+- CUDA: 5.3.4
+- CUDA_Driver_jll: 0.8.1+0
+- CUDA_Runtime_jll: 0.12.1+0
+
+Toolchain:
+- Julia: 1.10.3
+- LLVM: 15.0.7
+
+Preferences:
+- CUDA_Runtime_jll.version: 11.8
+
+1 device:
+  0: NVIDIA A30 (sm_80, 21.772 GiB / 24.000 GiB available)
+",16384.0,925823.0,413687.5911167213,594165.0,21691.58879381591,730179.0,543667.417108832,53766.0,5869.020880862497
+"Julia Version 1.10.3
+Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+Build Info:
+  Official https://julialang.org/ release
+Platform Info:
+  OS: Linux (x86_64-linux-gnu)
+  CPU: 32 × Intel(R) Xeon(R) Gold 6326 CPU @ 2.90GHz
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-15.0.7 (ORCJIT, icelake-server)
+Threads: 16 default, 0 interactive, 8 GC (on 32 virtual cores)
+Environment:
+  JULIA_REVISE_WORKER_ONLY = 1
+","CUDA runtime 11.8, artifact installation
+CUDA driver 12.4
+NVIDIA driver 535.54.3, originally for CUDA 12.2
+
+CUDA libraries: 
+- CUBLAS: 11.11.3
+- CURAND: 10.3.0
+- CUFFT: 10.9.0
+- CUSOLVER: 11.4.1
+- CUSPARSE: 11.7.5
+- CUPTI: 18.0.0
+- NVML: 12.0.0+535.54.3
+
+Julia packages: 
+- CUDA: 5.3.4
+- CUDA_Driver_jll: 0.8.1+0
+- CUDA_Runtime_jll: 0.12.1+0
+
+Toolchain:
+- Julia: 1.10.3
+- LLVM: 15.0.7
+
+Preferences:
+- CUDA_Runtime_jll.version: 11.8
+
+1 device:
+  0: NVIDIA A30 (sm_80, 21.772 GiB / 24.000 GiB available)
+",65536.0,1.706971e6,650991.0557987379,2.469147e6,132520.4508285,1.652803e6,275525.501466662,61141.0,2424.019811066825
+"Julia Version 1.10.3
+Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+Build Info:
+  Official https://julialang.org/ release
+Platform Info:
+  OS: Linux (x86_64-linux-gnu)
+  CPU: 32 × Intel(R) Xeon(R) Gold 6326 CPU @ 2.90GHz
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-15.0.7 (ORCJIT, icelake-server)
+Threads: 16 default, 0 interactive, 8 GC (on 32 virtual cores)
+Environment:
+  JULIA_REVISE_WORKER_ONLY = 1
+","CUDA runtime 11.8, artifact installation
+CUDA driver 12.4
+NVIDIA driver 535.54.3, originally for CUDA 12.2
+
+CUDA libraries: 
+- CUBLAS: 11.11.3
+- CURAND: 10.3.0
+- CUFFT: 10.9.0
+- CUSOLVER: 11.4.1
+- CUSPARSE: 11.7.5
+- CUPTI: 18.0.0
+- NVML: 12.0.0+535.54.3
+
+Julia packages: 
+- CUDA: 5.3.4
+- CUDA_Driver_jll: 0.8.1+0
+- CUDA_Runtime_jll: 0.12.1+0
+
+Toolchain:
+- Julia: 1.10.3
+- LLVM: 15.0.7
+
+Preferences:
+- CUDA_Runtime_jll.version: 11.8
+
+1 device:
+  0: NVIDIA A30 (sm_80, 21.772 GiB / 24.000 GiB available)
+",262144.0,7.604996e6,1.1840238306641937e6,1.0659897e7,103989.09483338465,6.379737e6,3.8075644493332845e6,88996.0,2210.6376053578347
+"Julia Version 1.10.3
+Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+Build Info:
+  Official https://julialang.org/ release
+Platform Info:
+  OS: Linux (x86_64-linux-gnu)
+  CPU: 32 × Intel(R) Xeon(R) Gold 6326 CPU @ 2.90GHz
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-15.0.7 (ORCJIT, icelake-server)
+Threads: 16 default, 0 interactive, 8 GC (on 32 virtual cores)
+Environment:
+  JULIA_REVISE_WORKER_ONLY = 1
+","CUDA runtime 11.8, artifact installation
+CUDA driver 12.4
+NVIDIA driver 535.54.3, originally for CUDA 12.2
+
+CUDA libraries: 
+- CUBLAS: 11.11.3
+- CURAND: 10.3.0
+- CUFFT: 10.9.0
+- CUSOLVER: 11.4.1
+- CUSPARSE: 11.7.5
+- CUPTI: 18.0.0
+- NVML: 12.0.0+535.54.3
+
+Julia packages: 
+- CUDA: 5.3.4
+- CUDA_Driver_jll: 0.8.1+0
+- CUDA_Runtime_jll: 0.12.1+0
+
+Toolchain:
+- Julia: 1.10.3
+- LLVM: 15.0.7
+
+Preferences:
+- CUDA_Runtime_jll.version: 11.8
+
+1 device:
+  0: NVIDIA A30 (sm_80, 21.772 GiB / 24.000 GiB available)
+",1.048576e6,2.6469975e7,3.006006317152459e6,4.3785181e7,2.343570457185351e6,2.6476951e7,4.489948934527351e6,219762.0,104948.81987081979
+"Julia Version 1.10.3
+Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+Build Info:
+  Official https://julialang.org/ release
+Platform Info:
+  OS: Linux (x86_64-linux-gnu)
+  CPU: 32 × Intel(R) Xeon(R) Gold 6326 CPU @ 2.90GHz
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-15.0.7 (ORCJIT, icelake-server)
+Threads: 16 default, 0 interactive, 8 GC (on 32 virtual cores)
+Environment:
+  JULIA_REVISE_WORKER_ONLY = 1
+","CUDA runtime 11.8, artifact installation
+CUDA driver 12.4
+NVIDIA driver 535.54.3, originally for CUDA 12.2
+
+CUDA libraries: 
+- CUBLAS: 11.11.3
+- CURAND: 10.3.0
+- CUFFT: 10.9.0
+- CUSOLVER: 11.4.1
+- CUSPARSE: 11.7.5
+- CUPTI: 18.0.0
+- NVML: 12.0.0+535.54.3
+
+Julia packages: 
+- CUDA: 5.3.4
+- CUDA_Driver_jll: 0.8.1+0
+- CUDA_Runtime_jll: 0.12.1+0
+
+Toolchain:
+- Julia: 1.10.3
+- LLVM: 15.0.7
+
+Preferences:
+- CUDA_Runtime_jll.version: 11.8
+
+1 device:
+  0: NVIDIA A30 (sm_80, 21.772 GiB / 24.000 GiB available)
+",4.194304e6,1.82745514e8,4.440521402135871e6,1.78909796e8,9.874746569095341e6,1.08986287e8,6.21876692366403e6,879070.0,93363.5419603272
+"Julia Version 1.10.3
+Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+Build Info:
+  Official https://julialang.org/ release
+Platform Info:
+  OS: Linux (x86_64-linux-gnu)
+  CPU: 32 × Intel(R) Xeon(R) Gold 6326 CPU @ 2.90GHz
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-15.0.7 (ORCJIT, icelake-server)
+Threads: 16 default, 0 interactive, 8 GC (on 32 virtual cores)
+Environment:
+  JULIA_REVISE_WORKER_ONLY = 1
+","CUDA runtime 11.8, artifact installation
+CUDA driver 12.4
+NVIDIA driver 535.54.3, originally for CUDA 12.2
+
+CUDA libraries: 
+- CUBLAS: 11.11.3
+- CURAND: 10.3.0
+- CUFFT: 10.9.0
+- CUSOLVER: 11.4.1
+- CUSPARSE: 11.7.5
+- CUPTI: 18.0.0
+- NVML: 12.0.0+535.54.3
+
+Julia packages: 
+- CUDA: 5.3.4
+- CUDA_Driver_jll: 0.8.1+0
+- CUDA_Runtime_jll: 0.12.1+0
+
+Toolchain:
+- Julia: 1.10.3
+- LLVM: 15.0.7
+
+Preferences:
+- CUDA_Runtime_jll.version: 11.8
+
+1 device:
+  0: NVIDIA A30 (sm_80, 21.772 GiB / 24.000 GiB available)
+",1.6777216e7,7.74428215e8,1.3823639997555578e8,1.171550236e9,1.6076217637994144e7,6.70673246e8,3.755954738063825e7,3.12436e6,95060.5342459331
