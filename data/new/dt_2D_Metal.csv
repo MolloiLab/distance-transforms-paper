@@ -1,6 +1,6 @@
 os_info,gpu_info,sizes,dt_maurer,dt_maurer_std,dt_fenz,dt_fenz_std,dt_fenz_multi,dt_fenz_multi_std,dt_proposed_metal,dt_proposed_metal_std
-"Julia Version 1.10.3
-Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+"Julia Version 1.10.4
+Commit 48d4fd48430 (2024-06-04 10:41 UTC)
 Build Info:
   Official https://julialang.org/ release
 Platform Info:
@@ -15,7 +15,7 @@ Environment:
 ","macOS 14.0.0, Darwin 23.0.0
 
 Toolchain:
-- Julia: 1.10.3
+- Julia: 1.10.4
 - LLVM: 15.0.7
 
 Julia packages: 
@@ -23,10 +23,10 @@ Julia packages:
 - LLVMDowngrader_jll: 0.1.0+2
 
 1 device:
-- Apple M1 (6.938 GiB allocated)
-",64.0,2250.0,434.5782118586046,1459.0,621.6918582920856,6084.0,89930.91842915378,940750.0,271984.4260310383
-"Julia Version 1.10.3
-Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+- Apple M1 (1.438 GiB allocated)
+",64.0,1500.0,1308.2677648113342,750.0,271.0524549479922,11041.0,15749.815582694577,1.857292e6,NaN
+"Julia Version 1.10.4
+Commit 48d4fd48430 (2024-06-04 10:41 UTC)
 Build Info:
   Official https://julialang.org/ release
 Platform Info:
@@ -41,7 +41,7 @@ Environment:
 ","macOS 14.0.0, Darwin 23.0.0
 
 Toolchain:
-- Julia: 1.10.3
+- Julia: 1.10.4
 - LLVM: 15.0.7
 
 Julia packages: 
@@ -49,10 +49,10 @@ Julia packages:
 - LLVMDowngrader_jll: 0.1.0+2
 
 1 device:
-- Apple M1 (6.938 GiB allocated)
-",256.0,10334.0,2063.0212068711267,5542.0,1802.3852868413628,8250.0,138674.00586046718,1.179333e6,3.8044415400827974e6
-"Julia Version 1.10.3
-Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+- Apple M1 (1.438 GiB allocated)
+",256.0,5166.0,532.0710478874038,2708.0,890.3803182410936,11583.0,606075.7885552305,741500.0,109716.50622323577
+"Julia Version 1.10.4
+Commit 48d4fd48430 (2024-06-04 10:41 UTC)
 Build Info:
   Official https://julialang.org/ release
 Platform Info:
@@ -67,7 +67,7 @@ Environment:
 ","macOS 14.0.0, Darwin 23.0.0
 
 Toolchain:
-- Julia: 1.10.3
+- Julia: 1.10.4
 - LLVM: 15.0.7
 
 Julia packages: 
@@ -75,10 +75,10 @@ Julia packages:
 - LLVMDowngrader_jll: 0.1.0+2
 
 1 device:
-- Apple M1 (6.938 GiB allocated)
-",1024.0,31667.0,115253.18203194602,18667.0,5505.232328329921,50333.0,37479.49561263836,1.299208e6,492245.6567894733
-"Julia Version 1.10.3
-Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+- Apple M1 (1.438 GiB allocated)
+",1024.0,39334.0,9860.265322664158,10208.0,3437.9486600135388,16375.0,2262.0657618891432,911292.0,59914.12761833946
+"Julia Version 1.10.4
+Commit 48d4fd48430 (2024-06-04 10:41 UTC)
 Build Info:
   Official https://julialang.org/ release
 Platform Info:
@@ -93,7 +93,7 @@ Environment:
 ","macOS 14.0.0, Darwin 23.0.0
 
 Toolchain:
-- Julia: 1.10.3
+- Julia: 1.10.4
 - LLVM: 15.0.7
 
 Julia packages: 
@@ -101,10 +101,10 @@ Julia packages:
 - LLVMDowngrader_jll: 0.1.0+2
 
 1 device:
-- Apple M1 (6.938 GiB allocated)
-",4096.0,262500.0,283162.6613185236,112125.0,42920.387710400646,73542.0,15268.695047565641,1.160875e6,213371.2278411866
-"Julia Version 1.10.3
-Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+- Apple M1 (1.438 GiB allocated)
+",4096.0,83375.0,17802.45759438848,59542.0,23051.329589032866,43666.0,16893.36286139224,842833.0,36102.58180364514
+"Julia Version 1.10.4
+Commit 48d4fd48430 (2024-06-04 10:41 UTC)
 Build Info:
   Official https://julialang.org/ release
 Platform Info:
@@ -119,7 +119,7 @@ Environment:
 ","macOS 14.0.0, Darwin 23.0.0
 
 Toolchain:
-- Julia: 1.10.3
+- Julia: 1.10.4
 - LLVM: 15.0.7
 
 Julia packages: 
@@ -127,10 +127,10 @@ Julia packages:
 - LLVMDowngrader_jll: 0.1.0+2
 
 1 device:
-- Apple M1 (6.938 GiB allocated)
-",16384.0,338750.0,295544.20416693453,1.1605e6,145091.0524402981,324667.0,130341.71802701287,1.230667e6,838497.130629749
-"Julia Version 1.10.3
-Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+- Apple M1 (1.438 GiB allocated)
+",16384.0,191541.0,46253.022779778046,474958.0,16398.51706337429,139125.0,17693.28243398858,884792.0,1.2603041335689528e6
+"Julia Version 1.10.4
+Commit 48d4fd48430 (2024-06-04 10:41 UTC)
 Build Info:
   Official https://julialang.org/ release
 Platform Info:
@@ -145,7 +145,7 @@ Environment:
 ","macOS 14.0.0, Darwin 23.0.0
 
 Toolchain:
-- Julia: 1.10.3
+- Julia: 1.10.4
 - LLVM: 15.0.7
 
 Julia packages: 
@@ -153,10 +153,10 @@ Julia packages:
 - LLVMDowngrader_jll: 0.1.0+2
 
 1 device:
-- Apple M1 (6.938 GiB allocated)
-",65536.0,1.101833e6,1.9170379255090507e6,3.714125e6,654762.6261146095,1.300666e6,551738.0342024344,1.926292e6,997157.2777653093
-"Julia Version 1.10.3
-Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+- Apple M1 (1.438 GiB allocated)
+",65536.0,614250.0,59630.37798937346,2.007625e6,95833.93726441589,561042.0,38764.61997406054,1.335584e6,826215.2541194092
+"Julia Version 1.10.4
+Commit 48d4fd48430 (2024-06-04 10:41 UTC)
 Build Info:
   Official https://julialang.org/ release
 Platform Info:
@@ -171,7 +171,7 @@ Environment:
 ","macOS 14.0.0, Darwin 23.0.0
 
 Toolchain:
-- Julia: 1.10.3
+- Julia: 1.10.4
 - LLVM: 15.0.7
 
 Julia packages: 
@@ -179,10 +179,10 @@ Julia packages:
 - LLVMDowngrader_jll: 0.1.0+2
 
 1 device:
-- Apple M1 (6.938 GiB allocated)
-",262144.0,4.806667e6,4.097245614947932e6,1.5057875e7,1.4004144553656846e6,4.813958e6,3.1378328525811853e6,3.058709e6,524924.9421891455
-"Julia Version 1.10.3
-Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+- Apple M1 (1.438 GiB allocated)
+",262144.0,2.456583e6,280913.6136403661,8.144375e6,211730.00258948765,2.338375e6,31224.04592777816,2.360958e6,116661.00561546309
+"Julia Version 1.10.4
+Commit 48d4fd48430 (2024-06-04 10:41 UTC)
 Build Info:
   Official https://julialang.org/ release
 Platform Info:
@@ -197,7 +197,7 @@ Environment:
 ","macOS 14.0.0, Darwin 23.0.0
 
 Toolchain:
-- Julia: 1.10.3
+- Julia: 1.10.4
 - LLVM: 15.0.7
 
 Julia packages: 
@@ -205,10 +205,10 @@ Julia packages:
 - LLVMDowngrader_jll: 0.1.0+2
 
 1 device:
-- Apple M1 (6.938 GiB allocated)
-",1.048576e6,2.5136167e7,6.607585628351796e7,5.8642291e7,3.2826157804145634e7,2.8834125e7,1.0315920796074866e8,9.204625e6,2.412047203309403e6
-"Julia Version 1.10.3
-Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+- Apple M1 (1.438 GiB allocated)
+",1.048576e6,1.2425333e7,2.0651537147561493e6,3.39975e7,703537.3021147809,1.0652334e7,2.0915720164353386e6,6.321875e6,275493.777580164
+"Julia Version 1.10.4
+Commit 48d4fd48430 (2024-06-04 10:41 UTC)
 Build Info:
   Official https://julialang.org/ release
 Platform Info:
@@ -223,7 +223,7 @@ Environment:
 ","macOS 14.0.0, Darwin 23.0.0
 
 Toolchain:
-- Julia: 1.10.3
+- Julia: 1.10.4
 - LLVM: 15.0.7
 
 Julia packages: 
@@ -231,10 +231,10 @@ Julia packages:
 - LLVMDowngrader_jll: 0.1.0+2
 
 1 device:
-- Apple M1 (6.938 GiB allocated)
-",4.194304e6,1.0617175e8,4.705153985882141e7,2.56115291e8,8.630207234284905e7,1.41939291e8,1.0373976224046852e8,2.0469333e7,1.9756727722628318e7
-"Julia Version 1.10.3
-Commit 0b4590a5507 (2024-04-30 10:59 UTC)
+- Apple M1 (1.438 GiB allocated)
+",4.194304e6,5.3719875e7,5.875341102488966e6,1.56949708e8,2.036246297933114e7,5.9230708e7,7.0146539993294235e6,1.519725e7,1.1745486470019214e6
+"Julia Version 1.10.4
+Commit 48d4fd48430 (2024-06-04 10:41 UTC)
 Build Info:
   Official https://julialang.org/ release
 Platform Info:
@@ -249,7 +249,7 @@ Environment:
 ","macOS 14.0.0, Darwin 23.0.0
 
 Toolchain:
-- Julia: 1.10.3
+- Julia: 1.10.4
 - LLVM: 15.0.7
 
 Julia packages: 
@@ -257,5 +257,5 @@ Julia packages:
 - LLVMDowngrader_jll: 0.1.0+2
 
 1 device:
-- Apple M1 (6.938 GiB allocated)
-",1.6777216e7,4.93458334e8,6.93020134131583e8,1.241101625e9,1.538534307979458e8,1.0687395e9,2.6531886313682294e8,7.0603375e7,5.355473461591941e7
+- Apple M1 (1.438 GiB allocated)
+",1.6777216e7,2.332425e8,1.393075113000673e8,7.73921375e8,1.4245753199565724e8,3.19898709e8,6.788308352218059e7,6.6012333e7,4.655227185494089e6
