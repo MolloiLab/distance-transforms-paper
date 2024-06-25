@@ -23,3 +23,9 @@
 `watershed.jl` [TODO]
 - Notebook that benchmarks our DT in the watershed algorithm vs. other DTs
 
+`/data`
+- Contains the various timings and accuracy data as .csv files from the above notebooks
+
+`/plots`
+- Contains .png files created from the `analysis.jl` notebook for publications
+
