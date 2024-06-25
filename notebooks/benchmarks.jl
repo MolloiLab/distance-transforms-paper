@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.42
+# v0.19.40
 
 using Markdown
 using InteractiveUtils
@@ -26,9 +26,23 @@ using oneAPI
 # ╠═╡ show_logs = false
 using DrWatson: datadir
 
-# ╔═╡ 09db0c44-358a-4d3d-83e6-f6eed0696013
-# ╠═╡ show_logs = false
-using PlutoUI, BenchmarkTools, CairoMakie, DataFrames, CSV, CSVFiles, Statistics
+# ╔═╡ bbcee247-a25f-4bae-b33d-76498e71310d
+using PlutoUI: TableOfContents
+
+# ╔═╡ 5687eefa-b54b-4d0e-b317-d92a09f4927b
+using BenchmarkTools: minimum, std, @benchmark
+
+# ╔═╡ 82b961f6-8718-4216-8b96-5f46ca0b1730
+using CairoMakie: Figure, Axis, barplot!, Label, PolyElement, Legend, @L_str
+
+# ╔═╡ 6de6ce85-5dcb-47f7-bff3-7d990cd2dddd
+using CairoMakie # For the use of `Makie.wong_colors`
+
+# ╔═╡ 64fd0e96-e8c3-478d-b9e0-dbf6aa15387c
+using DataFrames: DataFrame
+
+# ╔═╡ 970bba1d-9dde-4ade-8b38-246a925aaa3b
+using CSV: write
 
 # ╔═╡ 545b7f75-29b1-438e-883a-e2ded8053eed
 using ImageMorphology: distance_transform, feature_transform
@@ -50,6 +64,13 @@ AMDGPU.functional()
 
 # ╔═╡ 0aa1d88e-ab1a-4316-870e-65027745a2e2
 oneAPI.functional()
+
+# ╔═╡ 5311b44f-2de3-4bb5-8dc8-0e268c2b6ee2
+# using Statistics
+
+# ╔═╡ 09db0c44-358a-4d3d-83e6-f6eed0696013
+# ╠═╡ show_logs = false
+# using CSVFiles
 
 # ╔═╡ cbf06207-8ad8-42fa-9758-602bcfe7e4aa
 TableOfContents()
@@ -95,9 +116,6 @@ begin
     dt_proposed_metal = Float64[]
     dt_proposed_metal_std = Float64[]
 
-    dt_proposed_oneapi = Float64[]
-    dt_proposed_oneapi_std = Float64[]
-
     dt_proposed_amdgpu = Float64[]
     dt_proposed_amdgpu_std = Float64[]
     
@@ -109,49 +127,41 @@ begin
 		# Maurer (ImageMorphology.jl)
 		bool_f = Bool.(f)
 		dt = @benchmark(distance_transform($feature_transform($bool_f)), samples=s, evals=e)
-		push!(dt_maurer, BenchmarkTools.minimum(dt).time) # ns
-		push!(dt_maurer_std, BenchmarkTools.std(dt).time)
+		push!(dt_maurer, minimum(dt).time) # ns
+		push!(dt_maurer_std, std(dt).time)
 		
 		# Felzenszwalb (DistanceTransforms.jl)
 		dt = @benchmark(transform($boolean_indicator($f); threaded = false), samples=s, evals=e)
-		push!(dt_fenz, BenchmarkTools.minimum(dt).time)
-		push!(dt_fenz_std, BenchmarkTools.std(dt).time)
+		push!(dt_fenz, minimum(dt).time)
+		push!(dt_fenz_std, std(dt).time)
 	
 		# Felzenszwalb Multi-threaded (DistanceTransforms.jl)
 		dt = @benchmark(transform($boolean_indicator($f)), samples=s, evals=e)
-		push!(dt_fenz_multi, BenchmarkTools.minimum(dt).time)
-		push!(dt_fenz_multi_std, BenchmarkTools.std(dt).time)
+		push!(dt_fenz_multi, minimum(dt).time)
+		push!(dt_fenz_multi_std, std(dt).time)
 	
 		# Proposed-CUDA (DistanceTransforms.jl)
 		if CUDA.functional()
 			f_cuda = CuArray(f)
 			dt = @benchmark(transform($boolean_indicator($f_cuda)), samples=s, evals=e)
-			push!(dt_proposed_cuda, BenchmarkTools.minimum(dt).time)
-			push!(dt_proposed_cuda_std, BenchmarkTools.std(dt).time)
+			push!(dt_proposed_cuda, minimum(dt).time)
+			push!(dt_proposed_cuda_std, std(dt).time)
 		end
 	
 		# Proposed-Metal (DistanceTransforms.jl)
 		if Metal.functional()
 			f_metal = MtlArray(f)
 			dt = @benchmark(transform($boolean_indicator($f_metal)), samples=s, evals=e)
-			push!(dt_proposed_metal, BenchmarkTools.minimum(dt).time)
-			push!(dt_proposed_metal_std, BenchmarkTools.std(dt).time)
-		end
-	
-		# Proposed-oneAPI (DistanceTransforms.jl)
-		if oneAPI.functional()
-			f_oneapi = oneArray(f)
-			dt = @benchmark(transform($boolean_indicator($f_oneapi)), samples=s, evals=e)
-			push!(dt_proposed_oneapi, BenchmarkTools.minimum(dt).time)
-			push!(dt_proposed_oneapi_std, BenchmarkTools.std(dt).time)
+			push!(dt_proposed_metal, minimum(dt).time)
+			push!(dt_proposed_metal_std, std(dt).time)
 		end
 	
 		# Proposed-AMDGPU (DistanceTransforms.jl)
 		if AMDGPU.functional()
 			f_amdgpu = ROCArray(f)
 			dt = @benchmark(transform($boolean_indicator($f_amdgpu)), samples=s, evals=e)
-			push!(dt_proposed_amdgpu, BenchmarkTools.minimum(dt).time)
-			push!(dt_proposed_amdgpu_std, BenchmarkTools.std(dt).time)
+			push!(dt_proposed_amdgpu, minimum(dt).time)
+			push!(dt_proposed_amdgpu_std, std(dt).time)
 		end
 	end
 end
@@ -226,7 +236,6 @@ create_barplot(
 	title_2D, dt_names, sizes, dt_maurer, dt_fenz, dt_fenz_multi;
 	dt_proposed_cuda = dt_proposed_cuda,
 	dt_proposed_metal = dt_proposed_metal,
-	dt_proposed_oneapi = dt_proposed_oneapi,
 	dt_proposed_amdgpu = dt_proposed_amdgpu,
 	x_names = range_names_2D
 )
@@ -261,9 +270,6 @@ begin
     dt_proposed_metal_3D = Float64[]
     dt_proposed_metal_std_3D = Float64[]
 
-    dt_proposed_oneapi_3D = Float64[]
-    dt_proposed_oneapi_std_3D = Float64[]
-
     dt_proposed_amdgpu_3D = Float64[]
     dt_proposed_amdgpu_std_3D = Float64[]
     
@@ -275,49 +281,41 @@ begin
 		# Maurer (ImageMorphology.jl)
 		bool_f = Bool.(f)
 		dt = @benchmark(distance_transform($feature_transform($bool_f)), samples=s, evals=e)
-		push!(dt_maurer_3D, BenchmarkTools.minimum(dt).time) # ns
-		push!(dt_maurer_std_3D, BenchmarkTools.std(dt).time)
+		push!(dt_maurer_3D, minimum(dt).time) # ns
+		push!(dt_maurer_std_3D, std(dt).time)
 		
 		# Felzenszwalb (DistanceTransforms.jl)
 		dt = @benchmark(transform($boolean_indicator($f); threaded = false), samples=s, evals=e)
-		push!(dt_fenz_3D, BenchmarkTools.minimum(dt).time)
-		push!(dt_fenz_std_3D, BenchmarkTools.std(dt).time)
+		push!(dt_fenz_3D, minimum(dt).time)
+		push!(dt_fenz_std_3D, std(dt).time)
 	
 		# Felzenszwalb Multi-threaded (DistanceTransforms.jl)
 		dt = @benchmark(transform($boolean_indicator($f)), samples=s, evals=e)
-		push!(dt_fenz_multi_3D, BenchmarkTools.minimum(dt).time)
-		push!(dt_fenz_multi_std_3D, BenchmarkTools.std(dt).time)
+		push!(dt_fenz_multi_3D, minimum(dt).time)
+		push!(dt_fenz_multi_std_3D, std(dt).time)
 	
 		# Proposed-CUDA (DistanceTransforms.jl)
 		if CUDA.functional()
 			f_cuda = CuArray(f)
 			dt = @benchmark(transform($boolean_indicator($f_cuda)), samples=s, evals=e)
-			push!(dt_proposed_cuda_3D, BenchmarkTools.minimum(dt).time)
-			push!(dt_proposed_cuda_std_3D, BenchmarkTools.std(dt).time)
+			push!(dt_proposed_cuda_3D, minimum(dt).time)
+			push!(dt_proposed_cuda_std_3D, std(dt).time)
 		end
 	
 		# Proposed-Metal (DistanceTransforms.jl)
 		if Metal.functional()
 			f_metal = MtlArray(f)
 			dt = @benchmark(transform($boolean_indicator($f_metal)), samples=s, evals=e)
-			push!(dt_proposed_metal_3D, BenchmarkTools.minimum(dt).time)
-			push!(dt_proposed_metal_std_3D, BenchmarkTools.std(dt).time)
-		end
-	
-		# Proposed-oneAPI (DistanceTransforms.jl)
-		if oneAPI.functional()
-			f_oneapi = oneArray(f)
-			dt = @benchmark(transform($boolean_indicator($f_oneapi)), samples=s, evals=e)
-			push!(dt_proposed_oneapi_3D, BenchmarkTools.minimum(dt).time)
-			push!(dt_proposed_oneapi_std_3D, BenchmarkTools.std(dt).time)
+			push!(dt_proposed_metal_3D, minimum(dt).time)
+			push!(dt_proposed_metal_std_3D, std(dt).time)
 		end
 	
 		# Proposed-AMDGPU (DistanceTransforms.jl)
 		if AMDGPU.functional()
 			f_amdgpu = ROCArray(f)
 			dt = @benchmark(transform($boolean_indicator($f_amdgpu)), samples=s, evals=e)
-			push!(dt_proposed_amdgpu_3D, BenchmarkTools.minimum(dt).time)
-			push!(dt_proposed_amdgpu_std_3D, BenchmarkTools.std(dt).time)
+			push!(dt_proposed_amdgpu_3D, minimum(dt).time)
+			push!(dt_proposed_amdgpu_std_3D, std(dt).time)
 		end
 	end
 end
@@ -330,7 +328,6 @@ create_barplot(
 	title_3D, dt_names, sizes_3D, dt_maurer_3D, dt_fenz_3D, dt_fenz_multi_3D;
 	dt_proposed_cuda = dt_proposed_cuda_3D,
 	dt_proposed_metal = dt_proposed_metal_3D,
-	dt_proposed_oneapi = dt_proposed_oneapi_3D,
 	dt_proposed_amdgpu = dt_proposed_amdgpu_3D,
 	x_names = range_names_3D
 )
@@ -473,6 +470,13 @@ end
 # ╠═d0f96ba1-b81d-485c-872e-f1054dbecb4b
 # ╠═0aa1d88e-ab1a-4316-870e-65027745a2e2
 # ╠═bbb7b211-fa87-489d-87dc-1890cd848812
+# ╠═bbcee247-a25f-4bae-b33d-76498e71310d
+# ╠═5687eefa-b54b-4d0e-b317-d92a09f4927b
+# ╠═82b961f6-8718-4216-8b96-5f46ca0b1730
+# ╠═6de6ce85-5dcb-47f7-bff3-7d990cd2dddd
+# ╠═64fd0e96-e8c3-478d-b9e0-dbf6aa15387c
+# ╠═970bba1d-9dde-4ade-8b38-246a925aaa3b
+# ╠═5311b44f-2de3-4bb5-8dc8-0e268c2b6ee2
 # ╠═09db0c44-358a-4d3d-83e6-f6eed0696013
 # ╠═545b7f75-29b1-438e-883a-e2ded8053eed
 # ╠═1e38338d-eaa8-4252-9a05-698abe4d7756
@@ -483,7 +487,7 @@ end
 # ╟─0e2eca71-ab2d-45d8-b4fe-963d9bf2f3b9
 # ╠═7ca89176-4723-49f0-bd07-b6141aa6d8a4
 # ╠═ab3a72b3-4446-479e-949d-20b24234503f
-# ╟─f3ec467e-ca19-4cd3-917b-2d11344e8785
+# ╠═f3ec467e-ca19-4cd3-917b-2d11344e8785
 # ╟─d1103e59-7c4f-432f-bca2-4e1bfce52a64
 # ╠═910cf44a-7df1-4a8b-a5ce-8b4f9d301280
 # ╠═1d29ab0d-dfe1-4cc0-b81c-a59edeef8724
