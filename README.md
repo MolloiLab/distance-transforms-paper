@@ -1,49 +1,25 @@
 # distance-transforms-paper
 
 ## Structure
-The `notebooks` folder holds all of the key notebooks for experimentation
-- `notebooks/benchmarks.jl` contains all of the julia-based distance transforms benchmarks
-  - ImageMorphology.jl vs ours: single-threaded vs. multi-threaded vs. CUDA vs. AMDGPU vs. oneAPI vs. Metal
-  - Save results to CSV files for analysis
-  - [TODO]: add CUDA, AMDGPU, oneAPI, and Metal to the benchmarks
-- `notebooks/benchmarks.ipynb` contains all of the python-based distance transforms comparisons
-  - Scipy vs. cupoch vs. ... vs. ours: single-threaded vs. multi-threaded vs. CUDA vs. AMDGPU
-  - Save results to CSV files for analysis
-  - [TODO]: all python based comparisons
-- `notebooks/hd_loss.jl` contains the training code for our GPU hybrid hausdorff loss + dice loss vs. scipy CPU hybrid hausdorff loss + dice loss benchmarks compared to pure dice loss
-  - Timings, accuracy (dice metric, hd metric), and qualitative accuracy
-  - Save results to CSV files for analysis
-  - [TODO]: clean up code
-- `notebooks/watershed.jl` contains the watershed distance transforms benchmarks
-  - Compare ImageMorphology.jl vs ours: single-threaded vs. multi-threaded vs. CUDA vs. AMDGPU vs. oneAPI vs. Metal in the watershed algorithm
-  - [TODO]: all of it
-- `notebooks/analysis.jl` contains the figures and tables for the paper
-  - [TODO]: update with new results
+`analysis.jl`
+- Notebook that loads all of the various .csv files from the `/data/*` folder and prepares figures and tables for analysis and publication
 
+`benchmarks.ipynb`
+- Google colab notebook that benchmarks our GPU accelerated python-wrapper distance transform against various Python-based distance transforms
 
-This code base is using the [Julia Language](https://julialang.org/) and
-[DrWatson](https://juliadynamics.github.io/DrWatson.jl/stable/)
-to make a reproducible scientific project named
-> hd-loss
+`benchmarks.jl`
+- Notebook that benchnmarks all of Julia distance transforms against ours (2D and 3D)
+  - Maurer (ImageMorphology.jl)
+  - Felzenswalb Single-Threaded CPU (DistanceTransforms.jl)
+  - Felzenswalb Multi-Threaded CPU (DistanceTransforms.jl)
+  - Proposed CUDA (DistanceTransforms.jl)
+  - Proposed AMDGPU (DistanceTransforms.jl)
+  - Proposed Metal (DistanceTransforms.jl)
 
-To (locally) reproduce this project, do the following:
+`hd_loss.ipynb` [TODO]
+- Google colab notebook that benchmarks our DT in the hausdorff loss vs. other Python-based DTs vs. pure dice loss and benchmarks full training loops of the various hausdorff loss functions
+- Also, provides accuracy comparisons between our hausdorff loss vs pure dice loss
 
-0. Download this code base. Notice that raw data are typically not included in the
-   git-history and may need to be downloaded independently.
-1. Open a Julia console and do:
-   ```
-   julia> using Pkg
-   julia> Pkg.add("DrWatson") # install globally, for using `quickactivate`
-   julia> Pkg.activate("path/to/this/project")
-   julia> Pkg.instantiate()
-   ```
+`watershed.jl` [TODO]
+- Notebook that benchmarks our DT in the watershed algorithm vs. other DTs
 
-This will install all necessary packages for you to be able to run the scripts and
-everything should work out of the box, including correctly finding local paths.
-
-You may notice that most scripts start with the commands:
-```julia
-using DrWatson
-@quickactivate "hd-loss"
-```
-which auto-activate the project and enable local path handling from DrWatson.

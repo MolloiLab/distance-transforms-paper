@@ -1,3 +1,0 @@
-"Loss Function","Dice Similarity Coefficient (Best)","Dice Similarity Coefficient (90th %)","Hausdorff Distance (Best) (mm)","Hausdorff Distance (10th %) (mm)"
-"Loss_{DSC}",0.919,0.907,4.583,4.583
-"Loss_{FelzenszwalbGPU}",0.925,0.917,3.464,3.591

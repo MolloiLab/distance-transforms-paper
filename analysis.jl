@@ -63,16 +63,16 @@ md"""
 """
 
 # ╔═╡ ad97f6cb-c331-4898-9c6c-485582058e4d
-df_metal_2d = read(datadir("new", "dt_2D_Metal.csv"), DataFrame);
+df_metal_2d = read(datadir("dt_2D_Metal.csv"), DataFrame);
 
 # ╔═╡ 83f4fd58-e801-4dda-9ba7-f5eec56722f6
-df_cuda_2d = read(datadir("new", "dt_2D_CUDA.csv"), DataFrame);
+df_cuda_2d = read(datadir("dt_2D_CUDA.csv"), DataFrame);
 
 # ╔═╡ eb190959-b90f-4dbb-8ae7-09b964e1a1c2
-df_metal_3d = read(datadir("new", "dt_3D_Metal.csv"), DataFrame);
+df_metal_3d = read(datadir("dt_3D_Metal.csv"), DataFrame);
 
 # ╔═╡ 1936dff5-1d17-4773-9009-51ec95eb9411
-df_cuda_3d = read(datadir("new", "dt_3D_CUDA.csv"), DataFrame);
+df_cuda_3d = read(datadir("dt_3D_CUDA.csv"), DataFrame);
 
 # ╔═╡ 97a7f98f-738d-4870-8872-4d0e7ba88c4a
 md"""

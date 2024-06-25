@@ -65,13 +65,6 @@ AMDGPU.functional()
 # ╔═╡ 0aa1d88e-ab1a-4316-870e-65027745a2e2
 oneAPI.functional()
 
-# ╔═╡ 5311b44f-2de3-4bb5-8dc8-0e268c2b6ee2
-# using Statistics
-
-# ╔═╡ 09db0c44-358a-4d3d-83e6-f6eed0696013
-# ╠═╡ show_logs = false
-# using CSVFiles
-
 # ╔═╡ cbf06207-8ad8-42fa-9758-602bcfe7e4aa
 TableOfContents()
 
@@ -454,8 +447,8 @@ end
 
 # ╔═╡ f7f9334d-c152-4dd5-8986-ff463835fce3
 begin
-	CSV.write(datadir("new", csv_filename_2D), df_dt_2D)
-	CSV.write(datadir("new", csv_filename_3D), df_dt_3D)
+	write(datadir(csv_filename_2D), df_dt_2D)
+	write(datadir(csv_filename_3D), df_dt_3D)
 end
 
 # ╔═╡ Cell order:
@@ -476,8 +469,6 @@ end
 # ╠═6de6ce85-5dcb-47f7-bff3-7d990cd2dddd
 # ╠═64fd0e96-e8c3-478d-b9e0-dbf6aa15387c
 # ╠═970bba1d-9dde-4ade-8b38-246a925aaa3b
-# ╠═5311b44f-2de3-4bb5-8dc8-0e268c2b6ee2
-# ╠═09db0c44-358a-4d3d-83e6-f6eed0696013
 # ╠═545b7f75-29b1-438e-883a-e2ded8053eed
 # ╠═1e38338d-eaa8-4252-9a05-698abe4d7756
 # ╠═cbf06207-8ad8-42fa-9758-602bcfe7e4aa
