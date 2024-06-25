@@ -88,7 +88,6 @@ function create_barplot(
 	dt_fenz_multi = [],
 	dt_proposed_cuda = [],
 	dt_proposed_metal = [],
-	dt_proposed_oneapi = [],
 	dt_proposed_amdgpu = [],
 	x_names = sizes
 	)
@@ -100,14 +99,13 @@ function create_barplot(
         dt_fenz_multi,
         isempty(dt_proposed_cuda) ? zeros(length(dt_maurer)) : dt_proposed_cuda,
         isempty(dt_proposed_metal) ? zeros(length(dt_maurer)) : dt_proposed_metal,
-        isempty(dt_proposed_oneapi) ? zeros(length(dt_maurer)) : dt_proposed_oneapi,
         isempty(dt_proposed_amdgpu) ? zeros(length(dt_maurer)) : dt_proposed_amdgpu
     )
 
     offset = 1
     for i in eachrow(heights)
         dt_heights[offset:(offset+length(i) - 1)] .= i
-        offset += 7
+        offset += 6
     end
 
     cat = repeat(1:length(sizes), inner = length(dt_names))
@@ -121,6 +119,7 @@ function create_barplot(
         title = title,
 		titlesize = 25,
         xticks = (1:length(sizes), x_names),
+		yticks = [0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9],
         yscale = log10
     )
 
@@ -146,10 +145,10 @@ end
 title_2d = "Performance Comparison \nof Distance Transforms (2D)"
 
 # ╔═╡ 7bc02cb0-76e9-4654-b17a-9d95089bf472
-dt_names_2d = ["Maurer", "Felzenszwalb", "Felzenszwalb (Multi-threaded)", "Proposed (CUDA)", "Proposed (Metal)", "Proposed (oneAPI)", "Proposed (AMDGPU)"]
+dt_names_2d = ["Maurer", "Felzenszwalb", "Felzenszwalb (Multi-threaded)", "Proposed (CUDA)", "Proposed (Metal)", "Proposed (AMDGPU)"]
 
 # ╔═╡ b50a4061-4f49-4578-8671-1746d532c9dc
-range_names_2d = [L"2^3", L"2^4", L"2^5", L"2^6", L"2^7", L"2^8", L"2^9", L"2^{10}", L"2^{11}", L"2^{12}"]
+range_names_2d = [L"(2^3)^2", L"(2^4)^2", L"(2^5)^2", L"(2^6)^2", L"(2^7)^2", L"(2^8)^2", L"(2^9)^2", L"(2^{10})^2", L"(2^{11})^2", L"(2^{12})^2"]
 
 # ╔═╡ 6de86d5d-753c-478e-bf9a-0b7c111192bb
 dt_fig_2d = create_barplot(
@@ -164,7 +163,7 @@ dt_fig_2d = create_barplot(
 )
 
 # ╔═╡ 1510781f-cf67-4cd1-852f-4200d4a437a8
-save(joinpath(dirname(pwd()), "plots", "julia_benchmarks_2d.png"), dt_fig_2d)
+save(joinpath(dirname(pwd()), "plots", "julia_benchmarks_2d.png"), dt_fig_2d);
 
 # ╔═╡ 54b95ed5-04e1-401d-b240-5a561b2e6713
 md"""
@@ -175,10 +174,10 @@ md"""
 title_3d = "Performance Comparison \nof Distance Transforms (3D)"
 
 # ╔═╡ f093102d-4796-4d05-943c-c314febe7342
-dt_names_3d = ["Maurer", "Felzenszwalb", "Felzenszwalb (Multi-threaded)", "Proposed (CUDA)", "Proposed (Metal)", "Proposed (oneAPI)", "Proposed (AMDGPU)"]
+dt_names_3d = ["Maurer", "Felzenszwalb", "Felzenszwalb (Multi-threaded)", "Proposed (CUDA)", "Proposed (Metal)", "Proposed (AMDGPU)"]
 
 # ╔═╡ 0c09ef6c-d05e-4f73-9075-78d9ba986bb9
-range_names_3d = [L"2^0", L"2^1", L"2^2", L"2^3", L"2^4", L"2^5", L"2^6", L"2^7", L"2^8"]
+range_names_3d = [L"(2^0)^3", L"(2^1)^3", L"(2^2)^3", L"(2^3)^3", L"(2^4)^3", L"(2^5)^3", L"(2^6)^3", L"(2^7)^3", L"(2^8)^3"]
 
 # ╔═╡ 7b4e4368-8903-4279-9c16-32cf8b603949
 dt_fig_3d = create_barplot(
@@ -193,7 +192,7 @@ dt_fig_3d = create_barplot(
 )
 
 # ╔═╡ b69b8849-2dc7-4eaa-b58e-ae1525e18b80
-save(joinpath(dirname(pwd()), "plots", "julia_benchmarks_3d.png"), dt_fig_3d)
+save(joinpath(dirname(pwd()), "plots", "julia_benchmarks_3d.png"), dt_fig_3d);
 
 # ╔═╡ Cell order:
 # ╠═2c729da6-40e6-47cd-a14d-c152b8789b17
