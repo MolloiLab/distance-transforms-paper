@@ -206,6 +206,9 @@ df_py_2d = read(datadir("dt_py_2D_CUDA.csv"), DataFrame);
 # ╔═╡ 8460f3a8-8c18-46ef-927e-125520db0db6
 df_py_3d = read(datadir("dt_py_3D_CUDA.csv"), DataFrame);
 
+# ╔═╡ 79530ee6-42bc-4bf4-9e9c-68a14556a7f1
+df_py_2d
+
 # ╔═╡ 65d76d1e-6caf-4ad5-acdb-bed143711ee7
 md"""
 ## 2D
@@ -291,7 +294,7 @@ dt_fig_2d_py = create_barplot_py_2d(
 	dt_opencv = df_py_2d[:, :dt_opencv],
 	dt_pydt_single = df_py_2d[:, :dt_pydt_single],
 	dt_pydt_multi = df_py_2d[:, :dt_pydt_multi],
-	dt_pydt_cuda = df_py_2d[:, :dt_pydt_multi],
+	dt_pydt_cuda = df_py_2d[:, :dt_pydt_cuda],
 	x_names = range_names_2d
 )
 
@@ -426,8 +429,9 @@ save(joinpath(pwd(), "plots", "py_benchmarks_3d.png"), dt_fig_3d_py);
 # ╟─3fc76221-c854-46ce-9c85-8baa43ff7e14
 # ╠═3a436af8-66d5-4a82-85e1-d860fe52421f
 # ╠═8460f3a8-8c18-46ef-927e-125520db0db6
+# ╠═79530ee6-42bc-4bf4-9e9c-68a14556a7f1
 # ╟─65d76d1e-6caf-4ad5-acdb-bed143711ee7
-# ╟─1a75f51d-e66c-45d1-8f0a-b72cacbe263e
+# ╠═1a75f51d-e66c-45d1-8f0a-b72cacbe263e
 # ╠═124ab9eb-0959-4a16-9659-f58b01ccf463
 # ╠═5c9a9a74-ad6e-43d3-9dce-226f03dc3535
 # ╟─d98d995b-09b6-4f3a-b7a7-4bb9effbaf7d
