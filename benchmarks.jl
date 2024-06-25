@@ -6,7 +6,7 @@ using InteractiveUtils
 
 # ╔═╡ 8401528c-5484-42f7-8f92-94dcca409526
 # ╠═╡ show_logs = false
-using Pkg; Pkg.activate(".."), Pkg.instantiate();
+using Pkg; Pkg.activate("."), Pkg.instantiate();
 
 # ╔═╡ 57c6afc9-8a71-4239-8187-27c1081f31e5
 using CUDA

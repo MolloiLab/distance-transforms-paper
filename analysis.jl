@@ -6,7 +6,7 @@ using InteractiveUtils
 
 # ╔═╡ 2c729da6-40e6-47cd-a14d-c152b8789b17
 # ╠═╡ show_logs = false
-using Pkg; Pkg.activate(".."), Pkg.instantiate();
+using Pkg; Pkg.activate("."), Pkg.instantiate();
 
 # ╔═╡ 5e56b525-cd2d-4e2d-9010-8210a08611be
 using CUDA
@@ -42,17 +42,17 @@ using CairoMakie # For the use of `Makie.wong_colors`
 # ╔═╡ 30f67101-9626-4d01-a6fd-c260cd5c29b6
 # CUDA.set_runtime_version!(v"11.8")
 
-# ╔═╡ a4bd50ba-c963-4058-a648-2660b4eb29a7
-CUDA.functional()
-
-# ╔═╡ 0b951e25-5a96-439c-8fd3-df3e628b45dd
-Metal.functional()
-
 # ╔═╡ fc95a4bc-d3c8-4080-8634-1136b12210dd
 AMDGPU.functional()
 
 # ╔═╡ 75216390-cf6c-415c-83b9-3d139f712297
 oneAPI.functional()
+
+# ╔═╡ 0b951e25-5a96-439c-8fd3-df3e628b45dd
+Metal.functional()
+
+# ╔═╡ a4bd50ba-c963-4058-a648-2660b4eb29a7
+CUDA.functional()
 
 # ╔═╡ 278dfa0e-46e1-4789-9f51-eb3463a9fb00
 TableOfContents()
@@ -198,19 +198,19 @@ save(joinpath(dirname(pwd()), "plots", "julia_benchmarks_3d.png"), dt_fig_3d);
 # ╠═2c729da6-40e6-47cd-a14d-c152b8789b17
 # ╠═30f67101-9626-4d01-a6fd-c260cd5c29b6
 # ╠═5e56b525-cd2d-4e2d-9010-8210a08611be
-# ╠═a4bd50ba-c963-4058-a648-2660b4eb29a7
 # ╠═ee82e108-12d0-483e-84f4-92a7a3f677c1
-# ╠═0b951e25-5a96-439c-8fd3-df3e628b45dd
 # ╠═d3307b8b-48f5-42a7-ad2e-e8b69aac53e7
-# ╠═fc95a4bc-d3c8-4080-8634-1136b12210dd
 # ╠═345a4744-bbf6-4334-ba15-aeb721416f5b
-# ╠═75216390-cf6c-415c-83b9-3d139f712297
 # ╠═33e02405-1750-48f9-9776-d1d2d261f63f
 # ╠═a968bcd8-fc42-45ec-af7c-68e73e8f1cd5
 # ╠═50e24ebe-403a-4d89-b02f-7a1577222838
 # ╠═50bfb09f-4dbb-4488-9284-7eef837ffe75
 # ╠═d1a12515-a9d0-468b-8978-dbb26a1ee667
 # ╠═e39675a9-08c7-4a4a-8eba-021862757a40
+# ╠═75216390-cf6c-415c-83b9-3d139f712297
+# ╠═0b951e25-5a96-439c-8fd3-df3e628b45dd
+# ╠═fc95a4bc-d3c8-4080-8634-1136b12210dd
+# ╠═a4bd50ba-c963-4058-a648-2660b4eb29a7
 # ╠═278dfa0e-46e1-4789-9f51-eb3463a9fb00
 # ╟─0def112f-e739-4a35-a223-c9a244a0d139
 # ╠═ad97f6cb-c331-4898-9c6c-485582058e4d
