@@ -65,8 +65,14 @@ md"""
 # ╔═╡ ad97f6cb-c331-4898-9c6c-485582058e4d
 df_metal_2d = read(datadir("new", "dt_2D_Metal.csv"), DataFrame);
 
+# ╔═╡ 83f4fd58-e801-4dda-9ba7-f5eec56722f6
+df_cuda_2d = read(datadir("new", "dt_2D_CUDA.csv"), DataFrame);
+
 # ╔═╡ eb190959-b90f-4dbb-8ae7-09b964e1a1c2
 df_metal_3d = read(datadir("new", "dt_3D_Metal.csv"), DataFrame);
+
+# ╔═╡ 1936dff5-1d17-4773-9009-51ec95eb9411
+df_cuda_3d = read(datadir("new", "dt_3D_CUDA.csv"), DataFrame);
 
 # ╔═╡ 97a7f98f-738d-4870-8872-4d0e7ba88c4a
 md"""
@@ -152,9 +158,13 @@ dt_fig_2d = create_barplot(
 	dt_maurer = df_metal_2d[:, :dt_maurer],
 	dt_fenz = df_metal_2d[:, :dt_fenz],
 	dt_fenz_multi = df_metal_2d[:, :dt_fenz_multi],
+	dt_proposed_cuda = df_cuda_2d[:, :dt_proposed_cuda],
 	dt_proposed_metal = df_metal_2d[:, :dt_proposed_metal],
 	x_names = range_names_2d
 )
+
+# ╔═╡ 1510781f-cf67-4cd1-852f-4200d4a437a8
+save(joinpath(dirname(pwd()), "plots", "julia_benchmarks_2d.png"), dt_fig_2d)
 
 # ╔═╡ 54b95ed5-04e1-401d-b240-5a561b2e6713
 md"""
@@ -177,9 +187,13 @@ dt_fig_3d = create_barplot(
 	dt_maurer = df_metal_3d[:, :dt_maurer_3D],
 	dt_fenz = df_metal_3d[:, :dt_fenz_3D],
 	dt_fenz_multi = df_metal_3d[:, :dt_fenz_multi_3D],
+	dt_proposed_cuda = df_cuda_3d[:, :dt_proposed_cuda_3D],
 	dt_proposed_metal = df_metal_3d[:, :dt_proposed_metal_3D],
 	x_names = range_names_3d
 )
+
+# ╔═╡ b69b8849-2dc7-4eaa-b58e-ae1525e18b80
+save(joinpath(dirname(pwd()), "plots", "julia_benchmarks_3d.png"), dt_fig_3d)
 
 # ╔═╡ Cell order:
 # ╠═2c729da6-40e6-47cd-a14d-c152b8789b17
@@ -201,15 +215,19 @@ dt_fig_3d = create_barplot(
 # ╠═278dfa0e-46e1-4789-9f51-eb3463a9fb00
 # ╟─0def112f-e739-4a35-a223-c9a244a0d139
 # ╠═ad97f6cb-c331-4898-9c6c-485582058e4d
+# ╠═83f4fd58-e801-4dda-9ba7-f5eec56722f6
 # ╠═eb190959-b90f-4dbb-8ae7-09b964e1a1c2
+# ╠═1936dff5-1d17-4773-9009-51ec95eb9411
 # ╟─97a7f98f-738d-4870-8872-4d0e7ba88c4a
 # ╟─3175900c-7676-4ab2-b31a-a0ca3b1afde7
 # ╠═492df5fa-e20e-4dcb-8c1f-b7e14d9fc2de
 # ╠═7bc02cb0-76e9-4654-b17a-9d95089bf472
 # ╠═b50a4061-4f49-4578-8671-1746d532c9dc
 # ╟─6de86d5d-753c-478e-bf9a-0b7c111192bb
+# ╠═1510781f-cf67-4cd1-852f-4200d4a437a8
 # ╟─54b95ed5-04e1-401d-b240-5a561b2e6713
 # ╠═08676d5b-f098-43a9-8bc3-b5cda3282b2a
 # ╠═f093102d-4796-4d05-943c-c314febe7342
 # ╠═0c09ef6c-d05e-4f73-9075-78d9ba986bb9
 # ╟─7b4e4368-8903-4279-9c16-32cf8b603949
+# ╠═b69b8849-2dc7-4eaa-b58e-ae1525e18b80
