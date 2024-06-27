@@ -16,7 +16,7 @@
   - Proposed AMDGPU (DistanceTransforms.jl)
   - Proposed Metal (DistanceTransforms.jl)
 
-`hd_loss.ipynb` [TODO]
+`hausdorff_loss.ipynb` [In Progress]
 - Google colab notebook that benchmarks our DT in the hausdorff loss vs. other Python-based DTs vs. pure dice loss and benchmarks full training loops of the various hausdorff loss functions
 - Also, provides accuracy comparisons between our hausdorff loss vs pure dice loss
 

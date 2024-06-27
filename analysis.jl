@@ -390,6 +390,17 @@ dt_fig_3d_py = create_barplot_py_3d(
 # ╔═╡ 37087a33-18d1-4e4d-b7e0-229b3b4aa797
 save(joinpath(pwd(), "plots", "py_benchmarks_3d.png"), dt_fig_3d_py);
 
+# ╔═╡ c47bd4a9-368e-4288-b0df-9f116574a6b0
+md"""
+# Hausdorff Loss
+"""
+
+# ╔═╡ 9eaff32d-e026-4059-b02a-439a09a5c942
+df_hd_loss_plain_dice = read(joinpath(pwd(), "data/hd_loss_plain_dice.csv"), DataFrame)
+
+# ╔═╡ 5a39783a-7ded-44b3-b873-4ec380e56d88
+df_hd_loss_hausdorff_dice_pydt = read(joinpath(pwd(), "data/hd_loss_hausdorff_dice_pydt.csv"), DataFrame)
+
 # ╔═╡ Cell order:
 # ╠═2c729da6-40e6-47cd-a14d-c152b8789b17
 # ╠═30f67101-9626-4d01-a6fd-c260cd5c29b6
@@ -442,3 +453,6 @@ save(joinpath(pwd(), "plots", "py_benchmarks_3d.png"), dt_fig_3d_py);
 # ╠═ea709965-e6dc-43a2-8472-8169fffb8447
 # ╟─520a1602-1d22-4ec5-9410-01124c98feb9
 # ╠═37087a33-18d1-4e4d-b7e0-229b3b4aa797
+# ╟─c47bd4a9-368e-4288-b0df-9f116574a6b0
+# ╠═9eaff32d-e026-4059-b02a-439a09a5c942
+# ╠═5a39783a-7ded-44b3-b873-4ec380e56d88
