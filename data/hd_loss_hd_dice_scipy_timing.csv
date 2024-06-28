@@ -1,0 +1,2 @@
+,Model,Total Training Time (s),Avg Epoch Time (s),Std Epoch Time (s)
+0,Scipy HD Loss + Dice Loss,448.9886260032654,44.89886260032654,1.2892820632740822

@@ -1,0 +1,2 @@
+,Model,Best Epoch,Dice Score,Hausdorff Distance,95 Percentile Hausdorff Distance,IoU Score,Total Training Time (s),Avg Epoch Time (s),Std Epoch Time (s)
+0,Plain Dice Loss,435,0.8915126323699951,168.11599731445312,120.33480072021484,0.296326220035553,58.88094615936279,7.770341849327087,1.8083787620337848
