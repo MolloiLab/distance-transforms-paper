@@ -16,12 +16,15 @@
   - Proposed AMDGPU (DistanceTransforms.jl)
   - Proposed Metal (DistanceTransforms.jl)
 
-`hausdorff_loss.ipynb` [In Progress]
+`hausdorff_loss_timings.ipynb` [In Progress]
 - Google colab notebook that benchmarks our DT in the hausdorff loss vs. other Python-based DTs vs. pure dice loss and benchmarks full training loops of the various hausdorff loss functions
-- Also, provides accuracy comparisons between our hausdorff loss vs pure dice loss
 
-`watershed.jl` [TODO]
-- Notebook that benchmarks our DT in the watershed algorithm vs. other DTs
+`hausdorff_loss_accuracy.ipynb` [In Progress]
+- Google colab notebook that provides full training loop of pure dice vs hausdorff + dice loss accuracy comparisons
+- Outputs quantitative date (dice, hausdorff, iou, etc.) and qualitative images showing the different models
+
+`skeletonization.jl` [TODO]
+- Notebook that implements a GPU based skeletonization algorithm (using our GPU distance transform) and compares against a pure CPU skeletonization algorithm (using a CPU distance transform)
 
 `/data`
 - Contains the various timings and accuracy data as .csv files from the above notebooks
