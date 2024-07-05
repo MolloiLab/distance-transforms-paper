@@ -8,20 +8,6 @@ using InteractiveUtils
 # ╠═╡ show_logs = false
 using Pkg; Pkg.activate("."), Pkg.instantiate();
 
-# ╔═╡ 5e56b525-cd2d-4e2d-9010-8210a08611be
-using CUDA
-
-# ╔═╡ ee82e108-12d0-483e-84f4-92a7a3f677c1
-using Metal
-
-# ╔═╡ d3307b8b-48f5-42a7-ad2e-e8b69aac53e7
-# ╠═╡ show_logs = false
-using AMDGPU
-
-# ╔═╡ 345a4744-bbf6-4334-ba15-aeb721416f5b
-# ╠═╡ show_logs = false
-using oneAPI
-
 # ╔═╡ 33e02405-1750-48f9-9776-d1d2d261f63f
 using DrWatson: datadir
 
@@ -42,18 +28,6 @@ using CairoMakie # For the use of `Makie.wong_colors`
 
 # ╔═╡ 30f67101-9626-4d01-a6fd-c260cd5c29b6
 # CUDA.set_runtime_version!(v"11.8")
-
-# ╔═╡ 75216390-cf6c-415c-83b9-3d139f712297
-oneAPI.functional()
-
-# ╔═╡ 0b951e25-5a96-439c-8fd3-df3e628b45dd
-Metal.functional()
-
-# ╔═╡ fc95a4bc-d3c8-4080-8634-1136b12210dd
-AMDGPU.functional()
-
-# ╔═╡ a4bd50ba-c963-4058-a648-2660b4eb29a7
-CUDA.functional()
 
 # ╔═╡ 278dfa0e-46e1-4789-9f51-eb3463a9fb00
 TableOfContents()
@@ -395,29 +369,153 @@ md"""
 # Hausdorff Loss
 """
 
-# ╔═╡ 9eaff32d-e026-4059-b02a-439a09a5c942
-df_hd_loss_plain_dice = read(joinpath(pwd(), "data/hd_loss_plain_dice.csv"), DataFrame)
+# ╔═╡ fbd27c0e-3175-4a59-97f1-89e41fb4afba
+md"""
+## Pure Loss Timings
+"""
 
-# ╔═╡ 5a39783a-7ded-44b3-b873-4ec380e56d88
-df_hd_loss_hausdorff_dice_pydt = read(joinpath(pwd(), "data/hd_loss_hausdorff_dice_pydt.csv"), DataFrame)
+# ╔═╡ 1523ddd9-ebe4-4a48-aaaf-0b499fef7b34
+df_hd_loss_pure_losses_timings = read(joinpath(pwd(), "data/hd_loss_pure_losses_timings.csv"), DataFrame);
+
+# ╔═╡ 91be7704-515e-4427-88d6-ff4f1530c3f1
+let
+	df = df_hd_loss_pure_losses_timings
+	methods = ["Pure Dice Loss", "HD Loss \n(Scipy)", "HD Loss \n(Proposed)"]	
+	min_times = df[:, "Minimum Time (s)"]
+	std_devs = df[:, "Standard Deviation (s)"]
+	
+	# Create the barplot
+	fig = Figure(size = (800, 600))
+	ax = Axis(
+		fig[1, 1],
+		ylabel = "Time (s)",
+		title = "Pure Loss Function Timings",
+		xticks = (1:length(methods), methods),
+		yticks = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1e0, 1e1],
+		yscale = log10
+	)
+	
+	colors = [:red, :blue, :green]
+	barplot!(1:length(methods), min_times, color = colors)
+	
+	# Adjust the layout and display the plot
+	fig[1, 1] = ax
+	fig
+end
+
+# ╔═╡ 51825e1d-5eac-40ed-abba-2c1d4dbbc917
+md"""
+## Training Loop Timings
+"""
+
+# ╔═╡ 3a26807e-b902-4a02-9af9-f83db03dfe00
+df_hd_loss_plain_dice_timing = read(joinpath(pwd(), "data/hd_loss_plain_dice_timing.csv"), DataFrame);
+
+# ╔═╡ d726c7e3-2005-4c2f-a0cc-5d774d1dce88
+df_hd_loss_hd_dice_scipy_timing = read(joinpath(pwd(), "data/hd_loss_hd_dice_scipy_timing.csv"), DataFrame);
+
+# ╔═╡ 447c1bad-2a30-4870-9330-e243922f0ec4
+df_hd_loss_hd_dice_pydt_timing = read(joinpath(pwd(), "data/hd_loss_hd_dice_pydt_timing.csv"), DataFrame);
+
+# ╔═╡ a0650b6e-2048-4e84-8143-2c0cdcca326d
+let
+	df1 = df_hd_loss_plain_dice_timing
+	df2 = df_hd_loss_hd_dice_scipy_timing
+	df3 = df_hd_loss_hd_dice_pydt_timing
+	
+	methods = ["Dice Loss", "Dice + HD Loss (Scipy)", "Dice + HD Loss (Proposed)"]	
+	min_times = [
+		df1[:, "Avg Epoch Time (s)"]...,
+		df2[:, "Avg Epoch Time (s)"]...,
+		df1[:, "Avg Epoch Time (s)"]...
+	]
+	std_devs = [
+		df1[:, "Std Epoch Time (s)"]...,
+		df2[:, "Std Epoch Time (s)"]...,
+		df3[:, "Std Epoch Time (s)"]...
+	]
+	
+	# Create the barplot
+	fig = Figure(size = (800, 600))
+	ax = Axis(
+		fig[1, 1],
+		ylabel = "Time (s)",
+		title = "Average Epoch Time",
+		xticks = (1:length(methods), methods),
+		yticks = collect(0:10:50)
+	)
+	
+	colors = [:red, :blue, :green]
+	barplot!(1:length(methods), min_times, color = colors)
+	
+	# Adjust the layout and display the plot
+	fig[1, 1] = ax
+	fig
+end
+
+# ╔═╡ 2b054f68-d0c5-4c79-b200-576b1e7c02ee
+md"""
+## Training/Accuracy Metrics
+"""
+
+# ╔═╡ 76b82ae6-38b4-40eb-97a6-286165398e17
+df_training_results_dice = read(joinpath(pwd(), "data/training_results_dice.csv"), DataFrame);
+
+# ╔═╡ 6432995d-e296-4cba-810b-b8990cc18f3b
+df_training_results_hd_pydt = read(joinpath(pwd(), "data/training_results_hd_pydt.csv"), DataFrame);
+
+# ╔═╡ 32ea92f0-92ef-4a87-bc9b-df52b910a28e
+let
+	df1 = df_training_results_dice
+	df2 = df_training_results_hd_pydt
+	
+	f = Figure()
+	ax1 = Axis(
+		f[1:2, 1:4],
+		title = "Dice Loss"
+	)
+	lines!(ax1, df1[:, "Training Loss"], label = "Training Loss")
+	lines!(ax1, df1[:, "Validation Loss"], label = "Validation Loss")
+	lines!(ax1, df1[:, "Validation Dice Score"], label = "Validation Dice Score")
+	ylims!(ax1, low = 0, high = 1.1)
+	
+	ax2 = Axis(
+		f[3:4, 1:4],
+		title = "Dice + HD Loss (Proposed)"
+	)
+	lines!(ax2, df2[:, "Training Loss"], label = "Training Loss")
+	lines!(ax2, df2[:, "Validation Loss"], label = "Validation Loss")
+	lines!(ax2, df2[:, "Validation Dice Score"], label = "Validation Dice Score")
+	ylims!(ax2, low = 0, high = 1.1)
+
+	# Create a combined legend
+	Legend(f[2:3, 5:6], ax1)
+
+	f
+end
+
+
+# ╔═╡ 7136ad27-fd70-48bf-a7f1-0874c031aa50
+df_hd_loss_metrics_dice = read(joinpath(pwd(), "data/hd_loss_metrics_dice.csv"), DataFrame);
+
+# ╔═╡ 3cd22291-ee6a-4032-b05e-36fedb87beac
+df_hd_loss_metrics_hd_pydt = read(joinpath(pwd(), "data/hd_loss_metrics_hd_pydt.csv"), DataFrame);
+
+# ╔═╡ 7b2f0282-db75-4d3c-a832-de19486ddfd8
+df_hd_loss_metrics_dice
+
+# ╔═╡ 8f02a8b5-561f-44fc-b954-43f936fa41fc
+df_hd_loss_metrics_hd_pydt
 
 # ╔═╡ Cell order:
 # ╠═2c729da6-40e6-47cd-a14d-c152b8789b17
 # ╠═30f67101-9626-4d01-a6fd-c260cd5c29b6
-# ╠═5e56b525-cd2d-4e2d-9010-8210a08611be
-# ╠═ee82e108-12d0-483e-84f4-92a7a3f677c1
-# ╠═d3307b8b-48f5-42a7-ad2e-e8b69aac53e7
-# ╠═345a4744-bbf6-4334-ba15-aeb721416f5b
 # ╠═33e02405-1750-48f9-9776-d1d2d261f63f
 # ╠═a968bcd8-fc42-45ec-af7c-68e73e8f1cd5
 # ╠═50e24ebe-403a-4d89-b02f-7a1577222838
 # ╠═50bfb09f-4dbb-4488-9284-7eef837ffe75
 # ╠═d1a12515-a9d0-468b-8978-dbb26a1ee667
 # ╠═e39675a9-08c7-4a4a-8eba-021862757a40
-# ╠═75216390-cf6c-415c-83b9-3d139f712297
-# ╠═0b951e25-5a96-439c-8fd3-df3e628b45dd
-# ╠═fc95a4bc-d3c8-4080-8634-1136b12210dd
-# ╠═a4bd50ba-c963-4058-a648-2660b4eb29a7
 # ╠═278dfa0e-46e1-4789-9f51-eb3463a9fb00
 # ╟─8b786cbc-dd81-4208-9eee-2d7f7bbfa23f
 # ╠═ad97f6cb-c331-4898-9c6c-485582058e4d
@@ -442,17 +540,31 @@ df_hd_loss_hausdorff_dice_pydt = read(joinpath(pwd(), "data/hd_loss_hausdorff_di
 # ╠═8460f3a8-8c18-46ef-927e-125520db0db6
 # ╠═79530ee6-42bc-4bf4-9e9c-68a14556a7f1
 # ╟─65d76d1e-6caf-4ad5-acdb-bed143711ee7
-# ╠═1a75f51d-e66c-45d1-8f0a-b72cacbe263e
+# ╟─1a75f51d-e66c-45d1-8f0a-b72cacbe263e
 # ╠═124ab9eb-0959-4a16-9659-f58b01ccf463
 # ╠═5c9a9a74-ad6e-43d3-9dce-226f03dc3535
 # ╟─d98d995b-09b6-4f3a-b7a7-4bb9effbaf7d
 # ╠═0caab0a0-667f-4862-9e1d-d20e331032fd
 # ╟─971ab05c-a849-4f44-a484-fec73f8f2326
-# ╟─e93f3bd7-9f84-435c-bc57-2aeee49c08f2
+# ╠═e93f3bd7-9f84-435c-bc57-2aeee49c08f2
 # ╠═7760006c-a8cd-4019-a54f-a4256d17f39b
 # ╠═ea709965-e6dc-43a2-8472-8169fffb8447
 # ╟─520a1602-1d22-4ec5-9410-01124c98feb9
 # ╠═37087a33-18d1-4e4d-b7e0-229b3b4aa797
 # ╟─c47bd4a9-368e-4288-b0df-9f116574a6b0
-# ╠═9eaff32d-e026-4059-b02a-439a09a5c942
-# ╠═5a39783a-7ded-44b3-b873-4ec380e56d88
+# ╟─fbd27c0e-3175-4a59-97f1-89e41fb4afba
+# ╠═1523ddd9-ebe4-4a48-aaaf-0b499fef7b34
+# ╟─91be7704-515e-4427-88d6-ff4f1530c3f1
+# ╟─51825e1d-5eac-40ed-abba-2c1d4dbbc917
+# ╠═3a26807e-b902-4a02-9af9-f83db03dfe00
+# ╠═d726c7e3-2005-4c2f-a0cc-5d774d1dce88
+# ╠═447c1bad-2a30-4870-9330-e243922f0ec4
+# ╟─a0650b6e-2048-4e84-8143-2c0cdcca326d
+# ╟─2b054f68-d0c5-4c79-b200-576b1e7c02ee
+# ╠═76b82ae6-38b4-40eb-97a6-286165398e17
+# ╠═6432995d-e296-4cba-810b-b8990cc18f3b
+# ╟─32ea92f0-92ef-4a87-bc9b-df52b910a28e
+# ╠═7136ad27-fd70-48bf-a7f1-0874c031aa50
+# ╠═3cd22291-ee6a-4032-b05e-36fedb87beac
+# ╠═7b2f0282-db75-4d3c-a832-de19486ddfd8
+# ╠═8f02a8b5-561f-44fc-b954-43f936fa41fc
