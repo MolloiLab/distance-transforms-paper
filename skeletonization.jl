@@ -34,7 +34,7 @@ md"""
 """
 
 # ╔═╡ a56889ee-c986-4660-a462-c14631e774bc
-# Function to perform skeletonization using the distance transform
+# Function to perform skeletonization utilizing the distance transform
 function skeletonize_cpu!(skeleton, dist)
 	rows, cols = size(skeleton)
 	
