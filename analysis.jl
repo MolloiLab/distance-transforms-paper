@@ -455,7 +455,8 @@ let
 		bar_labels = string.(round.(min_times; sigdigits = 3))
 	)
 	ylims!(ax; high=50)
-	
+
+	save(joinpath(pwd(), "plots/hd_loss_timings.png"), fig)
 	# Adjust the layout and display the plot
 	fig
 end
