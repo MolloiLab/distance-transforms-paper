@@ -193,6 +193,8 @@ let
     elements = [PolyElement(polycolor = colors[i]) for i in rnge]
     title = "Distance Transform \nAlgorithms (GPU)"
     Legend(f[3:4, 3], elements, labels, title)
+
+	save(joinpath(pwd(), "plots/julia_distance_transforms.png"), f)
 	f
 end
 
@@ -365,6 +367,8 @@ let
 	title = "Distance Transform \nAlgorithms (GPU)"
 	Legend(f[5, 3], elements, labels, title)
 
+	save(joinpath(pwd(), "plots/python_distance_transforms.png"), f)
+
     f
 end
 
@@ -404,7 +408,7 @@ let
 		ylabel = "Time (s)",
 		title = "Pure Loss Function Timings",
 		xticks = (1:length(methods), methods),
-		yticks = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1e0, 1e1],
+		yticks = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1e0, 1e1, 1e2],
 		yscale = log10,
 		ytickformat = "{:.2e}",  # Format y-axis tick labels as scientific notation with 2 decimal places
 		xgridvisible = false,
@@ -412,7 +416,12 @@ let
 	)
 	
 	colors = [:turquoise3, :mediumorchid3, :mediumseagreen]
-	barplot!(1:length(methods), min_times, color = colors)
+	barplot!(
+		1:length(methods), min_times;
+		color = colors,
+		bar_labels = string.(round.(min_times; sigdigits = 3))
+	)
+	ylims!(ax; high=1e2)
 
 	df1 = df_hd_loss_plain_dice_timing
 	df2 = df_hd_loss_hd_dice_scipy_timing
@@ -422,7 +431,7 @@ let
 	min_times = [
 		df1[:, "Avg Epoch Time (s)"]...,
 		df2[:, "Avg Epoch Time (s)"]...,
-		df1[:, "Avg Epoch Time (s)"]...
+		df3[:, "Avg Epoch Time (s)"]...
 	]
 	std_devs = [
 		df1[:, "Std Epoch Time (s)"]...,
@@ -440,7 +449,12 @@ let
 		ygridvisible = false
 	)
 	
-	barplot!(1:length(methods), min_times, color = colors)
+	barplot!(
+		1:length(methods), min_times;
+		color = colors,
+		bar_labels = string.(round.(min_times; sigdigits = 3))
+	)
+	ylims!(ax; high=50)
 	
 	# Adjust the layout and display the plot
 	fig
@@ -508,7 +522,7 @@ abs(df_metrics[5, :][2] - df_metrics[5, :][3])/ (df_metrics[5, :][3]) * 100
 # ╠═f093102d-4796-4d05-943c-c314febe7342
 # ╠═0c09ef6c-d05e-4f73-9075-78d9ba986bb9
 # ╟─335fe4b9-a11f-4cb9-ac81-68d305f73a2d
-# ╟─bad637b7-3449-4481-846f-e5160cdfca40
+# ╠═bad637b7-3449-4481-846f-e5160cdfca40
 # ╟─3fc76221-c854-46ce-9c85-8baa43ff7e14
 # ╠═3a436af8-66d5-4a82-85e1-d860fe52421f
 # ╠═8460f3a8-8c18-46ef-927e-125520db0db6
