@@ -397,7 +397,7 @@ md"""
 # ╔═╡ bfe42c1b-f167-49f0-b05a-fb13e531fb53
 let
 	df = df_hd_loss_pure_losses_timings
-	methods = ["Pure Dice Loss", "HD Loss (Scipy)", "HD Loss (Proposed)"]	
+	methods = ["Dice Loss", "HD Loss (Scipy)", "HD Loss (Proposed)"]	
 	min_times = df[:, "Minimum Time (s)"]
 	std_devs = df[:, "Standard Deviation (s)"]
 	
