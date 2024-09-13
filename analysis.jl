@@ -516,6 +516,39 @@ df_metrics = DataFrame(
 	"HD + Dice Loss" => hd_dice_values
 )
 
+# ╔═╡ b928a575-ec2c-4ac2-8bfc-6e646a9bcd99
+md"""
+# Skeletonization
+"""
+
+# ╔═╡ e26dfbb8-75ac-49a3-a3ce-a073fa5d1ef0
+df_skeleton = read(datadir("skeleton.csv"), DataFrame);
+
+# ╔═╡ f6c3bcc3-ddca-43e6-8910-38cf547a7596
+let
+	sizes = df_skeleton[:, :sizes]
+	cpu_timings = df_skeleton[:, "cpu timings"]
+	gpu_timings = df_skeleton[:, "gpu timings"]
+	
+	f = Figure()
+	ax = Axis(
+		f[1, 1],
+		ylabel = "Time (ns)",
+		title = "Skeletonization Timings",
+		yscale = log10,
+		xticks = (1:length(sizes), string.(sizes)),
+		xlabel = "Array Sizes (Pixels)"
+	)
+	scatterlines!(cpu_timings; label = "CPU")
+	scatterlines!(gpu_timings; label = "Proposed (Metal)")
+
+	axislegend(ax; position = :rb)
+
+	save(joinpath(pwd(), "plots/skeletonization.png"), f)
+	
+	f
+end
+
 # ╔═╡ Cell order:
 # ╠═2c729da6-40e6-47cd-a14d-c152b8789b17
 # ╠═30f67101-9626-4d01-a6fd-c260cd5c29b6
@@ -566,3 +599,6 @@ df_metrics = DataFrame(
 # ╠═3cd22291-ee6a-4032-b05e-36fedb87beac
 # ╠═20056bac-bc82-4b28-ad2f-705bd2c4366d
 # ╠═4c5b64c2-e979-473f-b10b-071c78e53e93
+# ╟─b928a575-ec2c-4ac2-8bfc-6e646a9bcd99
+# ╠═e26dfbb8-75ac-49a3-a3ce-a073fa5d1ef0
+# ╟─f6c3bcc3-ddca-43e6-8910-38cf547a7596
