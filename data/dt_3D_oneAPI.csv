@@ -1,0 +1,19 @@
+os_info,gpu_info,sizes_3D,dt_maurer_3D,dt_maurer_std_3D,dt_proposed_oneapi_3D,dt_proposed_oneapi_std_3D,dt_fenz_multi_3D,dt_fenz_multi_std_3D,dt_proposed_metal_3D,dt_proposed_metal_std_3D
+"Julia Version 1.10.5
+BenchmarkTools: 1.5.0","oneAPI",1.0,,,1160935.0,,,,,
+"Julia Version 1.10.5
+BenchmarkTools: 1.5.0","oneAPI",2.0,,,1155817.0,,,,,
+"Julia Version 1.10.5
+BenchmarkTools: 1.5.0","oneAPI",4.0,,,1167556.0,,,,,
+"Julia Version 1.10.5
+BenchmarkTools: 1.5.0","oneAPI",8.0,,,1127173.0,,,,,
+"Julia Version 1.10.5
+BenchmarkTools: 1.5.0","oneAPI",16.0,,,1168567.0,,,,,
+"Julia Version 1.10.5
+BenchmarkTools: 1.5.0","oneAPI",32.0,,,1157719.0,,,,,
+"Julia Version 1.10.5
+BenchmarkTools: 1.5.0","oneAPI",64.0,,,2130395.0,,,,,
+"Julia Version 1.10.5
+BenchmarkTools: 1.5.0","oneAPI",128.0,,,9665856.0,,,,,
+"Julia Version 1.10.5
+BenchmarkTools: 1.5.0","oneAPI",256.0,,,75535744.0,,,,,

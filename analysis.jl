@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.40
+# v0.19.45
 
 using Markdown
 using InteractiveUtils
@@ -43,17 +43,29 @@ df_metal_2d = read(datadir("dt_2D_Metal.csv"), DataFrame);
 # ╔═╡ 83f4fd58-e801-4dda-9ba7-f5eec56722f6
 df_cuda_2d = read(datadir("dt_2D_CUDA.csv"), DataFrame);
 
+# ╔═╡ c7c6aa70-6e46-4444-b8df-68895b55d642
+df_oneapi_2d = read(datadir("dt_2D_oneAPI.csv"), DataFrame);
+
+# ╔═╡ d86c512c-b3dc-4542-8c2c-27b72019dce1
+df_amdgpu_2d = read(datadir("dt_2D_AMDGPU.csv"), DataFrame);
+
 # ╔═╡ eb190959-b90f-4dbb-8ae7-09b964e1a1c2
 df_metal_3d = read(datadir("dt_3D_Metal.csv"), DataFrame);
 
 # ╔═╡ 1936dff5-1d17-4773-9009-51ec95eb9411
 df_cuda_3d = read(datadir("dt_3D_CUDA.csv"), DataFrame);
 
+# ╔═╡ 2ff50a99-aaf0-4282-a194-6fff6f50dea6
+df_oneapi_3d = read(datadir("dt_3D_oneAPI.csv"), DataFrame);
+
+# ╔═╡ facdc420-5c39-4057-853e-bbab8f96fac6
+df_amdgpu_3d = read(datadir("dt_3D_AMDGPU.csv"), DataFrame);
+
 # ╔═╡ 492df5fa-e20e-4dcb-8c1f-b7e14d9fc2de
 title_2d = "Performance Comparison \nof Julia Distance Transforms (2D)"
 
 # ╔═╡ 7bc02cb0-76e9-4654-b17a-9d95089bf472
-dt_names_2d = ["Maurer", "Felzenszwalb", "Felzenszwalb (Multi-threaded)", "Proposed (CUDA)", "Proposed (Metal)", "Proposed (AMDGPU)"]
+dt_names_2d = ["Maurer", "Felzenszwalb", "Felzenszwalb (Multi-threaded)", "Proposed (CUDA)", "Proposed (AMDGPU)", "Proposed (Metal)", "Proposed (oneAPI)"]
 
 # ╔═╡ b50a4061-4f49-4578-8671-1746d532c9dc
 range_names_2d = [L"(2^3)^2", L"(2^4)^2", L"(2^5)^2", L"(2^6)^2", L"(2^7)^2", L"(2^8)^2", L"(2^9)^2", L"(2^{10})^2", L"(2^{11})^2", L"(2^{12})^2"]
@@ -62,7 +74,7 @@ range_names_2d = [L"(2^3)^2", L"(2^4)^2", L"(2^5)^2", L"(2^6)^2", L"(2^7)^2", L"
 title_3d = "Performance Comparison \nof Julia Distance Transforms (3D)"
 
 # ╔═╡ f093102d-4796-4d05-943c-c314febe7342
-dt_names_3d = ["Maurer", "Felzenszwalb", "Felzenszwalb (Multi-threaded)", "Proposed (CUDA)", "Proposed (Metal)", "Proposed (AMDGPU)"]
+dt_names_3d = ["Maurer", "Felzenszwalb", "Felzenszwalb (Multi-threaded)", "Proposed (CUDA)", "Proposed (AMDGPU)", "Proposed (Metal)", "Proposed (oneAPI)"]
 
 # ╔═╡ 0c09ef6c-d05e-4f73-9075-78d9ba986bb9
 range_names_3d = [L"(2^0)^3", L"(2^1)^3", L"(2^2)^3", L"(2^3)^3", L"(2^4)^3", L"(2^5)^3", L"(2^6)^3", L"(2^7)^3", L"(2^8)^3"]
@@ -76,13 +88,15 @@ md"""
 let
 	### ------------------- 2D PLOT ------------------- ###
 	title_2d = "Performance Comparison \nof Julia Distance Transforms (2D)"
-	dt_names_2d = ["Maurer", "Felzenszwalb", "Felzenszwalb (Multi-threaded)", "Proposed (CUDA)", "Proposed (Metal)", "Proposed (AMDGPU)"]
+	dt_names_2d = dt_names_2d
 	sizes_2d = df_metal_2d[:, :sizes]
 	dt_maurer_2d = df_metal_2d[:, :dt_maurer]
 	dt_fenz_2d = df_metal_2d[:, :dt_fenz]
 	dt_fenz_multi_2d = df_metal_2d[:, :dt_fenz_multi]
 	dt_proposed_cuda_2d = df_cuda_2d[:, :dt_proposed_cuda]
+	dt_proposed_amdgpu_2d = df_amdgpu_2d[:, :dt_proposed_amdgpu]
 	dt_proposed_metal_2d = df_metal_2d[:, :dt_proposed_metal]
+	dt_proposed_oneapi_2d = df_oneapi_2d[:, :dt_proposed_oneapi]
 	x_names_2d = range_names_2d
 	
 	dt_heights_2d = zeros(length(dt_names_2d) * length(sizes_2d))
@@ -92,14 +106,15 @@ let
 		dt_fenz_2d,
 		dt_fenz_multi_2d,
 		dt_proposed_cuda_2d,
+		dt_proposed_amdgpu_2d,
 		dt_proposed_metal_2d,
-		zeros(length(dt_maurer_2d))  # Placeholder for missing AMDGPU data
+		dt_proposed_oneapi_2d,
 	)
 
 	offset_2d = 1
 	for i in eachrow(heights_2d)
 		dt_heights_2d[offset_2d:(offset_2d+length(i) - 1)] .= i
-		offset_2d += 6
+		offset_2d += 7
 	end
 
 	cat_2d = repeat(1:length(sizes_2d), inner = length(dt_names_2d))
@@ -130,13 +145,15 @@ let
 
 	### ------------------- 3D PLOT ------------------- ###
 	title_3d = "Performance Comparison \nof Julia Distance Transforms (3D)"
-	dt_names_3d = ["Maurer", "Felzenszwalb", "Felzenszwalb (Multi-threaded)", "Proposed (CUDA)", "Proposed (Metal)", "Proposed (AMDGPU)"]
+	dt_names_3d = dt_names_3d
 	sizes_3d = df_metal_3d[:, :sizes_3D]
 	dt_maurer_3d = df_metal_3d[:, :dt_maurer_3D]
 	dt_fenz_3d = df_metal_3d[:, :dt_fenz_3D]
 	dt_fenz_multi_3d = df_metal_3d[:, :dt_fenz_multi_3D]
 	dt_proposed_cuda_3d = df_cuda_3d[:, :dt_proposed_cuda_3D]
+	dt_proposed_amdgpu_3d = df_amdgpu_3d[:, :dt_proposed_amdgpu_3D]
 	dt_proposed_metal_3d = df_metal_3d[:, :dt_proposed_metal_3D]
+	dt_proposed_oneapi_3d = df_oneapi_3d[:, :dt_proposed_oneapi_3D]
 	x_names_3d = range_names_3d
 	
 	dt_heights_3d = zeros(length(dt_names_3d) * length(sizes_3d))
@@ -146,14 +163,15 @@ let
 		dt_fenz_3d,
 		dt_fenz_multi_3d,
 		dt_proposed_cuda_3d,
+		dt_proposed_amdgpu_3d,
 		dt_proposed_metal_3d,
-		zeros(length(dt_maurer_3d))  # Placeholder for missing AMDGPU data
+		dt_proposed_oneapi_3d,
 	)
 
 	offset_3d = 1
 	for i in eachrow(heights_3d)
 		dt_heights_3d[offset_3d:(offset_3d+length(i) - 1)] .= i
-		offset_3d += 6
+		offset_3d += 7
 	end
 
 	cat_3d = repeat(1:length(sizes_3d), inner = length(dt_names_3d))
@@ -188,7 +206,7 @@ let
     Legend(f[2:3, 3], elements, labels, title)
 
 	# GPU Legend
-	rnge = 4:6
+	rnge = 4:7
     labels = dt_names_2d[rnge]
     elements = [PolyElement(polycolor = colors[i]) for i in rnge]
     title = "Distance Transform \nAlgorithms (GPU)"
@@ -498,9 +516,6 @@ df_metrics = DataFrame(
 	"HD + Dice Loss" => hd_dice_values
 )
 
-# ╔═╡ 06184c0a-c93c-4b26-99c0-22b974271b08
-abs(df_metrics[5, :][2] - df_metrics[5, :][3])/ (df_metrics[5, :][3]) * 100
-
 # ╔═╡ Cell order:
 # ╠═2c729da6-40e6-47cd-a14d-c152b8789b17
 # ╠═30f67101-9626-4d01-a6fd-c260cd5c29b6
@@ -514,8 +529,12 @@ abs(df_metrics[5, :][2] - df_metrics[5, :][3])/ (df_metrics[5, :][3]) * 100
 # ╟─8b786cbc-dd81-4208-9eee-2d7f7bbfa23f
 # ╠═ad97f6cb-c331-4898-9c6c-485582058e4d
 # ╠═83f4fd58-e801-4dda-9ba7-f5eec56722f6
+# ╠═c7c6aa70-6e46-4444-b8df-68895b55d642
+# ╠═d86c512c-b3dc-4542-8c2c-27b72019dce1
 # ╠═eb190959-b90f-4dbb-8ae7-09b964e1a1c2
 # ╠═1936dff5-1d17-4773-9009-51ec95eb9411
+# ╠═2ff50a99-aaf0-4282-a194-6fff6f50dea6
+# ╠═facdc420-5c39-4057-853e-bbab8f96fac6
 # ╠═492df5fa-e20e-4dcb-8c1f-b7e14d9fc2de
 # ╠═7bc02cb0-76e9-4654-b17a-9d95089bf472
 # ╠═b50a4061-4f49-4578-8671-1746d532c9dc
@@ -547,4 +566,3 @@ abs(df_metrics[5, :][2] - df_metrics[5, :][3])/ (df_metrics[5, :][3]) * 100
 # ╠═3cd22291-ee6a-4032-b05e-36fedb87beac
 # ╠═20056bac-bc82-4b28-ad2f-705bd2c4366d
 # ╠═4c5b64c2-e979-473f-b10b-071c78e53e93
-# ╠═06184c0a-c93c-4b26-99c0-22b974271b08

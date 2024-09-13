@@ -1,0 +1,21 @@
+os_info,gpu_info,sizes,dt_maurer,dt_maurer_std,dt_proposed_amdgpu,dt_proposed_amdgpu_std,dt_fenz_multi,dt_fenz_multi_std,dt_proposed_metal,dt_proposed_metal_std
+"Julia Version 1.10.5
+BenchmarkTools: 1.5.0","AMDGPU",8.0,,,402838.0,,,,,
+"Julia Version 1.10.5
+BenchmarkTools: 1.5.0","AMDGPU",16.0,,,405253.0,,,,,
+"Julia Version 1.10.5
+BenchmarkTools: 1.5.0","AMDGPU",32.0,,,409113.0,,,,,
+"Julia Version 1.10.5
+BenchmarkTools: 1.5.0","AMDGPU",64.0,,,387668.5,,,,,
+"Julia Version 1.10.5
+BenchmarkTools: 1.5.0","AMDGPU",128.0,,,405428.5,,,,,
+"Julia Version 1.10.5
+BenchmarkTools: 1.5.0","AMDGPU",256.0,,,404868.5,,,,,
+"Julia Version 1.10.5
+BenchmarkTools: 1.5.0","AMDGPU",512.0,,,432323.5,,,,,
+"Julia Version 1.10.5
+BenchmarkTools: 1.5.0","AMDGPU",1024.0,,,591859.5,,,,,
+"Julia Version 1.10.5
+BenchmarkTools: 1.5.0","AMDGPU",2048.0,,,903317.0,,,,,
+"Julia Version 1.10.5
+BenchmarkTools: 1.5.0","AMDGPU",4096.0,,,2726691.0,,,,,
