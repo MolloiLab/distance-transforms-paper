@@ -1,94 +1,132 @@
-### A Pluto.jl notebook ###
-# v0.19.45
-
-using Markdown
-using InteractiveUtils
-
-# ╔═╡ 2c729da6-40e6-47cd-a14d-c152b8789b17
-# ╠═╡ show_logs = false
 using Pkg; Pkg.activate("."), Pkg.instantiate();
-
-# ╔═╡ 33e02405-1750-48f9-9776-d1d2d261f63f
 using DrWatson: datadir
-
-# ╔═╡ a968bcd8-fc42-45ec-af7c-68e73e8f1cd5
-using PlutoUI: TableOfContents
-
-# ╔═╡ 50e24ebe-403a-4d89-b02f-7a1577222838
-using CSV: read
-
-# ╔═╡ 50bfb09f-4dbb-4488-9284-7eef837ffe75
 using DataFrames: DataFrame
-
-# ╔═╡ d1a12515-a9d0-468b-8978-dbb26a1ee667
 using CairoMakie: Figure, Axis, barplot!, Label, PolyElement, Legend, @L_str
-
-# ╔═╡ e39675a9-08c7-4a4a-8eba-021862757a40
 using CairoMakie # For the use of `Makie.wong_colors`
+using DataFrames: rename!, Not, select
+# using Images
+import JSON3
+import CSV
 
-# ╔═╡ 30f67101-9626-4d01-a6fd-c260cd5c29b6
 # CUDA.set_runtime_version!(v"11.8")
 
-# ╔═╡ 278dfa0e-46e1-4789-9f51-eb3463a9fb00
-TableOfContents()
-
-# ╔═╡ 8b786cbc-dd81-4208-9eee-2d7f7bbfa23f
-md"""
+########################################
 # Julia DT Benchmarks
-"""
+########################################
 
-# ╔═╡ ad97f6cb-c331-4898-9c6c-485582058e4d
-df_metal_2d = read(datadir("dt_2D_Metal.csv"), DataFrame);
+df_metal_2d = CSV.read(datadir("dt_2D_Metal.csv"), DataFrame);
+df_cuda_2d = CSV.read(datadir("dt_2D_CUDA.csv"), DataFrame);
+df_oneapi_2d = CSV.read(datadir("dt_2D_oneAPI.csv"), DataFrame);
+df_amdgpu_2d = CSV.read(datadir("dt_2D_AMDGPU.csv"), DataFrame);
+df_metal_3d = CSV.read(datadir("dt_3D_Metal.csv"), DataFrame);
+df_cuda_3d = CSV.read(datadir("dt_3D_CUDA.csv"), DataFrame);
+df_oneapi_3d = CSV.read(datadir("dt_3D_oneAPI.csv"), DataFrame);
+df_amdgpu_3d = CSV.read(datadir("dt_3D_AMDGPU.csv"), DataFrame);
 
-# ╔═╡ 83f4fd58-e801-4dda-9ba7-f5eec56722f6
-df_cuda_2d = read(datadir("dt_2D_CUDA.csv"), DataFrame);
-
-# ╔═╡ c7c6aa70-6e46-4444-b8df-68895b55d642
-df_oneapi_2d = read(datadir("dt_2D_oneAPI.csv"), DataFrame);
-
-# ╔═╡ d86c512c-b3dc-4542-8c2c-27b72019dce1
-df_amdgpu_2d = read(datadir("dt_2D_AMDGPU.csv"), DataFrame);
-
-# ╔═╡ eb190959-b90f-4dbb-8ae7-09b964e1a1c2
-df_metal_3d = read(datadir("dt_3D_Metal.csv"), DataFrame);
-
-# ╔═╡ 1936dff5-1d17-4773-9009-51ec95eb9411
-df_cuda_3d = read(datadir("dt_3D_CUDA.csv"), DataFrame);
-
-# ╔═╡ 2ff50a99-aaf0-4282-a194-6fff6f50dea6
-df_oneapi_3d = read(datadir("dt_3D_oneAPI.csv"), DataFrame);
-
-# ╔═╡ facdc420-5c39-4057-853e-bbab8f96fac6
-df_amdgpu_3d = read(datadir("dt_3D_AMDGPU.csv"), DataFrame);
-
-# ╔═╡ 492df5fa-e20e-4dcb-8c1f-b7e14d9fc2de
 title_2d = "Performance Comparison \nof Julia Distance Transforms (2D)"
-
-# ╔═╡ 7bc02cb0-76e9-4654-b17a-9d95089bf472
 dt_names_2d = ["Maurer", "Felzenszwalb", "Felzenszwalb (Multi-threaded)", "Proposed (CUDA)", "Proposed (AMDGPU)", "Proposed (Metal)", "Proposed (oneAPI)"]
-
-# ╔═╡ b50a4061-4f49-4578-8671-1746d532c9dc
 range_names_2d = [L"(2^3)^2", L"(2^4)^2", L"(2^5)^2", L"(2^6)^2", L"(2^7)^2", L"(2^8)^2", L"(2^9)^2", L"(2^{10})^2", L"(2^{11})^2", L"(2^{12})^2"]
-
-# ╔═╡ 08676d5b-f098-43a9-8bc3-b5cda3282b2a
 title_3d = "Performance Comparison \nof Julia Distance Transforms (3D)"
-
-# ╔═╡ f093102d-4796-4d05-943c-c314febe7342
 dt_names_3d = ["Maurer", "Felzenszwalb", "Felzenszwalb (Multi-threaded)", "Proposed (CUDA)", "Proposed (AMDGPU)", "Proposed (Metal)", "Proposed (oneAPI)"]
-
-# ╔═╡ 0c09ef6c-d05e-4f73-9075-78d9ba986bb9
 range_names_3d = [L"(2^0)^3", L"(2^1)^3", L"(2^2)^3", L"(2^3)^3", L"(2^4)^3", L"(2^5)^3", L"(2^6)^3", L"(2^7)^3", L"(2^8)^3"]
 
-# ╔═╡ 335fe4b9-a11f-4cb9-ac81-68d305f73a2d
-md"""
-## Combined Barplot
-"""
+########################################
+## Combined Table
+########################################
 
-# ╔═╡ bad637b7-3449-4481-846f-e5160cdfca40
+function combine_dataframes(df_2d::DataFrame, df_3d::DataFrame; cols_2d, cols_3d=cols_2d)
+	# Select specified columns from both dataframes
+	df_2d_selected = df_2d[!, cols_2d]
+	df_3d_selected = df_3d[!, cols_3d]
+	# Rename columns in df_3d to match those in df_2d
+	rename!(df_3d_selected, names(df_2d_selected))
+	# Vertically concatenate the selected dataframes
+	df_combined = vcat(df_2d_selected, df_3d_selected)
+	return df_combined
+end
+
+function process_multiple_dataframe_pairs(pairs)
+	combined_dfs = []
+	for pair in pairs
+		# Get cols_3d if specified; otherwise, default to cols_2d
+		cols_3d = get(pair, :cols_3d, pair.cols_2d)
+		# Combine the dataframes
+		df_combined = combine_dataframes(pair.df_2d, pair.df_3d; cols_2d=pair.cols_2d, cols_3d=cols_3d)
+		push!(combined_dfs, df_combined)
+	end
+	# Horizontally concatenate all combined dataframes
+	df_comprehensive = hcat(combined_dfs...; makeunique = true)
+	return df_comprehensive
+end
+
+pairs = [
+	(
+		df_2d = df_cuda_2d, df_3d = df_cuda_3d, cols_2d = 3:size(df_metal_2d, 2)
+	),
+	(
+		df_2d = df_metal_2d, df_3d = df_metal_3d, cols_2d = (size(df_cuda_2d, 2)-1):size(df_cuda_2d, 2)
+	),
+	(
+		df_2d = df_amdgpu_2d, df_3d = df_amdgpu_3d, cols_2d = 6:7
+	),
+	(
+		df_2d = df_oneapi_2d, df_3d = df_oneapi_3d, cols_2d = 6:7
+	)
+];
+
+df_comprehensive = process_multiple_dataframe_pairs(pairs);
+
+begin
+	df_clean = select(df_comprehensive, Not(r"std"i))
+	rename!(df_clean, Dict(
+	    "sizes" => "Array Size",
+		"dt_maurer" => "Maurer (Multi-Threaded)",
+		"dt_fenz" => "Felzenszwalb",
+		"dt_fenz_multi" => "Felzenszwalb (Multi-Threaded)",
+		"dt_proposed_cuda" => "Proposed (CUDA)",
+		"dt_proposed_metal" => "Proposed (Metal)",
+		"dt_proposed_amdgpu" => "Proposed (AMDGPU)",
+		"dt_proposed_oneapi" => "Proposed (oneAPI)",
+	))
+	df_clean[!, "Array Size"] .= [
+		"8²", "16²", "32²", "64²", "128²", "256²", "512²", "1024²", "2048²", "4096²", "1³", "2³", "4³", "8³", "16³", "32³", "64³", "128³", "256³"
+	]
+
+	df_clean_cp = copy(df_clean)
+	for (i, col) in enumerate(eachcol(df_clean))
+		if eltype(col) == Float64
+			df_clean_cp[:, i] = round.(col; sigdigits=3)
+		end
+	end
+	df_clean_cp
+end
+
+let
+	f = Figure(size = (800, 600))
+	ax = Axis(
+		f[1, 1],
+		yscale = log10
+	)
+	scatterlines!(df_clean_cp[!, "Maurer (Multi-Threaded)"]; label = "Maurer (Multi-Threaded)")
+	scatterlines!(df_clean_cp[!, "Felzenszwalb"]; label = "Felzenszwalb")
+	scatterlines!(df_clean_cp[!, "Felzenszwalb (Multi-Threaded)"]; label = "Felzenszwalb (Multi-Threaded)")
+	scatterlines!(df_clean_cp[!, "Proposed (CUDA)"]; label = "Proposed (CUDA)")
+	scatterlines!(df_clean_cp[!, "Proposed (Metal)"]; label = "Proposed (Metal)")
+	scatterlines!(df_clean_cp[!, "Proposed (AMDGPU)"]; label = "Proposed (AMDGPU)")
+	scatterlines!(df_clean_cp[!, "Proposed (oneAPI)"]; label = "Proposed (oneAPI)")
+
+	axislegend(ax; position = :lt)
+	f
+end
+
+########################################
+## Combined Barplot
+########################################
+
 let
 	### ------------------- 2D PLOT ------------------- ###
 	title_2d = "Performance Comparison \nof Julia Distance Transforms (2D)"
-	dt_names_2d = dt_names_2d
+	# dt_names_2d = dt_names_2d
 	sizes_2d = df_metal_2d[:, :sizes]
 	dt_maurer_2d = df_metal_2d[:, :dt_maurer]
 	dt_fenz_2d = df_metal_2d[:, :dt_fenz]
@@ -145,7 +183,7 @@ let
 
 	### ------------------- 3D PLOT ------------------- ###
 	title_3d = "Performance Comparison \nof Julia Distance Transforms (3D)"
-	dt_names_3d = dt_names_3d
+	# dt_names_3d = dt_names_3d
 	sizes_3d = df_metal_3d[:, :sizes_3D]
 	dt_maurer_3d = df_metal_3d[:, :dt_maurer_3D]
 	dt_fenz_3d = df_metal_3d[:, :dt_fenz_3D]
@@ -216,35 +254,332 @@ let
 	f
 end
 
-# ╔═╡ 3fc76221-c854-46ce-9c85-8baa43ff7e14
-md"""
+########################################
+## JSON version
+########################################
+
+data = JSON3.read(read(datadir("combined_benchmarks.json"), String))
+benchmark_groups = data[2][1][2][:data]  # Get the full benchmark data
+benchmark_groups
+
+function extract_memory_cpu(data, dimension)
+    memory_dict = Dict()
+    
+    for (thread_key, thread_data) in data
+        thread_key_str = string(thread_key)
+        
+        # Skip if the dimension is not present in the thread data
+        if !haskey(thread_data[2][:data], dimension)
+            continue
+        end
+        
+        dim_data = thread_data[2][:data][dimension][2][:data]
+        
+        for (size_key, size_data) in dim_data
+            if !haskey(memory_dict, size_key)
+                memory_dict[size_key] = Dict()
+            end
+            
+            bench_data = size_data[2][:data]
+            
+            if thread_key_str == "CPU_1thread"
+                # Process Maurer data with 1 thread
+                if haskey(bench_data, "Maurer") && haskey(bench_data["Maurer"][2][:data], "CPU")
+                    maurer_cpu = bench_data["Maurer"][2][:data]["CPU"][2][:data]
+                    for (_, entry) in maurer_cpu
+                        memory_dict[size_key]["Maurer"] = entry[2][:memory]
+                    end
+                end
+                
+                # Process Felzenszwalb data with 1 thread
+                if haskey(bench_data, "Felzenszwalb") && haskey(bench_data["Felzenszwalb"][2][:data], "CPU")
+                    felz_cpu = bench_data["Felzenszwalb"][2][:data]["CPU"][2][:data]
+                    for (_, entry) in felz_cpu
+                        memory_dict[size_key]["Felzenszwalb"] = entry[2][:memory]
+                    end
+                end
+                
+            elseif thread_key_str == "CPU_4thread"
+                # Process Felzenszwalb_MT data with 4 threads (named "Felzenszwalb MT")
+                if haskey(bench_data, "Felzenszwalb_MT") && haskey(bench_data["Felzenszwalb_MT"][2][:data], "CPU")
+                    felz_mt_cpu = bench_data["Felzenszwalb_MT"][2][:data]["CPU"][2][:data]
+                    for (_, entry) in felz_mt_cpu
+                        memory_dict[size_key]["Felzenszwalb MT"] = entry[2][:memory]
+                    end
+                end
+                
+            elseif thread_key_str in ["CUDA", "oneAPI", "AMDGPU", "Metal"]
+                # Process GPU data
+                if haskey(bench_data, "Felzenszwalb") && haskey(bench_data["Felzenszwalb"][2][:data], "GPU")
+                    gpu_data = bench_data["Felzenszwalb"][2][:data]["GPU"][2][:data]
+                    if haskey(gpu_data, thread_key_str)
+                        memory_dict[size_key][thread_key_str] = gpu_data[thread_key_str][2][:memory]
+                    end
+                end
+            end
+        end
+    end
+    
+    return memory_dict
+end
+
+memory_2d_cpu = extract_memory_cpu(benchmark_groups, "2D")
+memory_3d_cpu = extract_memory_cpu(benchmark_groups, "3D")
+
+# Function to create DataFrame from memory dictionary
+function create_mem_df(memory)
+	# Initialize arrays for each column
+	sizes = String[]
+	mem_maurer = Float64[]
+	mem_fenz = Float64[]
+	mem_fenz_multi = Float64[]
+	mem_proposed_cuda = Float64[]
+	mem_proposed_oneapi = Float64[]
+	mem_proposed_metal = Float64[]
+	mem_proposed_amdgpu = Float64[]
+
+	# Populate arrays
+	for (size_key, size_data) in memory
+		push!(sizes, string(size_key))
+		
+		# Extract memory allocations, defaulting to NaN if not present
+		push!(mem_maurer, get(size_data, "Maurer", NaN))
+		push!(mem_fenz, get(size_data, "Felzenszwalb", NaN))
+		push!(mem_fenz_multi, get(size_data, "Felzenszwalb MT", NaN))
+		push!(mem_proposed_cuda, get(size_data, "CUDA", NaN))
+		push!(mem_proposed_oneapi, get(size_data, "oneAPI", NaN))
+		push!(mem_proposed_metal, get(size_data, "Metal", NaN))
+		push!(mem_proposed_amdgpu, get(size_data, "AMDGPU", NaN))
+	end
+
+	# Create DataFrame
+	df = DataFrame(
+		sizes = sizes,
+		mem_maurer = mem_maurer,
+		mem_fenz = mem_fenz,
+		mem_fenz_multi = mem_fenz_multi,
+		mem_proposed_cuda = mem_proposed_cuda,
+		mem_proposed_oneapi = mem_proposed_oneapi,
+		mem_proposed_metal = mem_proposed_metal,
+		mem_proposed_amdgpu = mem_proposed_amdgpu
+	)
+	return df
+end
+
+# Create DataFrames
+df_mem_2d_cpu = create_mem_df(memory_2d_cpu)
+df_mem_3d_cpu = create_mem_df(memory_3d_cpu)
+
+# Process and sort DataFrames (same as before)
+df_mem_2d_cpu.sizes = map(extract_size_number, df_mem_2d_cpu.sizes)
+sort!(df_mem_2d_cpu, :sizes)
+
+df_mem_3d_cpu.sizes = map(extract_size_number, df_mem_3d_cpu.sizes)
+sort!(df_mem_3d_cpu, :sizes)
+
+# Read GPU memory data from JSON files
+cuda_memory = JSON3.read(read(datadir("cuda_memory.json"), String))
+metal_memory = JSON3.read(read(datadir("metal_memory.json"), String))
+amdgpu_memory = JSON3.read(read(datadir("amdgpu_memory.json"), String))
+oneapi_memory = JSON3.read(read(datadir("oneapi_memory.json"), String))
+
+function extract_memory_gpu(data, dimension)
+    memory_dict = Dict()
+    
+    # Iterate through all CPU thread variations
+    for (thread_key, thread_data) in data
+        if !haskey(thread_data[2][:data], dimension)
+            continue
+        end
+        
+        dim_data = thread_data[2][:data][dimension][2][:data]
+        
+        for (size_key, size_data) in dim_data
+            if !haskey(memory_dict, size_key)
+                memory_dict[size_key] = Dict()
+            end
+            
+            # Get the actual benchmark data
+            bench_data = size_data[2][:data]
+            
+            # Extract Maurer data (CPU memory)
+            if haskey(bench_data, "Maurer") && haskey(bench_data["Maurer"][2][:data], "CPU")
+                maurer_data = bench_data["Maurer"][2][:data]["CPU"][2][:data]
+                for (thread_count, thread_data) in maurer_data
+                    memory_dict[size_key]["Maurer"] = thread_data[2][:memory]
+                end
+            end
+            
+            # Extract Felzenszwalb data (CPU memory)
+            if haskey(bench_data, "Felzenszwalb") && haskey(bench_data["Felzenszwalb"][2][:data], "CPU")
+                felz_data = bench_data["Felzenszwalb"][2][:data]
+                if haskey(felz_data, "CPU")
+                    cpu_data = felz_data["CPU"][2][:data]
+                    for (thread_count, thread_data) in cpu_data
+                        memory_dict[size_key]["Felzenszwalb"] = thread_data[2][:memory]
+                    end
+                end
+            end
+            
+            # Extract Felzenszwalb MT data (CPU memory)
+            if haskey(bench_data, "Felzenszwalb_MT") && haskey(bench_data["Felzenszwalb_MT"][2][:data], "CPU")
+                felz_mt_data = bench_data["Felzenszwalb_MT"][2][:data]
+                if haskey(felz_mt_data, "CPU")
+                    cpu_data = felz_mt_data["CPU"][2][:data]
+                    for (thread_count, thread_data) in cpu_data
+                        memory_dict[size_key]["Felzenszwalb MT"] = thread_data[2][:memory]
+                    end
+                end
+            end
+            
+            # GPU memory from separate JSON files (only need to do this once per size)
+            key = "$(dimension)_$(size_key)"
+            memory_dict[size_key]["CUDA"] = get(cuda_memory, key, NaN)
+            memory_dict[size_key]["Metal"] = get(metal_memory, key, NaN)
+            memory_dict[size_key]["AMDGPU"] = get(amdgpu_memory, key, NaN)
+            memory_dict[size_key]["oneAPI"] = get(oneapi_memory, key, NaN)
+        end
+    end
+    
+    return memory_dict
+end
+
+
+memory_2d_gpu = extract_memory_gpu(benchmark_groups, "2D")
+memory_3d_gpu = extract_memory_gpu(benchmark_groups, "3D")
+
+# Create initial DataFrames
+df_mem_2d_gpu = create_mem_df(memory_2d_gpu)
+df_mem_3d_gpu = create_mem_df(memory_3d_gpu)
+
+# Process and sort DataFrames
+df_mem_2d_gpu.sizes = map(extract_size_number, df_mem_2d_gpu.sizes)
+sort!(df_mem_2d_gpu, :sizes)
+
+df_mem_3d_gpu.sizes = map(extract_size_number, df_mem_3d_gpu.sizes)
+sort!(df_mem_3d_gpu, :sizes)
+
+
+function plot_benchmarks(df_2d_cpu, df_3d_cpu, df_2d_gpu, df_3d_gpu)
+    dt_names = ["Maurer", "Felzenszwalb", "Felzenszwalb MT", "CUDA", "AMDGPU", "oneAPI", "Metal"]
+    
+    f = Figure(size = (800, 900))
+    
+    ### ------------------- 2D PLOT ------------------- ###
+    title_2d = "Memory Usage Comparison \nof Julia Distance Transforms (2D)"
+    sizes_2d = df_2d_cpu.sizes
+    x_names_2d = range_names_2d  # Assuming defined elsewhere
+
+    # Convert bytes to MiB and create matrix
+    heights_2d = hcat(
+        df_2d_cpu.mem_maurer ./ (1024^2),
+        df_2d_cpu.mem_fenz ./ (1024^2),
+        df_2d_cpu.mem_fenz_multi ./ (1024^2),
+        df_2d_gpu.mem_proposed_cuda ./ (1024^2),
+        df_2d_gpu.mem_proposed_amdgpu ./ (1024^2),
+        df_2d_gpu.mem_proposed_oneapi ./ (1024^2),
+        df_2d_gpu.mem_proposed_metal ./ (1024^2)
+    )
+    
+    # Rest of 2D plotting logic remains similar
+    dt_heights_2d = vec(heights_2d')
+    cat_2d = repeat(1:length(sizes_2d), inner=length(dt_names))
+    grp_2d = repeat(1:length(dt_names), length(sizes_2d))
+    colors = Makie.wong_colors()
+    
+    ax_2d = Axis(
+        f[1:2, 1:2],
+        ylabel = "Memory (MiB)",
+        title = title_2d,
+        titlesize = 25,
+        xticks = (1:length(sizes_2d), x_names_2d),
+        yticks = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 10, 100, 1000],
+        yscale = log10,
+        xgridvisible = false,
+        ygridvisible = false
+    )
+    
+    barplot!(ax_2d, cat_2d, dt_heights_2d;
+        dodge = grp_2d,
+        color = colors[grp_2d],
+    )
+
+    ### ------------------- 3D PLOT ------------------- ###
+    title_3d = "Memory Usage Comparison \nof Julia Distance Transforms (3D)"
+    sizes_3d = df_3d_cpu.sizes
+    x_names_3d = range_names_3d  # Assuming defined elsewhere
+
+    heights_3d = hcat(
+        df_3d_cpu.mem_maurer ./ (1024^2),
+        df_3d_cpu.mem_fenz ./ (1024^2),
+        df_3d_cpu.mem_fenz_multi ./ (1024^2),
+        df_3d_gpu.mem_proposed_cuda ./ (1024^2),
+        df_3d_gpu.mem_proposed_amdgpu ./ (1024^2),
+        df_3d_gpu.mem_proposed_oneapi ./ (1024^2),
+        df_3d_gpu.mem_proposed_metal ./ (1024^2)
+    )
+    
+    # Rest of 3D plotting logic remains similar
+    dt_heights_3d = vec(heights_3d')
+    cat_3d = repeat(1:length(sizes_3d), inner=length(dt_names))
+    grp_3d = repeat(1:length(dt_names), length(sizes_3d))
+    
+    ax_3d = Axis(
+        f[4:5, 1:2],
+        ylabel = "Memory (MiB)",
+        title = title_3d,
+        titlesize = 25,
+        xticks = (1:length(sizes_3d), x_names_3d),
+        yticks = [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 10, 100, 1000],
+        yscale = log10,
+        xgridvisible = false,
+        ygridvisible = false
+    )
+    
+    barplot!(ax_3d, cat_3d, dt_heights_3d;
+        dodge = grp_3d,
+        color = colors[grp_3d],
+    )
+    
+    # X axis labels
+    Label(f[3, 1:2], "Array Sizes", fontsize=14, padding=(0, 0, 0, 0))
+    Label(f[6, 1:2], "Array Sizes", fontsize=14, padding=(0, 0, 0, 0))
+    
+    # Legends (fixed dt_names reference)
+    # CPU Legend
+    rnge = 1:3
+    elements = [PolyElement(polycolor=colors[i]) for i in rnge]
+    Legend(f[2:3, 3], elements, dt_names[rnge], "Distance Transform\nAlgorithms (CPU)")
+    
+    # GPU Legend
+    rnge = 4:7
+    elements = [PolyElement(polycolor=colors[i]) for i in rnge]
+    Legend(f[3:4, 3], elements, dt_names[rnge], "Distance Transform\nAlgorithms (GPU)")
+    
+    # save(joinpath(pwd(), "plots/julia_memory_usage.png"), f)
+    return f
+end
+
+f = plot_benchmarks(df_mem_2d_cpu, df_mem_3d_cpu, df_mem_2d_gpu, df_mem_3d_gpu)
+
+
+########################################
 # Python DT Benchmarks
-"""
+########################################
 
-# ╔═╡ 3a436af8-66d5-4a82-85e1-d860fe52421f
-df_py_2d = read(datadir("dt_py_2D_CUDA.csv"), DataFrame);
-
-# ╔═╡ 8460f3a8-8c18-46ef-927e-125520db0db6
-df_py_3d = read(datadir("dt_py_3D_CUDA.csv"), DataFrame);
-
-# ╔═╡ 124ab9eb-0959-4a16-9659-f58b01ccf463
+df_py_2d = CSV.read(datadir("dt_py_2D_CUDA.csv"), DataFrame);
+df_py_3d = CSV.read(datadir("dt_py_3D_CUDA.csv"), DataFrame);
 title_2d_py = "Performance Comparison \nof Python Distance Transforms (2D)"
-
-# ╔═╡ 5c9a9a74-ad6e-43d3-9dce-226f03dc3535
-dt_names_2d_py = ["Scipy", "Tensorflow", "FastGeodis", "OpenCV", "Felzenszwalb", "Felzenszwalb (Multi-threaded)", "Proposed (CUDA)"]
-
-# ╔═╡ 7760006c-a8cd-4019-a54f-a4256d17f39b
+# dt_names_2d_py = ["Scipy", "Tensorflow", "FastGeodis", "OpenCV", "Felzenszwalb", "Felzenszwalb (Multi-threaded)", "Proposed (CUDA)"]
+dt_names_2d_py = ["Scipy", "Tensorflow", "FastGeodis", "OpenCV", "Felzenszwalb", "Proposed (CUDA)"]
 title_3d_py = "Performance Comparison \nof Python Distance Transforms (3D)"
+# dt_names_3d_py = ["Scipy", "Tensorflow", "FastGeodis", "Felzenszwalb", "Felzenszwalb (Multi-threaded)", "Proposed (CUDA)"]
+dt_names_3d_py = ["Scipy", "Tensorflow", "FastGeodis", "Felzenszwalb", "Proposed (CUDA)"]
 
-# ╔═╡ ea709965-e6dc-43a2-8472-8169fffb8447
-dt_names_3d_py = ["Scipy", "Tensorflow", "FastGeodis", "Felzenszwalb", "Felzenszwalb (Multi-threaded)", "Proposed (CUDA)"]
+########################################
+# Combined Barplot
+########################################
 
-# ╔═╡ f0927b59-bc77-4979-8d68-f7ac01773a4b
-md"""
-## Combined Barplot
-"""
-
-# ╔═╡ bb5094df-a79d-42cc-a0f0-103735875482
 let
     ### ------------------- 2D PLOT ------------------- ###
     title_2d = title_2d_py
@@ -255,7 +590,7 @@ let
     dt_fastgeodis_2d = df_py_2d[:, :dt_fastgeodis]
     dt_opencv_2d = df_py_2d[:, :dt_opencv]
     dt_pydt_single_2d = df_py_2d[:, :dt_pydt_single]
-    dt_pydt_multi_2d = df_py_2d[:, :dt_pydt_multi]
+    # dt_pydt_multi_2d = df_py_2d[:, :dt_pydt_multi]
     dt_pydt_cuda_2d = df_py_2d[:, :dt_pydt_cuda]
     x_names_2d = range_names_2d
     
@@ -266,7 +601,7 @@ let
         dt_tfa_2d,
         dt_opencv_2d,
         dt_pydt_single_2d,
-        dt_pydt_multi_2d,
+        # dt_pydt_multi_2d,
         dt_fastgeodis_2d,
         dt_pydt_cuda_2d
     )
@@ -274,7 +609,7 @@ let
     offset_2d = 1
     for i in eachrow(heights_2d)
         dt_heights_2d[offset_2d:(offset_2d+length(i) - 1)] .= i
-        offset_2d += 7
+        offset_2d += 6
     end
 
     cat_2d = repeat(1:length(sizes_2d), inner = length(dt_names_2d))
@@ -304,15 +639,19 @@ let
     Label(f[3, 1:2], "Array Sizes", fontsize = 14, padding = (0, 0, 0, 0))
 
 	# CPU Legend
-	rnge = [1, 2, 3, 4, 5]
-	labels = dt_names_2d[[1, 2, 4, 5, 6]]
+	# rnge = [1, 2, 3, 4, 5]
+	rnge = [1, 2, 3, 4]
+	# labels = dt_names_2d[[1, 2, 4, 5, 6]]
+	labels = dt_names_2d[[1, 2, 4, 5]]
 	elements = [PolyElement(polycolor = colors_2d[i]) for i in rnge]
 	title = "Distance Transform \nAlgorithms (CPU)"
 	Legend(f[1, 3], elements, labels, title)
 
 	# GPU Legend
-	rnge = [6, 7]
-	labels = dt_names_2d[[3, 7]]
+	# rnge = [6, 7]
+	rnge = [5, 6]
+	# labels = dt_names_2d[[3, 7]]
+	labels = dt_names_2d[[3, 6]]
 	elements = [PolyElement(polycolor = colors_2d[i]) for i in rnge]
 	title = "Distance Transform \nAlgorithms (GPU)"
 	Legend(f[2, 3], elements, labels, title)
@@ -325,7 +664,7 @@ let
     dt_tfa_3d = df_py_3d[:, :dt_tfa_3D]
     dt_fastgeodis_3d = df_py_3d[:, :dt_fastgeodis_3D]
     dt_pydt_single_3d = df_py_3d[:, :dt_pydt_single_3D]
-    dt_pydt_multi_3d = df_py_3d[:, :dt_pydt_multi_3D]
+    # dt_pydt_multi_3d = df_py_3d[:, :dt_pydt_multi_3D]
     dt_pydt_cuda_3d = df_py_3d[:, :dt_pydt_cuda_3D]
     x_names_3d = range_names_3d
     
@@ -335,7 +674,7 @@ let
         dt_scipy_3d,
         dt_tfa_3d,
         dt_pydt_single_3d,
-        dt_pydt_multi_3d,
+        # dt_pydt_multi_3d,
         dt_fastgeodis_3d,
         dt_pydt_cuda_3d
     )
@@ -343,7 +682,7 @@ let
     offset_3d = 1
     for i in eachrow(heights_3d)
         dt_heights_3d[offset_3d:(offset_3d+length(i) - 1)] .= i
-        offset_3d += 6
+        offset_3d += 5
     end
 
     cat_3d = repeat(1:length(sizes_3d), inner = length(dt_names_3d))
@@ -372,15 +711,15 @@ let
     Label(f[6, 1:2], "Array Sizes", fontsize = 14, padding = (0, 0, 0, 0))
 
 	# CPU Legend
-	rnge = [1, 2, 3, 4]
-	labels = dt_names_3d[[1, 2, 4, 5]]
+	rnge = [1, 2, 3]
+	labels = dt_names_3d[[1, 2, 4]]
 	elements = [PolyElement(polycolor = colors_3d[i]) for i in rnge]
 	title = "Distance Transform \nAlgorithms (CPU)"
 	Legend(f[4, 3], elements, labels, title)
 	
 	# GPU Legend
-	rnge = [5, 6]
-	labels = dt_names_3d[[3, 6]]
+	rnge = [4, 5]
+	labels = dt_names_3d[[3, 5]]
 	elements = [PolyElement(polycolor = colors_3d[i]) for i in rnge]
 	title = "Distance Transform \nAlgorithms (GPU)"
 	Legend(f[5, 3], elements, labels, title)
@@ -390,29 +729,66 @@ let
     f
 end
 
-# ╔═╡ c47bd4a9-368e-4288-b0df-9f116574a6b0
-md"""
+begin
+	df_clean_py_2d = select(df_py_2d, Not(r"dt_pydt_mult"i))
+	rename!(df_clean_py_2d, Dict(
+	    "sizes" => "Array Size",
+		"dt_scipy" => "Scipy",
+		"dt_tfa" => "Tensorflow",
+		"dt_fastgeodis" => "FastGeodis",
+		"dt_opencv" => "OpenCV",
+		"dt_pydt_single" => "Felzenszwalb",
+		"dt_pydt_cuda" => "Proposed (CUDA)",
+	))
+	df_clean_py_2d[!, "Array Size"] .= [
+		"8²", "16²", "32²", "64²", "128²", "256²", "512²", "1024²", "2048²", "4096²"
+	]
+
+	df_clean_py_2d_cp = copy(df_clean_py_2d)
+	for (i, col) in enumerate(eachcol(df_clean_py_2d))
+		if eltype(col) == Float64
+			df_clean_py_2d_cp[:, i] = round.(col; sigdigits=3)
+		end
+	end
+	df_clean_py_2d_cp
+end
+
+begin
+	df_clean_py_3d = select(df_py_3d, Not(r"dt_pydt_mult"i))
+	rename!(df_clean_py_3d, Dict(
+	    "sizes_3D" => "Array Size",
+		"dt_scipy_3D" => "Scipy",
+		"dt_tfa_3D" => "Tensorflow",
+		"dt_fastgeodis_3D" => "FastGeodis",
+		"dt_pydt_single_3D" => "Felzenszwalb",
+		"dt_pydt_cuda_3D" => "Proposed (CUDA)",
+	))
+	df_clean_py_3d[!, "Array Size"] .= [
+		"1³", "2³", "4³", "8³", "16³", "32³", "64³", "128³", "256³"
+	]
+
+	df_clean_py_3d_cp = copy(df_clean_py_3d)
+	for (i, col) in enumerate(eachcol(df_clean_py_3d))
+		if eltype(col) == Float64
+			df_clean_py_3d_cp[:, i] = round.(col; sigdigits=3)
+		end
+	end
+	df_clean_py_3d_cp
+end
+
+########################################
 # Hausdorff Loss
-"""
+########################################
 
-# ╔═╡ 1523ddd9-ebe4-4a48-aaaf-0b499fef7b34
-df_hd_loss_pure_losses_timings = read(joinpath(pwd(), "data/hd_loss_pure_losses_timings.csv"), DataFrame);
+df_hd_loss_pure_losses_timings = CSV.read(joinpath(pwd(), "data/hd_loss_pure_losses_timings.csv"), DataFrame);
+df_hd_loss_plain_dice_timing = CSV.read(joinpath(pwd(), "data/hd_loss_plain_dice_timing.csv"), DataFrame);
+df_hd_loss_hd_dice_scipy_timing = CSV.read(joinpath(pwd(), "data/hd_loss_hd_dice_scipy_timing.csv"), DataFrame);
+df_hd_loss_hd_dice_pydt_timing = CSV.read(joinpath(pwd(), "data/hd_loss_hd_dice_pydt_timing.csv"), DataFrame);
 
-# ╔═╡ 3a26807e-b902-4a02-9af9-f83db03dfe00
-df_hd_loss_plain_dice_timing = read(joinpath(pwd(), "data/hd_loss_plain_dice_timing.csv"), DataFrame);
-
-# ╔═╡ d726c7e3-2005-4c2f-a0cc-5d774d1dce88
-df_hd_loss_hd_dice_scipy_timing = read(joinpath(pwd(), "data/hd_loss_hd_dice_scipy_timing.csv"), DataFrame);
-
-# ╔═╡ 447c1bad-2a30-4870-9330-e243922f0ec4
-df_hd_loss_hd_dice_pydt_timing = read(joinpath(pwd(), "data/hd_loss_hd_dice_pydt_timing.csv"), DataFrame);
-
-# ╔═╡ c49b579f-63f8-430d-8938-cb2ecf35f11c
-md"""
+########################################
 ## Combined Barplot
-"""
+########################################
 
-# ╔═╡ bfe42c1b-f167-49f0-b05a-fb13e531fb53
 let
 	df = df_hd_loss_pure_losses_timings
 	methods = ["Dice Loss", "HD Loss (Scipy)", "HD Loss (Proposed)"]	
@@ -428,7 +804,7 @@ let
 		xticks = (1:length(methods), methods),
 		yticks = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1e0, 1e1, 1e2],
 		yscale = log10,
-		ytickformat = "{:.2e}",  # Format y-axis tick labels as scientific notation with 2 decimal places
+		ytickformat = "{:.2f}",  # Format y-axis tick labels as scientific notation with 2 decimal places
 		xgridvisible = false,
 		ygridvisible = false
 	)
@@ -479,24 +855,16 @@ let
 	fig
 end
 
-# ╔═╡ 2b054f68-d0c5-4c79-b200-576b1e7c02ee
-md"""
-## Training/Accuracy Metrics
-"""
+########################################
+# Training/Accuracy Metrics
+########################################
 
-# ╔═╡ 76b82ae6-38b4-40eb-97a6-286165398e17
-df_training_results_dice = read(joinpath(pwd(), "data/training_results_dice.csv"), DataFrame);
+df_training_results_dice = CSV.read(joinpath(pwd(), "data/training_results_dice.csv"), DataFrame);
+df_training_results_hd_pydt = CSV.read(joinpath(pwd(), "data/training_results_hd_pydt.csv"), DataFrame);
+df_hd_loss_metrics_dice = CSV.read(joinpath(pwd(), "data/hd_loss_metrics_dice.csv"), DataFrame);
+df_hd_loss_metrics_dice = CSV.read(joinpath(pwd(), "data/hd_loss_metrics_dice.csv"), DataFrame);
+df_hd_loss_metrics_hd_pydt = CSV.read(joinpath(pwd(), "data/hd_loss_metrics_hd_pydt.csv"), DataFrame);
 
-# ╔═╡ 6432995d-e296-4cba-810b-b8990cc18f3b
-df_training_results_hd_pydt = read(joinpath(pwd(), "data/training_results_hd_pydt.csv"), DataFrame);
-
-# ╔═╡ 7136ad27-fd70-48bf-a7f1-0874c031aa50
-df_hd_loss_metrics_dice = read(joinpath(pwd(), "data/hd_loss_metrics_dice.csv"), DataFrame);
-
-# ╔═╡ 3cd22291-ee6a-4032-b05e-36fedb87beac
-df_hd_loss_metrics_hd_pydt = read(joinpath(pwd(), "data/hd_loss_metrics_hd_pydt.csv"), DataFrame);
-
-# ╔═╡ 20056bac-bc82-4b28-ad2f-705bd2c4366d
 begin
 	df_dice = df_hd_loss_metrics_dice
 	df_hd_dice = df_hd_loss_metrics_hd_pydt
@@ -508,7 +876,6 @@ begin
 	hd_dice_values = [df_hd_dice[1, metric] for metric in metrics]
 end;
 
-# ╔═╡ 4c5b64c2-e979-473f-b10b-071c78e53e93
 # Create a DataFrame with the metrics for each model
 df_metrics = DataFrame(
 	"Metric" => metrics,
@@ -516,15 +883,55 @@ df_metrics = DataFrame(
 	"HD + Dice Loss" => hd_dice_values
 )
 
-# ╔═╡ b928a575-ec2c-4ac2-8bfc-6e646a9bcd99
-md"""
+########################################
+# Contour
+########################################
+
+img_dir = joinpath(pwd(), "plots/hd_contour_raw")
+contour_imgs = readdir(img_dir)
+img1 = load(joinpath(img_dir, contour_imgs[1]))[149:end-149, :];
+img2 = load(joinpath(img_dir, contour_imgs[2]))[149:end-149, :];
+img3 = load(joinpath(img_dir, contour_imgs[3]))[149:end-149, :];
+
+let
+	f = Figure(size = (700, 700))
+
+	stp = 1
+	ax = Axis(
+		f[1, 1:stp],
+		aspect = DataAspect()
+	)
+	hidespines!(ax)
+	image!(ax, rotr90(img1))
+	hidedecorations!(ax)
+
+	ax = Axis(
+		f[2, 1:stp],
+		aspect = DataAspect()
+	)
+	hidespines!(ax)
+	image!(ax, rotr90(img2))
+	hidedecorations!(ax)
+
+	
+	ax = Axis(
+		f[3, 1:stp],
+		aspect = DataAspect()
+	)
+	hidespines!(ax)
+	image!(ax, rotr90(img3))
+	hidedecorations!(ax)
+
+	save(joinpath(pwd(), "plots/hd_contours_raw.png"), f)
+	f
+end
+
+########################################
 # Skeletonization
-"""
+########################################
 
-# ╔═╡ e26dfbb8-75ac-49a3-a3ce-a073fa5d1ef0
-df_skeleton = read(datadir("skeleton.csv"), DataFrame);
+df_skeleton = CSV.read(datadir("skeleton.csv"), DataFrame);
 
-# ╔═╡ f6c3bcc3-ddca-43e6-8910-38cf547a7596
 let
 	sizes = df_skeleton[:, :sizes]
 	cpu_timings = df_skeleton[:, "cpu timings"]
@@ -535,12 +942,13 @@ let
 		f[1, 1],
 		ylabel = "Time (ns)",
 		title = "Skeletonization Timings",
+		yticks = [0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9],
 		yscale = log10,
-		xticks = (1:length(sizes), string.(sizes)),
-		xlabel = "Array Sizes (Pixels)"
+		xticks = (1:length(sizes), range_names_2d),
+		xlabel = "Array Sizes"
 	)
 	scatterlines!(cpu_timings; label = "CPU")
-	scatterlines!(gpu_timings; label = "Proposed (Metal)")
+	scatterlines!(gpu_timings; label = "Proposed (CUDA)")
 
 	axislegend(ax; position = :rb)
 
@@ -549,56 +957,7 @@ let
 	f
 end
 
-# ╔═╡ Cell order:
-# ╠═2c729da6-40e6-47cd-a14d-c152b8789b17
-# ╠═30f67101-9626-4d01-a6fd-c260cd5c29b6
-# ╠═33e02405-1750-48f9-9776-d1d2d261f63f
-# ╠═a968bcd8-fc42-45ec-af7c-68e73e8f1cd5
-# ╠═50e24ebe-403a-4d89-b02f-7a1577222838
-# ╠═50bfb09f-4dbb-4488-9284-7eef837ffe75
-# ╠═d1a12515-a9d0-468b-8978-dbb26a1ee667
-# ╠═e39675a9-08c7-4a4a-8eba-021862757a40
-# ╠═278dfa0e-46e1-4789-9f51-eb3463a9fb00
-# ╟─8b786cbc-dd81-4208-9eee-2d7f7bbfa23f
-# ╠═ad97f6cb-c331-4898-9c6c-485582058e4d
-# ╠═83f4fd58-e801-4dda-9ba7-f5eec56722f6
-# ╠═c7c6aa70-6e46-4444-b8df-68895b55d642
-# ╠═d86c512c-b3dc-4542-8c2c-27b72019dce1
-# ╠═eb190959-b90f-4dbb-8ae7-09b964e1a1c2
-# ╠═1936dff5-1d17-4773-9009-51ec95eb9411
-# ╠═2ff50a99-aaf0-4282-a194-6fff6f50dea6
-# ╠═facdc420-5c39-4057-853e-bbab8f96fac6
-# ╠═492df5fa-e20e-4dcb-8c1f-b7e14d9fc2de
-# ╠═7bc02cb0-76e9-4654-b17a-9d95089bf472
-# ╠═b50a4061-4f49-4578-8671-1746d532c9dc
-# ╠═08676d5b-f098-43a9-8bc3-b5cda3282b2a
-# ╠═f093102d-4796-4d05-943c-c314febe7342
-# ╠═0c09ef6c-d05e-4f73-9075-78d9ba986bb9
-# ╟─335fe4b9-a11f-4cb9-ac81-68d305f73a2d
-# ╟─bad637b7-3449-4481-846f-e5160cdfca40
-# ╟─3fc76221-c854-46ce-9c85-8baa43ff7e14
-# ╠═3a436af8-66d5-4a82-85e1-d860fe52421f
-# ╠═8460f3a8-8c18-46ef-927e-125520db0db6
-# ╠═124ab9eb-0959-4a16-9659-f58b01ccf463
-# ╠═5c9a9a74-ad6e-43d3-9dce-226f03dc3535
-# ╠═7760006c-a8cd-4019-a54f-a4256d17f39b
-# ╠═ea709965-e6dc-43a2-8472-8169fffb8447
-# ╟─f0927b59-bc77-4979-8d68-f7ac01773a4b
-# ╟─bb5094df-a79d-42cc-a0f0-103735875482
-# ╟─c47bd4a9-368e-4288-b0df-9f116574a6b0
-# ╠═1523ddd9-ebe4-4a48-aaaf-0b499fef7b34
-# ╠═3a26807e-b902-4a02-9af9-f83db03dfe00
-# ╠═d726c7e3-2005-4c2f-a0cc-5d774d1dce88
-# ╠═447c1bad-2a30-4870-9330-e243922f0ec4
-# ╟─c49b579f-63f8-430d-8938-cb2ecf35f11c
-# ╟─bfe42c1b-f167-49f0-b05a-fb13e531fb53
-# ╟─2b054f68-d0c5-4c79-b200-576b1e7c02ee
-# ╠═76b82ae6-38b4-40eb-97a6-286165398e17
-# ╠═6432995d-e296-4cba-810b-b8990cc18f3b
-# ╠═7136ad27-fd70-48bf-a7f1-0874c031aa50
-# ╠═3cd22291-ee6a-4032-b05e-36fedb87beac
-# ╠═20056bac-bc82-4b28-ad2f-705bd2c4366d
-# ╠═4c5b64c2-e979-473f-b10b-071c78e53e93
-# ╟─b928a575-ec2c-4ac2-8bfc-6e646a9bcd99
-# ╠═e26dfbb8-75ac-49a3-a3ce-a073fa5d1ef0
-# ╟─f6c3bcc3-ddca-43e6-8910-38cf547a7596
+df_skeleton[:, "cpu timings"][end] / 1e9, df_skeleton[:, "gpu timings"][end] / 1e9
+df_skeleton[:, "cpu timings"][end] / df_skeleton[:, "gpu timings"][end]
+
+
