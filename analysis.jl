@@ -461,44 +461,45 @@ sort!(df_mem_3d_gpu, :sizes)
 
 
 function plot_benchmarks(df_2d_cpu, df_3d_cpu, df_2d_gpu, df_3d_gpu)
-    dt_names = ["Maurer", "Felzenszwalb", "Felzenszwalb MT", "CUDA", "AMDGPU", "oneAPI", "Metal"]
-    
     f = Figure(size = (800, 900))
-    
+    dt_names = dt_names_2d[1:end-1]  # Ensure dt_names does not include "oneAPI" in the GPU section
+
     ### ------------------- 2D PLOT ------------------- ###
     title_2d = "Memory Usage Comparison \nof Julia Distance Transforms (2D)"
     sizes_2d = df_2d_cpu.sizes
-    x_names_2d = range_names_2d  # Assuming defined elsewhere
+    x_names_2d = range_names_2d
 
-    # Convert bytes to MiB and create matrix
+    # Exclude oneAPI from the 2D data matrix
     heights_2d = hcat(
         df_2d_cpu.mem_maurer ./ (1024^2),
         df_2d_cpu.mem_fenz ./ (1024^2),
         df_2d_cpu.mem_fenz_multi ./ (1024^2),
         df_2d_gpu.mem_proposed_cuda ./ (1024^2),
         df_2d_gpu.mem_proposed_amdgpu ./ (1024^2),
-        df_2d_gpu.mem_proposed_oneapi ./ (1024^2),
-        df_2d_gpu.mem_proposed_metal ./ (1024^2)
+        df_2d_gpu.mem_proposed_metal ./ (1024^2),
+        # Removed: df_2d_gpu.mem_proposed_oneapi
     )
-    
-    # Rest of 2D plotting logic remains similar
+
     dt_heights_2d = vec(heights_2d')
     cat_2d = repeat(1:length(sizes_2d), inner=length(dt_names))
     grp_2d = repeat(1:length(dt_names), length(sizes_2d))
     colors = Makie.wong_colors()
-    
+
     ax_2d = Axis(
         f[1:2, 1:2],
         ylabel = "Memory (MiB)",
         title = title_2d,
         titlesize = 25,
         xticks = (1:length(sizes_2d), x_names_2d),
-        yticks = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 10, 100, 1000],
+		yticks = (
+			[1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1e0, 1e1, 1e2, 1e3],
+			[L"1 \times 10^{-6}", L"1 \times 10^{-5}", L"1 \times 10^{-4}", L"1 \times 10^{-3}", L"1 \times 10^{-2}", L"1 \times 10^{-1}", L"1 \times 10^{0}", L"1 \times 10^{1}", L"1 \times 10^{2}", L"1 \times 10^{3}"]
+		),
         yscale = log10,
         xgridvisible = false,
         ygridvisible = false
     )
-    
+
     barplot!(ax_2d, cat_2d, dt_heights_2d;
         dodge = grp_2d,
         color = colors[grp_2d],
@@ -507,60 +508,111 @@ function plot_benchmarks(df_2d_cpu, df_3d_cpu, df_2d_gpu, df_3d_gpu)
     ### ------------------- 3D PLOT ------------------- ###
     title_3d = "Memory Usage Comparison \nof Julia Distance Transforms (3D)"
     sizes_3d = df_3d_cpu.sizes
-    x_names_3d = range_names_3d  # Assuming defined elsewhere
+    x_names_3d = range_names_3d
 
+    # Exclude oneAPI from the 3D data matrix
     heights_3d = hcat(
         df_3d_cpu.mem_maurer ./ (1024^2),
         df_3d_cpu.mem_fenz ./ (1024^2),
         df_3d_cpu.mem_fenz_multi ./ (1024^2),
         df_3d_gpu.mem_proposed_cuda ./ (1024^2),
         df_3d_gpu.mem_proposed_amdgpu ./ (1024^2),
-        df_3d_gpu.mem_proposed_oneapi ./ (1024^2),
-        df_3d_gpu.mem_proposed_metal ./ (1024^2)
+        df_3d_gpu.mem_proposed_metal ./ (1024^2),
+        # Removed: df_3d_gpu.mem_proposed_oneapi
     )
-    
-    # Rest of 3D plotting logic remains similar
+
     dt_heights_3d = vec(heights_3d')
     cat_3d = repeat(1:length(sizes_3d), inner=length(dt_names))
     grp_3d = repeat(1:length(dt_names), length(sizes_3d))
-    
+
     ax_3d = Axis(
         f[4:5, 1:2],
         ylabel = "Memory (MiB)",
         title = title_3d,
         titlesize = 25,
         xticks = (1:length(sizes_3d), x_names_3d),
-        yticks = [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 10, 100, 1000],
-        yscale = log10,
+		yticks = (
+			[1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1e0, 1e1, 1e2, 1e3],
+			[L"1 \times 10^{-5}", L"1 \times 10^{-4}", L"1 \times 10^{-3}", L"1 \times 10^{-2}", L"1 \times 10^{-1}", L"1 \times 10^{0}", L"1 \times 10^{1}", L"1 \times 10^{2}", L"1 \times 10^{3}"]
+		),
+		yscale = log10,
         xgridvisible = false,
         ygridvisible = false
     )
-    
+
     barplot!(ax_3d, cat_3d, dt_heights_3d;
         dodge = grp_3d,
         color = colors[grp_3d],
     )
-    
+
     # X axis labels
     Label(f[3, 1:2], "Array Sizes", fontsize=14, padding=(0, 0, 0, 0))
     Label(f[6, 1:2], "Array Sizes", fontsize=14, padding=(0, 0, 0, 0))
-    
-    # Legends (fixed dt_names reference)
-    # CPU Legend
-    rnge = 1:3
-    elements = [PolyElement(polycolor=colors[i]) for i in rnge]
-    Legend(f[2:3, 3], elements, dt_names[rnge], "Distance Transform\nAlgorithms (CPU)")
-    
-    # GPU Legend
-    rnge = 4:7
-    elements = [PolyElement(polycolor=colors[i]) for i in rnge]
-    Legend(f[3:4, 3], elements, dt_names[rnge], "Distance Transform\nAlgorithms (GPU)")
-    
-    # save(joinpath(pwd(), "plots/julia_memory_usage.png"), f)
+
+    # Legends
+    rnge_cpu = 1:3
+    elements_cpu = [PolyElement(polycolor=colors[i]) for i in rnge_cpu]
+    Legend(f[2:3, 3], elements_cpu, dt_names[rnge_cpu], "Distance Transform\nAlgorithms (CPU Memory)")
+
+    rnge_gpu = 4:6  # Changed from 4:7 to exclude oneAPI
+    elements_gpu = [PolyElement(polycolor=colors[i]) for i in rnge_gpu]
+    Legend(f[3:4, 3], elements_gpu, dt_names[rnge_gpu], "Distance Transform\nAlgorithms (GPU Memory)")
+
+	save(joinpath(pwd(), "plots/julia_distance_transforms_memory.png"), f)
+
     return f
 end
 
 f = plot_benchmarks(df_mem_2d_cpu, df_mem_3d_cpu, df_mem_2d_gpu, df_mem_3d_gpu)
+
+heights_2d = hcat(
+	df_mem_2d_cpu.mem_maurer ./ (1024^2),
+	df_mem_2d_cpu.mem_fenz ./ (1024^2),
+	df_mem_2d_cpu.mem_fenz_multi ./ (1024^2),
+	df_mem_2d_gpu.mem_proposed_cuda ./ (1024^2),
+	df_mem_2d_gpu.mem_proposed_amdgpu ./ (1024^2),
+	df_mem_2d_gpu.mem_proposed_metal ./ (1024^2),
+	# Removed: df_2d_gpu.mem_proposed_oneapi
+)
+
+heights_3d = hcat(
+	df_mem_3d_cpu.mem_maurer ./ (1024^2),
+	df_mem_3d_cpu.mem_fenz ./ (1024^2),
+	df_mem_3d_cpu.mem_fenz_multi ./ (1024^2),
+	df_mem_3d_gpu.mem_proposed_cuda ./ (1024^2),
+	df_mem_3d_gpu.mem_proposed_amdgpu ./ (1024^2),
+	df_mem_3d_gpu.mem_proposed_metal ./ (1024^2),
+	# Removed: df_3d_gpu.mem_proposed_oneapi
+)
+
+# Define algorithm names (order must match heights_2d/heights_3d columns)
+dt_names = [
+    "Maurer (Multi-threaded)",
+    "Felzenszwalb",
+    "Felzenszwalb (Multi-threaded)",
+    "Proposed (CUDA)",
+    "Proposed (AMDGPU)",
+    "Proposed (Metal)"
+]
+
+# Generate size labels with ²/³ suffixes
+size_labels_2d = [string(s) * "²" for s in df_mem_2d_cpu.sizes]
+size_labels_3d = [string(s) * "³" for s in df_mem_3d_cpu.sizes]
+
+# Create DataFrames for 2D and 3D
+df_2d = DataFrame(
+    [:Size => size_labels_2d; [Symbol(name) => heights_2d[:, i] for (i, name) in enumerate(dt_names)]]
+)
+
+df_3d = DataFrame(
+    [:Size => size_labels_3d; [Symbol(name) => heights_3d[:, i] for (i, name) in enumerate(dt_names)]]
+)
+
+# Combine vertically
+df_mem_all = vcat(df_2d, df_3d)
+
+show(df_mem_all; allrows=true, allcols=true, truncate=0)
+
 
 
 ########################################
